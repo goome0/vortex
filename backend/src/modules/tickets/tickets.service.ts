@@ -28,6 +28,17 @@ export class TicketsService {
     return new Date();
   }
 
+  private sanitizeCategory(category: string | null): string | null {
+    // Do not allow legacy/invalid categories to leak via API responses.
+    if (!category) return null;
+    if (category === 'PAYMENT') return null;
+    return category;
+  }
+
+  private sanitizeTicket<T extends { category: string | null }>(ticket: T): T {
+    return { ...ticket, category: this.sanitizeCategory(ticket.category) };
+  }
+
   private notFound(): never {
     throw ErrorResponse.toHttpException({
       message: 'Ticket not found',
@@ -89,7 +100,7 @@ export class TicketsService {
       code: 'MY_TICKETS_SUCCESS',
       message: 'Tickets retrieved successfully',
       path: '/tickets/my',
-      data: tickets,
+      data: tickets.map((t) => this.sanitizeTicket(t)),
       successCode: HttpStatus.OK,
     });
   }
@@ -108,7 +119,7 @@ export class TicketsService {
       code: 'TICKET_GET_SUCCESS',
       message: 'Ticket retrieved successfully',
       path: `/tickets/${id}`,
-      data: { ...ticket, messages },
+      data: { ...this.sanitizeTicket(ticket), messages },
       successCode: HttpStatus.OK,
     });
   }
@@ -187,7 +198,7 @@ export class TicketsService {
       code: 'TICKETS_LIST_SUCCESS',
       message: 'Tickets retrieved successfully',
       path: '/admin/tickets',
-      data: tickets,
+      data: tickets.map((t) => this.sanitizeTicket(t)),
       successCode: HttpStatus.OK,
     });
   }
@@ -205,7 +216,7 @@ export class TicketsService {
       code: 'TICKET_GET_SUCCESS',
       message: 'Ticket retrieved successfully',
       path: `/admin/tickets/${id}`,
-      data: { ...ticket, messages },
+      data: { ...this.sanitizeTicket(ticket), messages },
       successCode: HttpStatus.OK,
     });
   }

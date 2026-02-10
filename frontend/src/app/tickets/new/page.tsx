@@ -93,7 +93,6 @@ export default function NewTicketPage() {
                   className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
                 >
                   <option value="ACCOUNT">Account</option>
-                  <option value="PAYMENT">Payment</option>
                   <option value="BUG">Bug</option>
                   <option value="REPORT">Report</option>
                   <option value="OTHER">Other</option>

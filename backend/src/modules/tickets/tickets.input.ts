@@ -2,6 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { EVtxTicketPriority } from '@/database/entities/vtx-support-ticket.entity';
 
+export enum EVtxTicketCategory {
+  ACCOUNT = 'ACCOUNT',
+  BUG = 'BUG',
+  REPORT = 'REPORT',
+  OTHER = 'OTHER',
+}
+
 export class CreateTicketInputDTO {
   @ApiProperty({ description: 'Ticket subject', example: 'Cannot login to my account', maxLength: 140 })
   @IsNotEmpty({ message: 'Subject is required' })
@@ -9,11 +16,14 @@ export class CreateTicketInputDTO {
   @MaxLength(140, { message: 'Subject must be less than 140 characters' })
   public subject!: string;
 
-  @ApiPropertyOptional({ description: 'Category', example: 'ACCOUNT', maxLength: 32 })
+  @ApiPropertyOptional({
+    description: 'Category',
+    enum: EVtxTicketCategory,
+    example: EVtxTicketCategory.ACCOUNT,
+  })
   @IsOptional()
-  @IsString({ message: 'Category must be a string' })
-  @MaxLength(32, { message: 'Category must be less than 32 characters' })
-  public category?: string;
+  @IsEnum(EVtxTicketCategory, { message: 'Category is invalid' })
+  public category?: EVtxTicketCategory;
 
   @ApiPropertyOptional({ description: 'Priority', enum: EVtxTicketPriority, default: EVtxTicketPriority.MEDIUM })
   @IsOptional()
