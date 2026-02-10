@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { useAuthStore } from '@/stores';
-import { ROUTES } from '@/lib/constants';
-import { Button, Card, CardContent, Badge } from '@/components/ui';
-import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { Badge, Button, Card, CardContent } from "@/components/ui";
+import { ROUTES } from "@/lib/constants";
+import { useAuthStore } from "@/stores";
+import { motion } from "framer-motion";
 import {
-  User,
-  Coins,
-  Shield,
-  Download,
-  Settings,
-  Gamepad2,
   ChevronRight,
-  TrendingUp,
-  Ticket,
-  UserCircle,
+  Coins,
+  Download,
+  Gamepad2,
   LogOut,
-} from 'lucide-react';
+  Settings,
+  Shield,
+  Ticket,
+  TrendingUp,
+  User,
+  UserCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -38,7 +38,8 @@ const staggerContainer = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, isHydrated, logout, fetchProfile } = useAuthStore();
+  const { user, isAuthenticated, isLoading, isHydrated, logout, fetchProfile } =
+    useAuthStore();
 
   useEffect(() => {
     if (isHydrated && !isAuthenticated) {
@@ -78,9 +79,14 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">
-                Welcome back, <span className="gradient-text-primary">{user.disp_name || user.username}</span>
+                Welcome back,{" "}
+                <span className="gradient-text-primary">
+                  {user.disp_name || user.username}
+                </span>
               </h1>
-              <p className="text-slate-400">Let&apos;s check on your progress, survivor.</p>
+              <p className="text-slate-400">
+                Let&apos;s check on your progress, survivor.
+              </p>
             </div>
           </div>
 
@@ -94,7 +100,10 @@ export default function DashboardPage() {
                 GM Panel
               </Button>
             )}
-            <Button variant="secondary" onClick={() => router.push(ROUTES.PROFILE)}>
+            <Button
+              variant="secondary"
+              onClick={() => router.push(ROUTES.PROFILE)}
+            >
               <Settings className="w-4 h-4" />
               Settings
             </Button>
@@ -112,10 +121,30 @@ export default function DashboardPage() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           {[
-            { label: 'CP Balance', value: user.cp?.toLocaleString() || '0', icon: Coins, color: 'text-yellow-400' },
-            { label: 'User Level', value: user.user_level?.toString() || '0', icon: TrendingUp, color: 'text-green-400' },
-            { label: 'Tickets', value: user.ticket_count?.toString() || '0', icon: Ticket, color: 'text-cyan-400' },
-            { label: 'Characters', value: user.character_count?.toString() || '0', icon: UserCircle, color: 'text-blue-400' },
+            {
+              label: "CP Balance",
+              value: user.cp?.toLocaleString() || "0",
+              icon: Coins,
+              color: "text-yellow-400",
+            },
+            {
+              label: "User Level",
+              value: user.user_level?.toString() || "0",
+              icon: TrendingUp,
+              color: "text-green-400",
+            },
+            {
+              label: "Tickets",
+              value: user.ticket_count?.toString() || "0",
+              icon: Ticket,
+              color: "text-cyan-400",
+            },
+            {
+              label: "Characters",
+              value: user.character_count?.toString() || "0",
+              icon: UserCircle,
+              color: "text-blue-400",
+            },
           ].map((stat) => {
             const Icon = stat.icon;
             return (
@@ -158,12 +187,14 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <h3 className="text-xl font-bold text-white">{user.disp_name || user.username}</h3>
+                  <h3 className="text-xl font-bold text-white">
+                    {user.disp_name || user.username}
+                  </h3>
                   <p className="text-slate-400 text-sm">@{user.username}</p>
                   <div className="flex items-center justify-center gap-2 mt-2">
                     {isAdmin && <Badge variant="warning">Admin</Badge>}
-                    <Badge variant={user.enabled ? 'success' : 'danger'}>
-                      {user.enabled ? 'Active' : 'Disabled'}
+                    <Badge variant={user.enabled ? "success" : "danger"}>
+                      {user.enabled ? "Active" : "Disabled"}
                     </Badge>
                   </div>
 
@@ -177,21 +208,33 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex justify-between items-center px-4 py-2 rounded-lg bg-slate-800/50">
                       <span className="text-slate-400">Characters</span>
-                      <span className="text-white font-medium">{user.character_count}</span>
+                      <span className="text-white font-medium">
+                        {user.character_count}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center px-4 py-2 rounded-lg bg-slate-800/50">
                       <span className="text-slate-400">Account Status</span>
-                      <Badge variant="success" pulse>Active</Badge>
+                      <Badge variant="success" pulse>
+                        Active
+                      </Badge>
                     </div>
                   </div>
 
                   {/* Quick Actions */}
                   <div className="mt-6 grid grid-cols-2 gap-3">
-                    <Button variant="secondary" size="sm" onClick={() => router.push(ROUTES.GAME)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => router.push(ROUTES.GAME)}
+                    >
                       <Gamepad2 className="w-4 h-4" />
                       Web Game
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={() => router.push(ROUTES.DOWNLOAD)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => router.push(ROUTES.DOWNLOAD)}
+                    >
                       <Download className="w-4 h-4" />
                       Download
                     </Button>
@@ -218,12 +261,13 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-sm text-slate-400">Your CP Balance</p>
                     <p className="text-2xl font-bold text-yellow-400">
-                      {user.cp?.toLocaleString() || '0'}
+                      {user.cp?.toLocaleString() || "0"}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-500">
-                  CP (Cash Points) can be used for in-game purchases. This is a free server — no real money transactions.
+                  CP (Cash Points) can be used for in-game purchases. This is a
+                  free server — no real money transactions.
                 </p>
               </CardContent>
             </Card>
@@ -238,20 +282,23 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-sm text-slate-400">Tickets Available</p>
                     <p className="text-2xl font-bold text-cyan-400">
-                      {user.ticket_count?.toString() || '0'}
+                      {user.ticket_count?.toString() || "0"}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-500">
-                  Tickets can be used for special events and promotions within the game.
+                  Tickets can be used for special events and promotions within
+                  the game.
                 </p>
               </CardContent>
             </Card>
 
             {/* Quick Links */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="border-cyan-500/20 hover:border-cyan-500/40 transition-colors cursor-pointer group"
-                    onClick={() => router.push(ROUTES.DOWNLOAD)}>
+              <Card
+                className="border-cyan-500/20 hover:border-cyan-500/40 transition-colors cursor-pointer group"
+                onClick={() => router.push(ROUTES.DOWNLOAD)}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -259,8 +306,12 @@ export default function DashboardPage() {
                         <Download className="w-5 h-5 text-cyan-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">Download Client</p>
-                        <p className="text-sm text-slate-400">Get the game client</p>
+                        <p className="font-medium text-white">
+                          Download Client
+                        </p>
+                        <p className="text-sm text-slate-400">
+                          Get the game client
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
@@ -279,8 +330,12 @@ export default function DashboardPage() {
                         <Ticket className="w-5 h-5 text-emerald-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">Support Tickets</p>
-                        <p className="text-sm text-slate-400">Open & track requests</p>
+                        <p className="font-medium text-white">
+                          Support Tickets
+                        </p>
+                        <p className="text-sm text-slate-400">
+                          Open & track requests
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
@@ -288,8 +343,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-teal-500/20 hover:border-teal-500/40 transition-colors cursor-pointer group"
-                    onClick={() => router.push(ROUTES.NEWS)}>
+              <Card
+                className="border-teal-500/20 hover:border-teal-500/40 transition-colors cursor-pointer group"
+                onClick={() => router.push(ROUTES.NEWS)}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
