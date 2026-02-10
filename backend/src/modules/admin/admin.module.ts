@@ -11,12 +11,18 @@ import { PostItemsModule } from './services/post-items/post-items.module';
 import { GetPromosModule } from './services/get-promos/get-promos.module';
 import { CreatePromoModule } from './services/create-promo/create-promo.module';
 import { DeletePromoModule } from './services/delete-promo/delete-promo.module';
+import { AddCpModule } from './services/add-cp/add-cp.module';
+import { ScheduledCpModule } from './services/scheduled-cp/scheduled-cp.module';
+import { ItemBundlesModule } from './services/item-bundles/item-bundles.module';
 
 @Module({
   imports: [
     GetAccountsModule,
     GetAccountModule,
     UpdateAccountModule,
+    AddCpModule,
+    ScheduledCpModule,
+    ItemBundlesModule,
     DeleteAccountModule,
     KickPlayerModule,
     MessageWorldModule,

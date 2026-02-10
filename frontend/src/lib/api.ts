@@ -147,6 +147,24 @@ export const adminApi = {
   getAccounts: () => api.get('/admin/accounts'),
   getAccount: (username: string) => api.post('/admin/account', { username }),
   updateAccount: (data: Record<string, unknown>) => api.post('/admin/account/update', data),
+  addCp: (username: string, amount: number, reason?: string) =>
+    api.post('/admin/account/add-cp', { username, amount, ...(reason ? { reason } : {}) }),
+  scheduleCp: (username: string, amount: number, scheduledAtMs: number, reason?: string) =>
+    api.post('/admin/account/schedule-cp', { username, amount, scheduledAtMs, ...(reason ? { reason } : {}) }),
+  listScheduledCp: (filter?: { username?: string; status?: string }) =>
+    api.post('/admin/account/scheduled-cp', filter ?? {}),
+  cancelScheduledCp: (id: string) => api.post('/admin/account/scheduled-cp/cancel', { id }),
+  // Item bundles
+  createBundle: (data: { name: string; description?: string; cpCost?: number; products: number[] }) =>
+    api.post('/admin/bundles/create', data),
+  listBundles: (data?: { q?: string }) => api.post('/admin/bundles/list', data ?? {}),
+  updateBundle: (data: { id: string; name?: string; description?: string; cpCost?: number; products?: number[] }) =>
+    api.post('/admin/bundles/update', data),
+  deleteBundle: (id: string) => api.post('/admin/bundles/delete', { id }),
+  scheduleBundleSend: (data: { bundleId: string; usernames: string[]; scheduledAtMs?: number; reason?: string }) =>
+    api.post('/admin/bundles/send', data),
+  listBundleSends: (data?: { bundleId?: string }) => api.post('/admin/bundles/sends', data ?? {}),
+  cancelBundleSend: (id: string) => api.post('/admin/bundles/sends/cancel', { id }),
   deleteAccount: (username: string) => api.post('/admin/account/delete', { username }),
   kickPlayer: (username: string, kick_level: number) =>
     api.post('/admin/kick-player', { username, kick_level }),

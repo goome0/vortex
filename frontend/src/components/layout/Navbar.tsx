@@ -35,8 +35,13 @@ export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      const y = window.scrollY;
+      // Hysteresis prevents flicker near the threshold.
+      setScrolled((prev) => (prev ? y > 10 : y > 20));
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -55,10 +60,12 @@ export function Navbar() {
         animate={{ y: 0 }}
         className={cn(
           'fixed top-0 left-0 right-0 z-50',
-          'transition-all duration-500',
+          'relative transition-[background-color,backdrop-filter,box-shadow] duration-500',
+          // Border line (opacity-only transition to avoid white flash)
+          'after:content-[""] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-slate-800/60 after:transition-opacity after:duration-300',
           scrolled
-            ? 'bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 shadow-lg shadow-black/20'
-            : 'bg-transparent'
+            ? 'bg-slate-950/90 backdrop-blur-xl shadow-lg shadow-black/20 after:opacity-100'
+            : 'bg-transparent after:opacity-0'
         )}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

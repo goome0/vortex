@@ -22,6 +22,7 @@ import {
   X,
   Ticket,
   Server,
+  Layers,
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -30,6 +31,7 @@ const adminNavItems = [
   { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
   { href: ROUTES.ADMIN_PROMOS, label: 'Promo Codes', icon: Gift },
   { href: ROUTES.ADMIN_ITEMS, label: 'Post Items', icon: Package },
+  { href: ROUTES.ADMIN_BUNDLES, label: 'Item Bundles', icon: Layers },
   { href: ROUTES.ADMIN_TICKETS, label: 'Tickets', icon: Ticket },
   { href: ROUTES.ADMIN_WORLD, label: 'World Message', icon: MessageSquare },
   { href: ROUTES.ADMIN_SERVER, label: 'Server Control', icon: Server },

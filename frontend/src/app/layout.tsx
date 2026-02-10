@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Outfit, Orbitron } from 'next/font/google';
 import './globals.css';
+import './number-input.css';
 import { Navbar, Footer } from '@/components/layout';
 import { APP_NAME, APP_DESCRIPTION } from '@/lib/constants';
 import { Providers } from './providers';

@@ -19,6 +19,7 @@ import {
   Save,
   Coins,
   Ticket,
+  Plus,
 } from 'lucide-react';
 
 interface Account {
@@ -57,6 +58,33 @@ export default function AdminAccountsPage() {
   const [kickUsername, setKickUsername] = useState('');
   const [kickLevel, setKickLevel] = useState('1');
   const [showKickModal, setShowKickModal] = useState(false);
+
+  // Add CP modal state
+  const [showAddCpModal, setShowAddCpModal] = useState(false);
+  const [addCpAmount, setAddCpAmount] = useState('100');
+  const [addCpReason, setAddCpReason] = useState('');
+  const [addCpMode, setAddCpMode] = useState<'now' | 'schedule'>('now');
+  const [scheduleAtLocal, setScheduleAtLocal] = useState(''); // datetime-local
+
+  // Prevent subtle layout shifts when modals open/close (scrollbar width).
+  useEffect(() => {
+    const shouldLock = !!selectedAccount || showKickModal || showAddCpModal;
+    if (!shouldLock) return;
+
+    const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+    };
+  }, [selectedAccount, showKickModal, showAddCpModal]);
 
   const fetchAccounts = useCallback(async () => {
     setIsLoading(true);
@@ -158,6 +186,59 @@ export default function AdminAccountsPage() {
       setShowKickModal(false);
       setKickUsername('');
       setKickLevel('1');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openAddCpModal = () => {
+    setAddCpAmount('100');
+    setAddCpReason('');
+    setAddCpMode('now');
+    // Default schedule: +5 minutes
+    const d = new Date(Date.now() + 5 * 60 * 1000);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    setScheduleAtLocal(local);
+    setShowAddCpModal(true);
+  };
+
+  const handleAddCp = async () => {
+    const amount = parseInt(addCpAmount, 10);
+    const username = selectedAccount?.username;
+    if (!username) return;
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError('CP amount must be a positive number');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      if (addCpMode === 'schedule') {
+        const scheduledAtMs = Number.isFinite(Date.parse(scheduleAtLocal)) ? Date.parse(scheduleAtLocal) : NaN;
+        if (!Number.isFinite(scheduledAtMs)) {
+          setError('Please choose a valid schedule date/time');
+          return;
+        }
+        await adminApi.scheduleCp(username, amount, scheduledAtMs, addCpReason.trim() || undefined);
+        setSuccessMessage(`Scheduled ${amount.toLocaleString()} CP for ${username}.`);
+      } else {
+        const { data: response } = await adminApi.addCp(username, amount, addCpReason.trim() || undefined);
+        const newCp = response?.data?.newCp as number | undefined;
+        setSuccessMessage(
+          `Added ${amount.toLocaleString()} CP to ${username}${typeof newCp === 'number' ? ` (new balance: ${newCp.toLocaleString()})` : ''}!`
+        );
+        if (selectedAccount?.username === username && typeof newCp === 'number') {
+          setSelectedAccount({ ...selectedAccount, cp: newCp });
+        }
+      }
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setShowAddCpModal(false);
+      setAddCpAmount('100');
+      setAddCpReason('');
+      fetchAccounts();
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -426,7 +507,7 @@ export default function AdminAccountsPage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                        <div className="relative flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                           <Coins className="w-5 h-5 text-yellow-400" />
                           <div>
                             <p className="text-sm text-yellow-400">CP</p>
@@ -434,6 +515,14 @@ export default function AdminAccountsPage() {
                               {selectedAccount.cp?.toLocaleString() || '0'}
                             </p>
                           </div>
+                          <button
+                            type="button"
+                            onClick={openAddCpModal}
+                            className="absolute top-3 right-3 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 hover:text-yellow-200 hover:bg-yellow-500/20 transition-colors"
+                            title="Add CP"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
                         </div>
                         <div className="flex items-center gap-3 p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                           <Ticket className="w-5 h-5 text-cyan-400" />
@@ -613,6 +702,106 @@ export default function AdminAccountsPage() {
                 >
                   <Zap className="w-4 h-4" />
                   Kick Player
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add CP Modal */}
+      <AnimatePresence>
+        {showAddCpModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowAddCpModal(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Coins className="w-5 h-5 text-yellow-400" />
+                  Add CP
+                </h3>
+                <button
+                  onClick={() => setShowAddCpModal(false)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={addCpMode === 'now' ? 'secondary' : 'ghost'}
+                    onClick={() => setAddCpMode('now')}
+                    disabled={actionLoading}
+                    className="flex-1"
+                  >
+                    Add now
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={addCpMode === 'schedule' ? 'secondary' : 'ghost'}
+                    onClick={() => setAddCpMode('schedule')}
+                    disabled={actionLoading}
+                    className="flex-1"
+                  >
+                    Schedule
+                  </Button>
+                </div>
+
+                <Input
+                  label="CP Amount"
+                  type="number"
+                  placeholder="Ex: 100"
+                  autoFocus
+                  value={addCpAmount}
+                  onChange={(e) => setAddCpAmount(e.target.value)}
+                  disabled={actionLoading}
+                />
+
+                {addCpMode === 'schedule' && (
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-300">Send at</label>
+                    <input
+                      type="datetime-local"
+                      value={scheduleAtLocal}
+                      onChange={(e) => setScheduleAtLocal(e.target.value)}
+                      disabled={actionLoading}
+                      className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                    />
+                  </div>
+                )}
+
+                <Input
+                  label="Reason (optional)"
+                  placeholder="Ex: Event reward"
+                  value={addCpReason}
+                  onChange={(e) => setAddCpReason(e.target.value)}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-6 border-t border-slate-800">
+                <Button variant="ghost" className="flex-1" onClick={() => setShowAddCpModal(false)} disabled={actionLoading}>
+                  Cancel
+                </Button>
+                <Button className="flex-1" onClick={handleAddCp} isLoading={actionLoading} disabled={!selectedAccount?.username}>
+                  <Coins className="w-4 h-4" />
+                  Add CP
                 </Button>
               </div>
             </motion.div>

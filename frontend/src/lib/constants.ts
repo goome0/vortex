@@ -19,6 +19,7 @@ export const ROUTES = {
   ADMIN_ONLINE: '/admin/online',
   ADMIN_PROMOS: '/admin/promos',
   ADMIN_ITEMS: '/admin/items',
+  ADMIN_BUNDLES: '/admin/bundles',
   ADMIN_WORLD: '/admin/world',
   ADMIN_TICKETS: '/admin/tickets',
   ADMIN_SERVER: '/admin/server',

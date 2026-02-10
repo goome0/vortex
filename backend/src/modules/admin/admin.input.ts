@@ -1,5 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { EVtxScheduledCpStatus } from '@/database/entities/vtx-scheduled-cp-grant.entity';
 
 export class AdminGetAccountInputDTO {
   @ApiProperty({ description: 'Username to fetch' })
@@ -48,6 +62,74 @@ export class AdminUpdateAccountInputDTO {
   @IsOptional()
   @IsBoolean()
   public enabled?: boolean;
+}
+
+export class AdminAddCpInputDTO {
+  @ApiProperty({ description: 'Username to add CP to' })
+  @IsNotEmpty({ message: 'Username is required' })
+  @IsString({ message: 'Username must be a string' })
+  public username!: string;
+
+  @ApiProperty({ description: 'CP amount to add (positive integer)', example: 100 })
+  @IsNotEmpty({ message: 'Amount is required' })
+  @IsInt({ message: 'Amount must be an integer' })
+  @Min(1, { message: 'Amount must be at least 1' })
+  @Max(2000000000, { message: 'Amount is too large' })
+  public amount!: number;
+
+  @ApiPropertyOptional({ description: 'Optional reason / note', maxLength: 140 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(140)
+  public reason?: string;
+}
+
+export class AdminScheduleCpInputDTO {
+  @ApiProperty({ description: 'Username to add CP to' })
+  @IsNotEmpty({ message: 'Username is required' })
+  @IsString({ message: 'Username must be a string' })
+  public username!: string;
+
+  @ApiProperty({ description: 'CP amount to add (positive integer)', example: 100 })
+  @IsNotEmpty({ message: 'Amount is required' })
+  @IsInt({ message: 'Amount must be an integer' })
+  @Min(1, { message: 'Amount must be at least 1' })
+  @Max(2000000000, { message: 'Amount is too large' })
+  public amount!: number;
+
+  @ApiProperty({
+    description: 'When to send CP (Unix timestamp in milliseconds)',
+    example: 1700000000000,
+  })
+  @IsNotEmpty({ message: 'Scheduled time is required' })
+  @IsInt({ message: 'Scheduled time must be an integer' })
+  @Min(1)
+  public scheduledAtMs!: number;
+
+  @ApiPropertyOptional({ description: 'Optional reason / note', maxLength: 140 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(140)
+  public reason?: string;
+}
+
+export class AdminListScheduledCpInputDTO {
+  @ApiPropertyOptional({ description: 'Filter by username' })
+  @IsOptional()
+  @IsString()
+  public username?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by status', enum: EVtxScheduledCpStatus })
+  @IsOptional()
+  @IsString()
+  public status?: EVtxScheduledCpStatus;
+}
+
+export class AdminCancelScheduledCpInputDTO {
+  @ApiProperty({ description: 'Scheduled grant ID to cancel' })
+  @IsNotEmpty()
+  @IsUUID()
+  public id!: string;
 }
 
 export class AdminDeleteAccountInputDTO {
@@ -138,6 +220,124 @@ export class AdminPostItemsInputDTO {
   @IsNotEmpty()
   @IsArray()
   public products!: number[];
+}
+
+// --- Item Bundles ---
+
+export class AdminCreateItemBundleInputDTO {
+  @ApiProperty({ description: 'Bundle name', maxLength: 64 })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(64)
+  public name!: string;
+
+  @ApiPropertyOptional({ description: 'Bundle description', maxLength: 1000 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  public description?: string;
+
+  @ApiPropertyOptional({ description: 'CP cost (0 = free)', default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  public cpCost?: number;
+
+  @ApiProperty({ description: 'Product IDs', type: [Number] })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(200)
+  public products!: number[];
+}
+
+export class AdminUpdateItemBundleInputDTO {
+  @ApiProperty({ description: 'Bundle ID' })
+  @IsNotEmpty()
+  @IsUUID()
+  public id!: string;
+
+  @ApiPropertyOptional({ description: 'Bundle name', maxLength: 64 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  public name?: string;
+
+  @ApiPropertyOptional({ description: 'Bundle description', maxLength: 1000 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  public description?: string;
+
+  @ApiPropertyOptional({ description: 'CP cost (0 = free)', default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  public cpCost?: number;
+
+  @ApiPropertyOptional({ description: 'Product IDs', type: [Number] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(200)
+  public products?: number[];
+}
+
+export class AdminDeleteItemBundleInputDTO {
+  @ApiProperty({ description: 'Bundle ID' })
+  @IsNotEmpty()
+  @IsUUID()
+  public id!: string;
+}
+
+export class AdminListItemBundlesInputDTO {
+  @ApiPropertyOptional({ description: 'Search by name (contains)' })
+  @IsOptional()
+  @IsString()
+  public q?: string;
+}
+
+export class AdminScheduleItemBundleSendInputDTO {
+  @ApiProperty({ description: 'Bundle ID' })
+  @IsNotEmpty()
+  @IsUUID()
+  public bundleId!: string;
+
+  @ApiProperty({ description: 'Usernames to receive this bundle', type: [String] })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1000)
+  public usernames!: string[];
+
+  @ApiPropertyOptional({
+    description: 'When to send (Unix timestamp in milliseconds). If omitted, send ASAP.',
+    example: 1700000000000,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  public scheduledAtMs?: number;
+
+  @ApiPropertyOptional({ description: 'Optional reason / note', maxLength: 140 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(140)
+  public reason?: string;
+}
+
+export class AdminListItemBundleSendsInputDTO {
+  @ApiPropertyOptional({ description: 'Filter by bundleId' })
+  @IsOptional()
+  @IsUUID()
+  public bundleId?: string;
+}
+
+export class AdminCancelItemBundleSendInputDTO {
+  @ApiProperty({ description: 'Send batch ID to cancel' })
+  @IsNotEmpty()
+  @IsUUID()
+  public id!: string;
 }
 
 export class AdminCreatePromoInputDTO {

@@ -2,6 +2,7 @@ import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppLoggerModule } from './common/app-logger';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
@@ -52,6 +53,7 @@ import { WebGameModule } from './modules/webgame/webgame.module';
       }),
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
     AppLoggerModule,
     DatabaseRepositoriesModule,
     AuthModule,
