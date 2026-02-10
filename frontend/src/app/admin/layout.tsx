@@ -26,6 +26,7 @@ import {
   Layers,
   CalendarClock,
   Coins,
+  Newspaper,
 } from 'lucide-react';
 
 type AdminNavItem = {
@@ -53,6 +54,12 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
       { href: ROUTES.ADMIN_TICKETS, label: 'Tickets', icon: Ticket },
     ],
+  },
+  {
+    id: 'content',
+    label: 'Content',
+    icon: Newspaper,
+    items: [{ href: ROUTES.ADMIN_NEWS, label: 'News', icon: Newspaper }],
   },
   {
     id: 'economy',

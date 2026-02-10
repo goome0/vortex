@@ -213,3 +213,41 @@ export const serverControlApi = {
   restart: (serverControlToken: string, targetId: string, data?: { dryRun?: boolean; reason?: string }) =>
     api.post(`/admin/server/${targetId}/restart`, data ?? {}, { headers: { 'x-server-control-token': serverControlToken } }),
 };
+
+// Public News API
+export const newsApi = {
+  list: (params?: { q?: string; category?: string; limit?: number }) => api.get('/news', { params }),
+  get: (idOrSlug: string) => api.get(`/news/${idOrSlug}`),
+};
+
+// Admin News API (GM Panel)
+export const adminNewsApi = {
+  list: (data?: { q?: string; category?: string; onlyPublished?: boolean; limit?: number }) =>
+    api.post('/admin/news/list', data ?? {}),
+  create: (data: {
+    title: string;
+    slug?: string;
+    excerpt?: string;
+    content?: string;
+    category?: string;
+    badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
+    featured?: boolean;
+    readTime?: string;
+    imageUrl?: string;
+    isPublished?: boolean;
+  }) => api.post('/admin/news/create', data),
+  update: (data: {
+    id: string;
+    title?: string;
+    slug?: string;
+    excerpt?: string | null;
+    content?: string | null;
+    category?: string | null;
+    badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
+    featured?: boolean;
+    readTime?: string | null;
+    imageUrl?: string | null;
+    isPublished?: boolean;
+  }) => api.post('/admin/news/update', data),
+  delete: (id: string) => api.post('/admin/news/delete', { id }),
+};

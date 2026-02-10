@@ -87,3 +87,32 @@ CREATE TABLE IF NOT EXISTS `vtx_scheduled_cp_grants` (
   KEY `IDX_vtx_scheduled_cp_grants_scheduledAt` (`scheduledAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- News / Announcements
+CREATE TABLE IF NOT EXISTS `vtx_news` (
+  `id` CHAR(36) NOT NULL,
+  `slug` VARCHAR(96) NOT NULL,
+  `title` VARCHAR(180) NOT NULL,
+  `excerpt` VARCHAR(320) NULL,
+  `content` TEXT NULL,
+  `category` VARCHAR(48) NULL,
+  `badgeVariant` ENUM('default','info','warning','danger') NOT NULL DEFAULT 'default',
+  `featured` TINYINT(1) NOT NULL DEFAULT 0,
+  `readTime` VARCHAR(16) NULL,
+  `imageUrl` VARCHAR(2048) NULL,
+  `isPublished` TINYINT(1) NOT NULL DEFAULT 0,
+  `publishedAt` DATETIME(3) NULL,
+  `createdByUsername` VARCHAR(32) NULL,
+  `updatedByUsername` VARCHAR(32) NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UK_vtx_news_slug` (`slug`),
+  KEY `IDX_vtx_news_title` (`title`),
+  KEY `IDX_vtx_news_category` (`category`),
+  KEY `IDX_vtx_news_featured` (`featured`),
+  KEY `IDX_vtx_news_isPublished` (`isPublished`),
+  KEY `IDX_vtx_news_publishedAt` (`publishedAt`),
+  KEY `IDX_vtx_news_createdByUsername` (`createdByUsername`),
+  KEY `IDX_vtx_news_updatedByUsername` (`updatedByUsername`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

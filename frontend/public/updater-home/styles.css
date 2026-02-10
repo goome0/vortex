@@ -1,0 +1,472 @@
+/* Keep this page fully offline/self-contained (no external font downloads). */
+
+:root {
+  /* Offline-safe font stacks (no external downloads). Prefer modern Windows fonts first. */
+  --font-outfit: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-orbitron: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+
+  --bg0: #050608;
+  --bg1: #0a0f12;
+  --bg2: #0a1418;
+  --panel: rgba(15, 23, 42, 0.6);
+  --border: rgba(148, 163, 184, 0.1);
+  /* Slightly brighter text improves readability inside QtWebEngine */
+  --text: #f1f5f9;
+  --muted: #b6c1d2;
+  --muted2: #8a9ab3;
+
+  --cyan: #06b6d4;
+  --cyan2: #22d3ee;
+  --teal: #14b8a6;
+  --teal2: #2dd4bf;
+
+  --danger: #ef4444;
+  --warn: #facc15;
+
+  --w: 890px;
+  --h: 456px;
+  --pad: 14px;
+  --radius: 14px;
+  --topbar-h: 74px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: var(--w);
+  height: var(--h);
+  margin: 0;
+  overflow: hidden; /* important for Qt fixed WebEngineView */
+}
+
+body {
+  font-family: var(--font-outfit);
+  font-size: 14px;
+  line-height: 1.45;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg1) 50%, var(--bg0) 100%);
+  color: var(--text);
+}
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.font-display { font-family: var(--font-orbitron); }
+
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* From globals.css (adapted) */
+.hero-gradient {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 30% at 80% 20%, rgba(20, 184, 166, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse 60% 30% at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
+}
+
+.grid-pattern {
+  opacity: 0.10;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.gradient-text-primary {
+  background: linear-gradient(135deg, var(--cyan2) 0%, var(--cyan) 50%, var(--teal) 100%);
+  background-size: 180% 180%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* Subtle animated gradient to keep the title alive inside QtWebEngine (Qt 5.12). */
+  animation: title-gradient 7s ease-in-out infinite;
+  will-change: background-position, filter;
+}
+
+.gradient-text-primary {
+  /* Soft breathing glow; keep it minimal to avoid distracting. */
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.10));
+}
+
+@keyframes title-gradient {
+  0% { background-position: 0% 50%; filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.10)); }
+  50% { background-position: 100% 50%; filter: drop-shadow(0 0 14px rgba(34, 211, 238, 0.18)); }
+  100% { background-position: 0% 50%; filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.10)); }
+}
+
+.glass {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.scanlines { position: relative; overflow: hidden; }
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+}
+
+/* Animated conic-gradient borders are not reliably supported in Qt 5.12's
+ * embedded Chromium (QtWebEngine), so keep the featured card static. */
+
+.focus-ring { outline: none; }
+.focus-ring:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* Layout */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: var(--pad);
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr;
+  gap: 12px;
+}
+
+.topbar {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(6, 182, 212, 0.10);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.20);
+  display: grid;
+  place-items: center;
+}
+.brand-mark__inner {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.20), rgba(20, 184, 166, 0.18));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-orbitron);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(226, 232, 240, 0.95);
+}
+.brand-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.25));
+  image-rendering: auto;
+}
+.brand-text { min-width: 0; }
+.brand-title {
+  font-family: var(--font-orbitron);
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+.brand-sub { font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
+
+.top-meta { display: flex; align-items: center; gap: 10px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.40);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.92);
+}
+.pill--subtle { background: rgba(2, 6, 23, 0.26); color: rgba(226, 232, 240, 0.82); }
+.dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.5); box-shadow: 0 0 12px rgba(148, 163, 184, 0.20); }
+.dot--ok { background: rgba(45, 212, 191, 0.95); box-shadow: 0 0 14px rgba(45, 212, 191, 0.35); }
+.dot--bad { background: rgba(239, 68, 68, 0.95); box-shadow: 0 0 14px rgba(239, 68, 68, 0.25); }
+.dot--pending { background: rgba(250, 204, 21, 0.95); box-shadow: 0 0 14px rgba(250, 204, 21, 0.20); }
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 332px;
+  gap: 12px;
+  min-height: 0; /* allows inner scroll */
+}
+
+/* Featured card */
+.card {
+  border-radius: var(--radius);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(2, 6, 23, 0.35);
+}
+.card--featured {
+  padding: 16px 16px 14px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: rgba(226, 232, 240, 0.92);
+  background: rgba(148, 163, 184, 0.10);
+}
+.badge--danger {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: rgba(248, 113, 113, 0.95);
+}
+.badge--info {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.30);
+  color: rgba(34, 211, 238, 0.95);
+}
+.badge--warn {
+  background: rgba(250, 204, 21, 0.10);
+  border-color: rgba(250, 204, 21, 0.28);
+  color: rgba(250, 204, 21, 0.95);
+}
+.badge--default {
+  background: rgba(148, 163, 184, 0.10);
+  border-color: rgba(148, 163, 184, 0.18);
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.meta-row { display: flex; gap: 10px; align-items: center; }
+.meta-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(182, 193, 210, 0.92); }
+.icon { opacity: 0.9; }
+
+.featured-title {
+  margin: 10px 0 8px;
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.96);
+}
+.featured-excerpt {
+  margin: 0;
+  color: rgba(182, 193, 210, 0.92);
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 600;
+  max-height: 5.6em;
+  overflow: hidden;
+}
+
+.featured-notes {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.note-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: rgba(226, 232, 240, 0.92);
+  margin-bottom: 8px;
+}
+
+.note-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(182, 193, 210, 0.92);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.note-list li { margin: 6px 0; }
+
+.btn {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease, color 120ms ease;
+  color: rgba(226, 232, 240, 0.92);
+  background: rgba(255, 255, 255, 0.05);
+}
+.btn--disabled {
+  opacity: 0.65;
+  cursor: default;
+  pointer-events: none;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn--primary {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.22) 0%, rgba(6, 182, 212, 0.16) 50%, rgba(20, 184, 166, 0.16) 100%);
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.22);
+}
+.btn--primary:hover { box-shadow: 0 0 28px rgba(6, 182, 212, 0.30); border-color: rgba(34, 211, 238, 0.48); }
+.btn--ghost {
+  background: rgba(2, 6, 23, 0.10);
+  border-color: rgba(148, 163, 184, 0.16);
+  color: rgba(226, 232, 240, 0.88);
+}
+.btn-icon { font-size: 14px; line-height: 0; }
+
+/* Side / tabs */
+.side { display: grid; grid-template-rows: auto 1fr; gap: 10px; min-height: 0; }
+.tabs {
+  border-radius: var(--radius);
+  padding: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.tab {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: rgba(2, 6, 23, 0.14);
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.tab:hover { background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.25); }
+.tab.is-active {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.35);
+  color: rgba(34, 211, 238, 0.95);
+}
+
+.panel-wrap {
+  min-height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  background: rgba(2, 6, 23, 0.25);
+}
+
+.panel { display: none; height: 100%; }
+.panel.is-active { display: block; }
+
+.list {
+  height: 100%;
+  padding: 10px;
+  overflow: auto;
+}
+
+/* Custom scrollbar (close to globals.css) */
+.list::-webkit-scrollbar { width: 8px; height: 8px; }
+.list::-webkit-scrollbar-track { background: #0f172a; }
+.list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cyan), var(--teal));
+  border-radius: 4px;
+}
+.list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--cyan2), var(--teal2));
+}
+
+.item {
+  border-radius: 12px;
+  padding: 10px 10px 9px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.20);
+}
+.item + .item { margin-top: 10px; }
+.item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.item-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.2;
+}
+.item-excerpt {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(182, 193, 210, 0.92);
+  line-height: 1.5;
+}
+.item-foot {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(148, 163, 184, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.item-meta { font-size: 12px; color: rgba(138, 154, 179, 0.95); display: inline-flex; gap: 10px; align-items: center; }
+/* External navigation is disabled in the embedded updater view. */
+
+/* Status panel bits */
+.status-grid {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mini {
+  border-radius: 12px;
+  padding: 10px;
+}
+.mini-title { font-size: 11px; color: rgba(148, 163, 184, 0.92); font-weight: 700; }
+.mini-value { margin-top: 6px; font-size: 14px; font-weight: 900; color: rgba(255, 255, 255, 0.92); }
+.mini-sub { margin-top: 4px; font-size: 11px; color: rgba(100, 116, 139, 0.95); }
+
+/* Quick links removed */
+
+/* Footer removed */
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

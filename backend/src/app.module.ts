@@ -12,6 +12,7 @@ import { DatabaseRepositoriesModule } from './database/database-repositories.mod
 import { COMP_HACK_ENTITIES, WORLD_ENTITIES } from './database/entities';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { NewsModule } from './modules/news/news.module';
 import { ServerControlModule } from './modules/server-control/server-control.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { WebGameModule } from './modules/webgame/webgame.module';
@@ -57,6 +58,7 @@ import { WebGameModule } from './modules/webgame/webgame.module';
     AppLoggerModule,
     DatabaseRepositoriesModule,
     AuthModule,
+    NewsModule,
     AdminModule,
     TicketsModule,
     ServerControlModule,

@@ -1,8 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Card, CardContent, Badge, Button } from '@/components/ui';
+import { Card, CardContent, Badge, Button, LoadingSpinner } from '@/components/ui';
+import { newsApi, getErrorMessage } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 import {
   Newspaper,
   Calendar,
@@ -14,75 +17,19 @@ import {
   Clock,
 } from 'lucide-react';
 
-// Mock news data
-const newsItems = [
-  {
-    id: 1,
-    title: 'Season 4: The Dark Convergence is Here!',
-    excerpt: 'Experience the biggest content update yet with new dungeons, raids, and a complete story arc...',
-    content: '',
-    date: '2024-02-15',
-    category: 'Major Update',
-    categoryColor: 'danger',
-    featured: true,
-    readTime: '5 min read',
-  },
-  {
-    id: 2,
-    title: 'Double XP Weekend Event',
-    excerpt: 'Level up faster this weekend! Earn double experience points in all activities...',
-    content: '',
-    date: '2024-02-10',
-    category: 'Event',
-    categoryColor: 'warning',
-    featured: false,
-    readTime: '2 min read',
-  },
-  {
-    id: 3,
-    title: 'New Legendary Weapons Released',
-    excerpt: 'Discover the power of the Chaos Blade series. Available through the new raid content...',
-    content: '',
-    date: '2024-02-08',
-    category: 'Content',
-    categoryColor: 'info',
-    featured: false,
-    readTime: '3 min read',
-  },
-  {
-    id: 4,
-    title: 'Server Maintenance Scheduled',
-    excerpt: 'We will be performing scheduled maintenance on February 12th from 4:00 AM to 8:00 AM UTC...',
-    content: '',
-    date: '2024-02-05',
-    category: 'Maintenance',
-    categoryColor: 'default',
-    featured: false,
-    readTime: '1 min read',
-  },
-  {
-    id: 5,
-    title: 'Valentine Event Coming Soon',
-    excerpt: 'Love is in the air! Join our special Valentine event for exclusive rewards and cosmetics...',
-    content: '',
-    date: '2024-02-03',
-    category: 'Event',
-    categoryColor: 'warning',
-    featured: false,
-    readTime: '2 min read',
-  },
-  {
-    id: 6,
-    title: 'Balance Patch Notes v4.1.5',
-    excerpt: 'We have made several balance adjustments to improve class diversity in PvP and PvE...',
-    content: '',
-    date: '2024-02-01',
-    category: 'Patch Notes',
-    categoryColor: 'info',
-    featured: false,
-    readTime: '8 min read',
-  },
-];
+type NewsItem = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  category: string | null;
+  badgeVariant: 'default' | 'info' | 'warning' | 'danger';
+  featured: boolean;
+  readTime: string | null;
+  imageUrl: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+};
 
 const categoryIcons: Record<string, React.ElementType> = {
   'Major Update': Flame,
@@ -107,9 +54,28 @@ const staggerContainer = {
   },
 };
 
+function formatDate(s: string | null | undefined): string {
+  if (!s) return '';
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return String(s);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function NewsPage() {
-  const featuredNews = newsItems.find((item) => item.featured);
-  const regularNews = newsItems.filter((item) => !item.featured);
+  const query = useQuery({
+    queryKey: ['news', { limit: 12 }],
+    queryFn: async () => {
+      const res = await newsApi.list({ limit: 12 });
+      return (res.data?.data ?? []) as NewsItem[];
+    },
+  });
+
+  const { featuredNews, regularNews } = useMemo(() => {
+    const items = (query.data ?? []) as NewsItem[];
+    const featured = items.find((i) => i.featured) ?? items[0];
+    const regular = items.filter((i) => i.id !== featured?.id);
+    return { featuredNews: featured, regularNews: regular };
+  }, [query.data]);
 
   return (
     <div className="min-h-screen pt-20">
@@ -135,15 +101,27 @@ export default function NewsPage() {
           </p>
         </motion.div>
 
+        {query.isLoading && (
+          <div className="flex items-center justify-center py-24">
+            <LoadingSpinner size="lg" />
+          </div>
+        )}
+
+        {query.isError && (
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+            {getErrorMessage(query.error)}
+          </div>
+        )}
+
         {/* Featured Article */}
-        {featuredNews && (
+        {!query.isLoading && featuredNews && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="mb-12"
           >
-            <Link href={`/news/${featuredNews.id}`}>
+            <Link href={`/news/${featuredNews.slug || featuredNews.id}`}>
               <Card variant="glow" hover className="overflow-hidden">
                 <div className="grid md:grid-cols-2 gap-0">
                   {/* Image */}
@@ -158,24 +136,24 @@ export default function NewsPage() {
                   {/* Content */}
                   <CardContent className="pt-6 flex flex-col justify-center">
                     <Badge 
-                      variant={featuredNews.categoryColor as 'danger' | 'warning' | 'info' | 'default'} 
+                      variant={(featuredNews.badgeVariant as 'danger' | 'warning' | 'info' | 'default') ?? 'default'} 
                       className="w-fit mb-4"
                     >
-                      {featuredNews.category}
+                      {featuredNews.category ?? 'News'}
                     </Badge>
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 group-hover:text-red-400 transition-colors">
                       {featuredNews.title}
                     </h2>
-                    <p className="text-slate-400 mb-6">{featuredNews.excerpt}</p>
+                    <p className="text-slate-400 mb-6">{featuredNews.excerpt ?? ''}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm text-slate-500">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {featuredNews.date}
+                          {formatDate(featuredNews.publishedAt ?? featuredNews.createdAt)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {featuredNews.readTime}
+                          {featuredNews.readTime ?? '—'}
                         </span>
                       </div>
                       <Button variant="ghost" size="sm">
@@ -191,17 +169,18 @@ export default function NewsPage() {
         )}
 
         {/* News Grid */}
-        <motion.div
+        {!query.isLoading && (
+          <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {regularNews.map((news) => {
-            const CategoryIcon = categoryIcons[news.category] || Newspaper;
+            const CategoryIcon = categoryIcons[news.category ?? ''] || Newspaper;
             return (
               <motion.div key={news.id} variants={fadeInUp}>
-                <Link href={`/news/${news.id}`}>
+                <Link href={`/news/${news.slug || news.id}`}>
                   <Card hover className="h-full">
                     <CardContent className="pt-6">
                       {/* Image Placeholder */}
@@ -214,14 +193,14 @@ export default function NewsPage() {
                       {/* Category & Date */}
                       <div className="flex items-center justify-between mb-3">
                         <Badge 
-                          variant={news.categoryColor as 'danger' | 'warning' | 'info' | 'default'}
+                          variant={(news.badgeVariant as 'danger' | 'warning' | 'info' | 'default') ?? 'default'}
                           size="sm"
                         >
-                          {news.category}
+                          {news.category ?? 'News'}
                         </Badge>
                         <span className="text-xs text-slate-500 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {news.date}
+                          {formatDate(news.publishedAt ?? news.createdAt)}
                         </span>
                       </div>
 
@@ -230,14 +209,14 @@ export default function NewsPage() {
                         {news.title}
                       </h3>
                       <p className="text-slate-400 text-sm line-clamp-2 mb-4">
-                        {news.excerpt}
+                        {news.excerpt ?? ''}
                       </p>
 
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-4 border-t border-slate-800">
                         <span className="text-xs text-slate-500 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {news.readTime}
+                          {news.readTime ?? '—'}
                         </span>
                         <span className="text-red-400 text-sm font-medium flex items-center gap-1">
                           Read More
@@ -251,6 +230,7 @@ export default function NewsPage() {
             );
           })}
         </motion.div>
+        )}
 
         {/* Load More */}
         <motion.div
@@ -259,7 +239,7 @@ export default function NewsPage() {
           transition={{ delay: 0.5 }}
           className="mt-12 text-center"
         >
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" disabled>
             Load More News
             <ChevronRight className="w-5 h-5" />
           </Button>

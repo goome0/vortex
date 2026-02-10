@@ -20,6 +20,7 @@ import {
   Ticket,
   Layers,
   CalendarClock,
+  Newspaper,
 } from 'lucide-react';
 
 const fadeInUp = {
@@ -96,6 +97,7 @@ export default function AdminOverviewPage() {
     { label: 'Accounts', icon: Users, href: ROUTES.ADMIN_ACCOUNTS, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
     { label: 'Online Players', icon: Monitor, href: ROUTES.ADMIN_ONLINE, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
     { label: 'Promo Codes', icon: Gift, href: ROUTES.ADMIN_PROMOS, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+    { label: 'News', icon: Newspaper, href: ROUTES.ADMIN_NEWS, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
     { label: 'Post Items', icon: Package, href: ROUTES.ADMIN_ITEMS, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
     { label: 'Item Bundles', icon: Layers, href: ROUTES.ADMIN_BUNDLES, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
     { label: 'Scheduled CP', icon: CalendarClock, href: ROUTES.ADMIN_SCHEDULED_CP, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },

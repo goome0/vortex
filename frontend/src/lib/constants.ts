@@ -24,6 +24,7 @@ export const ROUTES = {
   ADMIN_WORLD: '/admin/world',
   ADMIN_TICKETS: '/admin/tickets',
   ADMIN_SERVER: '/admin/server',
+  ADMIN_NEWS: '/admin/news',
 } as const;
 
 export const TOKEN_KEY = 'vortex_token';

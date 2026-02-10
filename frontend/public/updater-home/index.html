@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>HeeHo World</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg hero-gradient" aria-hidden="true"></div>
+    <div class="bg grid-pattern" aria-hidden="true"></div>
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <div class="frame" role="application" aria-label="HeeHo World launcher home">
+      <header class="topbar glass scanlines">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <div class="brand-mark__inner">
+              <img class="brand-logo" src="../logo.png" alt="HeeHo World" />
+            </div>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title gradient-text-primary">HeeHo World</div>
+          </div>
+        </div>
+
+        <!-- removed: server/version pills -->
+      </header>
+
+      <main class="content">
+        <section class="card card--featured" aria-label="Featured">
+          <div class="card-head">
+            <div class="badge badge--danger">Featured</div>
+            <div class="meta-row">
+              <span class="meta-item">
+                <span class="icon" aria-hidden="true">🗓</span>
+                <span id="featuredDate">—</span>
+              </span>
+              <span class="meta-item">
+                <span class="icon" aria-hidden="true">⏱</span>
+                <span id="featuredRead">—</span>
+              </span>
+            </div>
+          </div>
+          <h1 class="featured-title" id="featuredTitle">Loading updates…</h1>
+          <p class="featured-excerpt" id="featuredExcerpt">
+            If this screen is offline, you'll still see default content here.
+          </p>
+
+          <div class="featured-notes" aria-label="Notes">
+            <div class="note-title">Notes</div>
+            <ul class="note-list">
+              <li>No external links are shown inside the updater.</li>
+              <li>Patch files are downloaded from <span class="mono">http://149.56.143.161:8081</span>.</li>
+              <li>If news cannot be loaded, the updater will still work normally.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="side" aria-label="Content">
+          <div class="tabs glass">
+            <button class="tab focus-ring is-active" type="button" data-tab="news">News</button>
+            <button class="tab focus-ring" type="button" data-tab="patch">Patch Notes</button>
+          </div>
+
+          <div class="panel-wrap">
+            <section class="panel is-active" id="panel-news" aria-label="News list">
+              <div class="list" id="newsList"></div>
+            </section>
+
+            <section class="panel" id="panel-patch" aria-label="Patch notes">
+              <div class="list" id="patchList"></div>
+            </section>
+
+            <!-- Status panel removed -->
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer removed (no WebView pill / no clock) -->
+    </div>
+
+    <script defer src="./app.js"></script>
+  </body>
+</html>
