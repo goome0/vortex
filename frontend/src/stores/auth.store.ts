@@ -4,6 +4,8 @@ import Cookies from 'js-cookie';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { authApi, getErrorMessage } from '@/lib/api';
 
+const REMEMBER_ME_KEY = 'vortex_remember_me';
+
 export interface User {
   username: string;
   email: string;
@@ -67,6 +69,10 @@ export const useAuthStore = create<AuthState>()(
             ...(rememberMe && { expires: 30 }),
           });
 
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(REMEMBER_ME_KEY, rememberMe ? '1' : '0');
+          }
+
           const user: User = {
             username: userData.username,
             email: userData.email,
@@ -109,6 +115,10 @@ export const useAuthStore = create<AuthState>()(
             expires: 30
           });
 
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(REMEMBER_ME_KEY, '1');
+          }
+
           const user: User = {
             username: userData.username,
             email: userData.email,
@@ -136,6 +146,9 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         Cookies.remove(TOKEN_KEY);
         Cookies.remove(REFRESH_TOKEN_KEY);
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(REMEMBER_ME_KEY);
+        }
         set({ user: null, isAuthenticated: false });
         window.location.href = '/';
       },

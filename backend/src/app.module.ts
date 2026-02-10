@@ -41,7 +41,11 @@ import { WebGameModule } from './modules/webgame/webgame.module';
       global: true,
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
+        // Access token TTL (refresh token TTL is set explicitly when signing refresh tokens)
+        signOptions: {
+          // Cast needed because `expiresIn` typing uses `StringValue` from `ms`.
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ?? '1h') as any,
+        },
         verifyOptions: {
           algorithms: ['HS256'],
         },

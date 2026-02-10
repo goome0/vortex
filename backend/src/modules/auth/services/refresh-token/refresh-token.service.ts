@@ -3,6 +3,7 @@ import { CompHackAuthService } from '@/common/imagine/comp-hack-auth.service';
 import { ErrorResponse } from '@/common/responses/error-response';
 import { SuccessResponse } from '@/common/responses/success-response';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenInputDTO } from './refresh-token.input';
 
@@ -14,6 +15,7 @@ export class RefreshTokenService {
     private readonly jwtService: JwtService,
     private readonly imagineService: ImagineService,
     private readonly compHackAuthService: CompHackAuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   public async execute(input: RefreshTokenInputDTO) {
@@ -21,7 +23,7 @@ export class RefreshTokenService {
 
     const decodedToken = await (async () => {
       try {
-        return await this.jwtService.verifyAsync<{ username?: string }>(input.refreshToken);
+        return await this.jwtService.verifyAsync<{ username?: string; typ?: string }>(input.refreshToken);
       } catch {
         this.logger.error('Invalid or expired refresh token');
         throw ErrorResponse.toHttpException({
@@ -34,6 +36,17 @@ export class RefreshTokenService {
 
     if (!decodedToken.username) {
       this.logger.error('Refresh token does not contain username');
+      throw ErrorResponse.toHttpException({
+        message: 'Invalid refresh token',
+        statusCode: HttpStatus.UNAUTHORIZED,
+        code: 'INVALID_REFRESH_TOKEN',
+      });
+    }
+
+    // If token has a `typ` claim, it must be a refresh token.
+    // (Backward compatible with older refresh tokens without `typ`.)
+    if (decodedToken.typ && decodedToken.typ !== 'refresh') {
+      this.logger.error('Invalid refresh token type', { typ: decodedToken.typ });
       throw ErrorResponse.toHttpException({
         message: 'Invalid refresh token',
         statusCode: HttpStatus.UNAUTHORIZED,
@@ -58,11 +71,17 @@ export class RefreshTokenService {
       disp_name: details.disp_name,
       user_level: details.user_level,
       enabled: details.enabled,
+      typ: 'access',
     });
 
-    const refreshToken = await this.jwtService.signAsync({
-      username: details.username,
-    });
+    const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '30d') as any;
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        username: details.username,
+        typ: 'refresh',
+      },
+      { expiresIn: refreshExpiresIn }
+    );
 
     return SuccessResponse.toJson({
       code: 'REFRESH_TOKEN_SUCCESS',

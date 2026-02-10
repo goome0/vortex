@@ -22,8 +22,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     enabled?: boolean;
     challenge?: string;
     permissions?: string[];
+    typ?: string;
   }): Promise<CurrentUserDTO> {
     if (!payload.username) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    // If token has a `typ` claim, it must be an access token.
+    // (Backward compatible with older tokens without `typ`.)
+    if (payload.typ && payload.typ !== 'access') {
       throw new UnauthorizedException('Token inválido');
     }
 

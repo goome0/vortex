@@ -2,6 +2,7 @@ import { ImagineService } from '@/common/imagine/imagine.service';
 import { ErrorResponse } from '@/common/responses/error-response';
 import { SuccessResponse } from '@/common/responses/success-response';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpInputDTO } from './sign-up.input';
 
@@ -12,6 +13,7 @@ export class SignUpService {
   public constructor(
     private readonly jwtService: JwtService,
     private readonly imagineService: ImagineService,
+    private readonly configService: ConfigService,
   ) {}
 
   public async execute(input: SignUpInputDTO) {
@@ -35,11 +37,17 @@ export class SignUpService {
     const token = await this.jwtService.signAsync({
       username: input.username,
       email: input.email,
+      typ: 'access',
     });
 
-    const refreshToken = await this.jwtService.signAsync({
-      username: input.username,
-    });
+    const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '30d') as any;
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        username: input.username,
+        typ: 'refresh',
+      },
+      { expiresIn: refreshExpiresIn }
+    );
 
     return SuccessResponse.toJson({
       code: 'SIGN_UP_SUCCESS',

@@ -2,6 +2,20 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { API_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants';
 
+const REMEMBER_ME_KEY = 'vortex_remember_me';
+
+function getCookieOptions() {
+  return {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+  };
+}
+
+function shouldPersistAuthCookies(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(REMEMBER_ME_KEY) === '1';
+}
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -33,18 +47,42 @@ api.interceptors.response.use(
       try {
         const refreshToken = Cookies.get(REFRESH_TOKEN_KEY);
         if (refreshToken) {
-          // Backend returns { success, data: { token, refreshToken } }
-          const { data: response } = await axios.post(`${API_URL}/auth/refresh-token`, {
-            refreshToken,
+          // Ensure only one refresh is in flight.
+          const g = globalThis as typeof globalThis & {
+            __vortexRefreshPromise?: Promise<{ token: string; refreshToken: string }>;
+          };
+
+          if (!g.__vortexRefreshPromise) {
+            g.__vortexRefreshPromise = (async () => {
+              // Backend returns { success, data: { token, refreshToken } }
+              const { data: response } = await axios.post(`${API_URL}/auth/refresh-token`, {
+                refreshToken,
+              });
+
+              return {
+                token: response.data.token as string,
+                refreshToken: response.data.refreshToken as string,
+              };
+            })().finally(() => {
+              g.__vortexRefreshPromise = undefined;
+            });
+          }
+
+          const refreshed = await g.__vortexRefreshPromise;
+
+          const cookieOptions = getCookieOptions();
+          const persistCookies = shouldPersistAuthCookies();
+
+          Cookies.set(TOKEN_KEY, refreshed.token, {
+            ...cookieOptions,
+            ...(persistCookies && { expires: 7 }),
+          });
+          Cookies.set(REFRESH_TOKEN_KEY, refreshed.refreshToken, {
+            ...cookieOptions,
+            ...(persistCookies && { expires: 30 }),
           });
 
-          const newToken = response.data.token;
-          const newRefreshToken = response.data.refreshToken;
-
-          Cookies.set(TOKEN_KEY, newToken, { secure: true, sameSite: 'strict' });
-          Cookies.set(REFRESH_TOKEN_KEY, newRefreshToken, { secure: true, sameSite: 'strict' });
-
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          originalRequest.headers.Authorization = `Bearer ${refreshed.token}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
