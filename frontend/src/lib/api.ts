@@ -4,6 +4,8 @@ import { API_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants';
 
 const REMEMBER_ME_KEY = 'vortex_remember_me';
 const COOKIE_PATH = '/';
+const STORAGE_TOKEN_KEY = TOKEN_KEY;
+const STORAGE_REFRESH_TOKEN_KEY = REFRESH_TOKEN_KEY;
 
 function isHttpsForCookies(): boolean {
   // In production builds served over plain http (e.g., IP + port),
@@ -25,6 +27,16 @@ function shouldPersistAuthCookies(): boolean {
   return window.localStorage.getItem(REMEMBER_ME_KEY) === '1';
 }
 
+function getStoredToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return window.localStorage.getItem(STORAGE_TOKEN_KEY) ?? undefined;
+}
+
+function getStoredRefreshToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return window.localStorage.getItem(STORAGE_REFRESH_TOKEN_KEY) ?? undefined;
+}
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -35,7 +47,7 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = Cookies.get(TOKEN_KEY);
+    const token = Cookies.get(TOKEN_KEY) || getStoredToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -54,7 +66,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = Cookies.get(REFRESH_TOKEN_KEY);
+        const refreshToken = Cookies.get(REFRESH_TOKEN_KEY) || getStoredRefreshToken();
         if (refreshToken) {
           // Ensure only one refresh is in flight.
           const g = globalThis as typeof globalThis & {
@@ -91,12 +103,21 @@ api.interceptors.response.use(
             ...(persistCookies && { expires: 30 }),
           });
 
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(STORAGE_TOKEN_KEY, refreshed.token);
+            window.localStorage.setItem(STORAGE_REFRESH_TOKEN_KEY, refreshed.refreshToken);
+          }
+
           originalRequest.headers.Authorization = `Bearer ${refreshed.token}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
         Cookies.remove(TOKEN_KEY, { path: COOKIE_PATH });
         Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(STORAGE_TOKEN_KEY);
+          window.localStorage.removeItem(STORAGE_REFRESH_TOKEN_KEY);
+        }
         window.location.href = '/login';
       }
     }

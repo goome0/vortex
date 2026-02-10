@@ -6,6 +6,8 @@ import { authApi, getErrorMessage } from '@/lib/api';
 
 const REMEMBER_ME_KEY = 'vortex_remember_me';
 const COOKIE_PATH = '/';
+const STORAGE_TOKEN_KEY = TOKEN_KEY;
+const STORAGE_REFRESH_TOKEN_KEY = REFRESH_TOKEN_KEY;
 
 function getCookieOptions(): Cookies.CookieAttributes {
   // If the site is served over plain http (common on IP-based servers),
@@ -81,6 +83,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (typeof window !== 'undefined') {
             window.localStorage.setItem(REMEMBER_ME_KEY, rememberMe ? '1' : '0');
+            window.localStorage.setItem(STORAGE_TOKEN_KEY, userData.token);
+            window.localStorage.setItem(STORAGE_REFRESH_TOKEN_KEY, userData.refreshToken);
           }
 
           const user: User = {
@@ -126,6 +130,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (typeof window !== 'undefined') {
             window.localStorage.setItem(REMEMBER_ME_KEY, '1');
+            window.localStorage.setItem(STORAGE_TOKEN_KEY, userData.token);
+            window.localStorage.setItem(STORAGE_REFRESH_TOKEN_KEY, userData.refreshToken);
           }
 
           const user: User = {
@@ -157,13 +163,17 @@ export const useAuthStore = create<AuthState>()(
         Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem(REMEMBER_ME_KEY);
+          window.localStorage.removeItem(STORAGE_TOKEN_KEY);
+          window.localStorage.removeItem(STORAGE_REFRESH_TOKEN_KEY);
         }
         set({ user: null, isAuthenticated: false });
         window.location.href = '/';
       },
 
       fetchProfile: async () => {
-        const token = Cookies.get(TOKEN_KEY);
+        const token =
+          Cookies.get(TOKEN_KEY) ||
+          (typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_TOKEN_KEY) ?? undefined : undefined);
         if (!token) return;
 
         set({ isLoading: true });
@@ -188,6 +198,10 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           Cookies.remove(TOKEN_KEY, { path: COOKIE_PATH });
           Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(STORAGE_TOKEN_KEY);
+            window.localStorage.removeItem(STORAGE_REFRESH_TOKEN_KEY);
+          }
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
