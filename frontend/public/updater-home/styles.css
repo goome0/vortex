@@ -3,7 +3,8 @@
 :root {
   /* Offline-safe font stacks (no external downloads). Prefer modern Windows fonts first. */
   --font-outfit: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-  --font-orbitron: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  /* More "game launcher" vibe without bundling fonts */
+  --font-orbitron: "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
 
   --bg0: #050608;
   --bg1: #0a0f12;
@@ -152,7 +153,7 @@ body {
   justify-content: flex-start;
 }
 
-.brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 20px; min-width: 0; }
 .brand-mark {
   width: 40px;
   height: 40px;
@@ -188,7 +189,8 @@ body {
   font-size: 20px;
   line-height: 1.1;
   font-weight: 900;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.03em;
+  margin-left: 2px; /* give the text a bit more breathing room from the mark */
 }
 .brand-sub { font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
 
