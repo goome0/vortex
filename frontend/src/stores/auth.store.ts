@@ -5,6 +5,19 @@ import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { authApi, getErrorMessage } from '@/lib/api';
 
 const REMEMBER_ME_KEY = 'vortex_remember_me';
+const COOKIE_PATH = '/';
+
+function getCookieOptions(): Cookies.CookieAttributes {
+  // If the site is served over plain http (common on IP-based servers),
+  // "secure: true" will prevent the browser from setting/sending the cookie.
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+
+  return {
+    secure: isHttps,
+    sameSite: 'strict',
+    path: COOKIE_PATH,
+  };
+}
 
 export interface User {
   username: string;
@@ -55,10 +68,7 @@ export const useAuthStore = create<AuthState>()(
           const userData = response.data;
 
           // When rememberMe is false, don't set expires — cookie becomes session-only (deleted on browser close)
-          const cookieOptions: Cookies.CookieAttributes = {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-          };
+          const cookieOptions = getCookieOptions();
 
           Cookies.set(TOKEN_KEY, userData.token, {
             ...cookieOptions,
@@ -104,14 +114,13 @@ export const useAuthStore = create<AuthState>()(
           // Backend response: { success, data: { username, email, token, refreshToken } }
           const userData = response.data;
 
+          const cookieOptions = getCookieOptions();
           Cookies.set(TOKEN_KEY, userData.token, { 
-            secure: process.env.NODE_ENV === 'production', 
-            sameSite: 'strict',
+            ...cookieOptions,
             expires: 7
           });
           Cookies.set(REFRESH_TOKEN_KEY, userData.refreshToken, { 
-            secure: process.env.NODE_ENV === 'production', 
-            sameSite: 'strict',
+            ...cookieOptions,
             expires: 30
           });
 
@@ -144,8 +153,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        Cookies.remove(TOKEN_KEY);
-        Cookies.remove(REFRESH_TOKEN_KEY);
+        Cookies.remove(TOKEN_KEY, { path: COOKIE_PATH });
+        Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem(REMEMBER_ME_KEY);
         }
@@ -177,8 +186,8 @@ export const useAuthStore = create<AuthState>()(
 
           set({ user, isAuthenticated: true, isLoading: false });
         } catch {
-          Cookies.remove(TOKEN_KEY);
-          Cookies.remove(REFRESH_TOKEN_KEY);
+          Cookies.remove(TOKEN_KEY, { path: COOKIE_PATH });
+          Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },

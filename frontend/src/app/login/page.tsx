@@ -9,6 +9,13 @@ import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { User, Lock, ArrowRight } from 'lucide-react';
 
+function getSafeRedirectPath(value: string | null): string | null {
+  if (!value) return null;
+  // Prevent open redirects like //evil.com
+  if (!value.startsWith('/') || value.startsWith('//')) return null;
+  return value;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
@@ -18,12 +25,17 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [formErrors, setFormErrors] = useState<{ username?: string; password?: string }>({});
 
+  const redirectPath =
+    (typeof window !== 'undefined' &&
+      getSafeRedirectPath(new URL(window.location.href).searchParams.get('redirect'))) ||
+    ROUTES.DASHBOARD;
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(ROUTES.DASHBOARD);
+      router.push(redirectPath);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, redirectPath, router]);
 
   // Clear errors on unmount
   useEffect(() => {
@@ -55,7 +67,7 @@ export default function LoginPage() {
 
     const success = await login(username, password, rememberMe);
     if (success) {
-      router.push(ROUTES.DASHBOARD);
+      router.push(redirectPath);
     }
   };
 

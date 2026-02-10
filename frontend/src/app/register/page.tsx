@@ -9,6 +9,12 @@ import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { Mail, Lock, User, Gamepad2, ArrowRight, CheckCircle } from 'lucide-react';
 
+function getSafeRedirectPath(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith('/') || value.startsWith('//')) return null;
+  return value;
+}
+
 const passwordRequirements = [
   { id: 'length', label: 'At least 8 characters', regex: /.{8,}/ },
   { id: 'uppercase', label: 'One uppercase letter', regex: /[A-Z]/ },
@@ -27,6 +33,11 @@ export default function RegisterPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  const redirectPath =
+    (typeof window !== 'undefined' &&
+      getSafeRedirectPath(new URL(window.location.href).searchParams.get('redirect'))) ||
+    ROUTES.DASHBOARD;
+
   // Password strength check
   const passwordStrength = passwordRequirements.filter((req) =>
     req.regex.test(password)
@@ -35,9 +46,9 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(ROUTES.DASHBOARD);
+      router.push(redirectPath);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, redirectPath, router]);
 
   // Clear errors on unmount
   useEffect(() => {
@@ -87,7 +98,7 @@ export default function RegisterPage() {
 
     const success = await register(username, email, password);
     if (success) {
-      router.push(ROUTES.DASHBOARD);
+      router.push(redirectPath);
     }
   };
 

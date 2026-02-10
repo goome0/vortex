@@ -3,11 +3,20 @@ import Cookies from 'js-cookie';
 import { API_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants';
 
 const REMEMBER_ME_KEY = 'vortex_remember_me';
+const COOKIE_PATH = '/';
+
+function isHttpsForCookies(): boolean {
+  // In production builds served over plain http (e.g., IP + port),
+  // Secure cookies won't be set/sent by browsers, breaking middleware auth.
+  if (typeof window === 'undefined') return false;
+  return window.location.protocol === 'https:';
+}
 
 function getCookieOptions() {
   return {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isHttpsForCookies(),
     sameSite: 'strict' as const,
+    path: COOKIE_PATH,
   };
 }
 
@@ -86,8 +95,8 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        Cookies.remove(TOKEN_KEY);
-        Cookies.remove(REFRESH_TOKEN_KEY);
+        Cookies.remove(TOKEN_KEY, { path: COOKIE_PATH });
+        Cookies.remove(REFRESH_TOKEN_KEY, { path: COOKIE_PATH });
         window.location.href = '/login';
       }
     }
