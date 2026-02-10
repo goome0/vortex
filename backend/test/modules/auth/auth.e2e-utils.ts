@@ -7,7 +7,7 @@ import {
   EVerificationCodeType,
   PublishQueueMessageService,
   VerificationCodesSeeder,
-} from '@lbss9/zap-food-packages';
+} from '@lbss9/vortex-packages';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';

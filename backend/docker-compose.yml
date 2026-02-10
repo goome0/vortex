@@ -1,37 +1,4 @@
 services:
-  mongodb-test:
-    image: mongo:7
-    container_name: zap-food-test-mongodb
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: '123456'
-      MONGO_INITDB_DATABASE: zap-food_test
-    ports:
-      - '27017:27017'
-    volumes:
-      - mongodb_test_data:/data/db
-    healthcheck:
-      test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis-test:
-    image: redis:7-alpine
-    container_name: zap-food-test-redis
-    restart: always
-    ports:
-      - '6380:6379'
-    volumes:
-      - redis_test_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   mariadb:
     image: mariadb:11
     container_name: vortex-mariadb
@@ -53,6 +20,4 @@ services:
       retries: 10
 
 volumes:
-  mongodb_test_data:
-  redis_test_data:
   mariadb_data:

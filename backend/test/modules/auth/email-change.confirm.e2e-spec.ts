@@ -1,4 +1,4 @@
-import { EVerificationCodeType } from '@lbss9/zap-food-packages';
+import { EVerificationCodeType } from '@lbss9/vortex-packages';
 import { INestApplication } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import request from 'supertest';

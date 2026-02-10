@@ -60,12 +60,12 @@ export function Navbar() {
         animate={{ y: 0 }}
         className={cn(
           'fixed top-0 left-0 right-0 z-50',
-          'relative transition-[background-color,backdrop-filter,box-shadow] duration-500',
+          'transition-[background-color,backdrop-filter,box-shadow] duration-500',
           // Border line (opacity-only transition to avoid white flash)
           'after:content-[""] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-slate-800/60 after:transition-opacity after:duration-300',
           scrolled
-            ? 'bg-slate-950/90 backdrop-blur-xl shadow-lg shadow-black/20 after:opacity-100'
-            : 'bg-transparent after:opacity-0'
+            ? 'bg-slate-950/85 backdrop-blur-xl shadow-lg shadow-black/20 after:opacity-100'
+            : 'bg-slate-950/25 backdrop-blur-md after:opacity-50'
         )}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

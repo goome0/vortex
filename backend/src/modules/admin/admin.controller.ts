@@ -9,6 +9,7 @@ import { AddCpService } from './services/add-cp/add-cp.service';
 import { ScheduleCpService } from './services/scheduled-cp/services/schedule-cp.service';
 import { ListScheduledCpService } from './services/scheduled-cp/services/list-scheduled-cp.service';
 import { CancelScheduledCpService } from './services/scheduled-cp/services/cancel-scheduled-cp.service';
+import { UpdateScheduledCpService } from './services/scheduled-cp/services/update-scheduled-cp.service';
 import { DeleteAccountService } from './services/delete-account/delete-account.service';
 import { KickPlayerService } from './services/kick-player/kick-player.service';
 import { MessageWorldService } from './services/message-world/message-world.service';
@@ -31,6 +32,7 @@ import {
   AdminScheduleCpInputDTO,
   AdminListScheduledCpInputDTO,
   AdminCancelScheduledCpInputDTO,
+  AdminUpdateScheduledCpInputDTO,
   AdminDeleteAccountInputDTO,
   AdminKickPlayerInputDTO,
   AdminMessageWorldInputDTO,
@@ -58,6 +60,7 @@ export class AdminController {
     private readonly scheduleCpService: ScheduleCpService,
     private readonly listScheduledCpService: ListScheduledCpService,
     private readonly cancelScheduledCpService: CancelScheduledCpService,
+    private readonly updateScheduledCpService: UpdateScheduledCpService,
     private readonly deleteAccountService: DeleteAccountService,
     private readonly kickPlayerService: KickPlayerService,
     private readonly messageWorldService: MessageWorldService,
@@ -108,6 +111,11 @@ export class AdminController {
   @Post('account/scheduled-cp/cancel')
   public async cancelScheduledCp(@Body() input: AdminCancelScheduledCpInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
     return this.cancelScheduledCpService.execute(input, currentUser);
+  }
+
+  @Post('account/scheduled-cp/update')
+  public async updateScheduledCp(@Body() input: AdminUpdateScheduledCpInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
+    return this.updateScheduledCpService.execute(input, currentUser);
   }
 
   @Post('account/delete')

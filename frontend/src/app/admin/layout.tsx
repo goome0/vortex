@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Package,
   ChevronLeft,
+  ChevronDown,
   Home,
   LogOut,
   Menu,
@@ -23,19 +24,61 @@ import {
   Ticket,
   Server,
   Layers,
+  CalendarClock,
+  Coins,
 } from 'lucide-react';
 
-const adminNavItems = [
-  { href: ROUTES.ADMIN, label: 'Overview', icon: Home },
-  { href: ROUTES.ADMIN_ACCOUNTS, label: 'Accounts', icon: Users },
-  { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
-  { href: ROUTES.ADMIN_PROMOS, label: 'Promo Codes', icon: Gift },
-  { href: ROUTES.ADMIN_ITEMS, label: 'Post Items', icon: Package },
-  { href: ROUTES.ADMIN_BUNDLES, label: 'Item Bundles', icon: Layers },
-  { href: ROUTES.ADMIN_TICKETS, label: 'Tickets', icon: Ticket },
-  { href: ROUTES.ADMIN_WORLD, label: 'World Message', icon: MessageSquare },
-  { href: ROUTES.ADMIN_SERVER, label: 'Server Control', icon: Server },
+type AdminNavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type AdminNavGroup = {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: AdminNavItem[];
+};
+
+const overviewItem: AdminNavItem = { href: ROUTES.ADMIN, label: 'Overview', icon: Home };
+
+const adminNavGroups: AdminNavGroup[] = [
+  {
+    id: 'players',
+    label: 'Players',
+    icon: Users,
+    items: [
+      { href: ROUTES.ADMIN_ACCOUNTS, label: 'Accounts', icon: Users },
+      { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
+      { href: ROUTES.ADMIN_TICKETS, label: 'Tickets', icon: Ticket },
+    ],
+  },
+  {
+    id: 'economy',
+    label: 'Economy',
+    icon: Coins,
+    items: [
+      { href: ROUTES.ADMIN_PROMOS, label: 'Promo Codes', icon: Gift },
+      { href: ROUTES.ADMIN_ITEMS, label: 'Post Items', icon: Package },
+      { href: ROUTES.ADMIN_BUNDLES, label: 'Item Bundles', icon: Layers },
+      { href: ROUTES.ADMIN_SCHEDULED_CP, label: 'Scheduled CP', icon: CalendarClock },
+    ],
+  },
+  {
+    id: 'server',
+    label: 'Server',
+    icon: Server,
+    items: [
+      { href: ROUTES.ADMIN_WORLD, label: 'World Message', icon: MessageSquare },
+      { href: ROUTES.ADMIN_SERVER, label: 'Server Control', icon: Server },
+    ],
+  },
 ];
+
+function isActivePath(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 const SIDEBAR_EXPANDED_PX = 280;
 
@@ -48,6 +91,13 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, isHydrated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const g of adminNavGroups) {
+      initial[g.id] = g.items.some((i) => isActivePath(pathname, i.href));
+    }
+    return initial;
+  });
 
   const isAdmin = user && user.user_level >= 1000;
   const sidebarWidth = `${SIDEBAR_EXPANDED_PX}px`;
@@ -61,6 +111,13 @@ export default function AdminLayout({
       }
     }
   }, [isAuthenticated, isLoading, isHydrated, isAdmin, router]);
+
+  useEffect(() => {
+    // Keep active group open when navigating.
+    const activeGroup = adminNavGroups.find((g) => g.items.some((i) => isActivePath(pathname, i.href)))?.id;
+    if (!activeGroup) return;
+    setOpenGroups((prev) => ({ ...prev, [activeGroup]: true }));
+  }, [pathname]);
 
   if (!isHydrated || isLoading || !isAdmin) {
     return (
@@ -140,25 +197,86 @@ export default function AdminLayout({
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="absolute left-0 top-0 bottom-0 w-72 bg-slate-950 border-r border-slate-800 pt-20 pb-6 px-4"
             >
-              <nav className="space-y-1">
-                {adminNavItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  const Icon = item.icon;
+              <nav className="space-y-3">
+                {/* Overview */}
+                {(() => {
+                  const OverviewIcon = overviewItem.icon;
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      href={overviewItem.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
-                        isActive
-                          ? 'bg-cyan-500/10 text-white border border-cyan-500/30'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 border',
+                        isActivePath(pathname, overviewItem.href)
+                          ? 'bg-cyan-500/10 text-white border-cyan-500/30'
+                          : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
                       )}
                     >
-                      <Icon className="w-5 h-5" />
-                      {item.label}
+                      <OverviewIcon className="w-5 h-5" />
+                      {overviewItem.label}
                     </Link>
+                  );
+                })()}
+
+                {/* Groups */}
+                {adminNavGroups.map((group) => {
+                  const GroupIcon = group.icon;
+                  const groupOpen = !!openGroups[group.id];
+                  const anyActive = group.items.some((i) => isActivePath(pathname, i.href));
+                  return (
+                    <div key={group.id} className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !groupOpen }))}
+                        className={cn(
+                          'w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 border',
+                          anyActive
+                            ? 'bg-slate-800/40 border-slate-700/60 text-white'
+                            : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+                        )}
+                      >
+                        <span className="flex items-center gap-3">
+                          <GroupIcon className="w-5 h-5" />
+                          <span className="font-medium">{group.label}</span>
+                        </span>
+                        <ChevronDown className={cn('w-4 h-4 transition-transform', groupOpen ? 'rotate-180' : 'rotate-0')} />
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {groupOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-3 pr-1 py-1 space-y-1">
+                              {group.items.map((item) => {
+                                const ItemIcon = item.icon;
+                                const active = isActivePath(pathname, item.href);
+                                return (
+                                  <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={cn(
+                                      'flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 border',
+                                      active
+                                        ? 'bg-cyan-500/10 text-white border-cyan-500/30'
+                                        : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+                                    )}
+                                  >
+                                    <ItemIcon className="w-5 h-5" />
+                                    {item.label}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   );
                 })}
               </nav>
@@ -213,25 +331,87 @@ export default function AdminLayout({
         </div>
 
         {/* Sidebar Nav */}
-        <nav className="flex-grow p-4 space-y-1 overflow-y-auto overflow-x-hidden">
-          {adminNavItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
+        <nav className="flex-grow p-4 space-y-3 overflow-y-auto overflow-x-hidden">
+          {/* Overview */}
+          {(() => {
+            const OverviewIcon = overviewItem.icon;
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                href={overviewItem.href}
                 className={cn(
                   'flex items-center rounded-lg transition-all duration-200 border outline-none focus:outline-none overflow-hidden',
                   'gap-3 px-4 py-3',
-                  isActive
+                  isActivePath(pathname, overviewItem.href)
                     ? 'bg-cyan-500/10 text-white border-cyan-500/30'
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
                 )}
               >
-                <Icon className="w-5 h-5 shrink-0" />
-                <span className="whitespace-nowrap block">{item.label}</span>
+                <OverviewIcon className="w-5 h-5 shrink-0" />
+                <span className="whitespace-nowrap block">{overviewItem.label}</span>
               </Link>
+            );
+          })()}
+
+          {/* Groups */}
+          {adminNavGroups.map((group) => {
+            const GroupIcon = group.icon;
+            const groupOpen = !!openGroups[group.id];
+            const anyActive = group.items.some((i) => isActivePath(pathname, i.href));
+            return (
+              <div key={group.id} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !groupOpen }))}
+                  className={cn(
+                    'w-full flex items-center justify-between rounded-lg transition-all duration-200 border',
+                    'gap-3 px-4 py-3',
+                    anyActive
+                      ? 'bg-slate-800/40 text-white border-slate-700/60'
+                      : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  )}
+                >
+                  <span className="flex items-center gap-3 min-w-0">
+                    <GroupIcon className="w-5 h-5 shrink-0" />
+                    <span className="font-semibold truncate">{group.label}</span>
+                  </span>
+                  <ChevronDown className={cn('w-4 h-4 shrink-0 transition-transform', groupOpen ? 'rotate-180' : 'rotate-0')} />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {groupOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pl-3 pr-1 py-1 space-y-1">
+                        {group.items.map((item) => {
+                          const active = isActivePath(pathname, item.href);
+                          const ItemIcon = item.icon;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              className={cn(
+                                'flex items-center rounded-lg transition-all duration-200 border outline-none focus:outline-none overflow-hidden',
+                                'gap-3 px-4 py-2.5',
+                                active
+                                  ? 'bg-cyan-500/10 text-white border-cyan-500/30'
+                                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+                              )}
+                            >
+                              <ItemIcon className="w-5 h-5 shrink-0" />
+                              <span className="whitespace-nowrap block">{item.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
         </nav>

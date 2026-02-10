@@ -154,6 +154,8 @@ export const adminApi = {
   listScheduledCp: (filter?: { username?: string; status?: string }) =>
     api.post('/admin/account/scheduled-cp', filter ?? {}),
   cancelScheduledCp: (id: string) => api.post('/admin/account/scheduled-cp/cancel', { id }),
+  updateScheduledCp: (data: { id: string; amount?: number; scheduledAtMs?: number; reason?: string }) =>
+    api.post('/admin/account/scheduled-cp/update', data),
   // Item bundles
   createBundle: (data: { name: string; description?: string; cpCost?: number; products: number[] }) =>
     api.post('/admin/bundles/create', data),

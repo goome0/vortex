@@ -20,6 +20,7 @@ export const ROUTES = {
   ADMIN_PROMOS: '/admin/promos',
   ADMIN_ITEMS: '/admin/items',
   ADMIN_BUNDLES: '/admin/bundles',
+  ADMIN_SCHEDULED_CP: '/admin/scheduled-cp',
   ADMIN_WORLD: '/admin/world',
   ADMIN_TICKETS: '/admin/tickets',
   ADMIN_SERVER: '/admin/server',

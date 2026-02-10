@@ -132,6 +132,38 @@ export class AdminCancelScheduledCpInputDTO {
   public id!: string;
 }
 
+export class AdminUpdateScheduledCpInputDTO {
+  @ApiProperty({ description: 'Scheduled grant ID to update' })
+  @IsNotEmpty()
+  @IsUUID()
+  public id!: string;
+
+  @ApiPropertyOptional({ description: 'CP amount to add (positive integer)', example: 100 })
+  @IsOptional()
+  @IsInt({ message: 'Amount must be an integer' })
+  @Min(1, { message: 'Amount must be at least 1' })
+  @Max(2000000000, { message: 'Amount is too large' })
+  public amount?: number;
+
+  @ApiPropertyOptional({
+    description: 'When to send CP (Unix timestamp in milliseconds)',
+    example: 1700000000000,
+  })
+  @IsOptional()
+  @IsInt({ message: 'Scheduled time must be an integer' })
+  @Min(1)
+  public scheduledAtMs?: number;
+
+  @ApiPropertyOptional({
+    description: 'Optional reason / note. Send empty string to clear.',
+    maxLength: 140,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(140)
+  public reason?: string;
+}
+
 export class AdminDeleteAccountInputDTO {
   @ApiProperty({ description: 'Username to delete' })
   @IsNotEmpty({ message: 'Username is required' })

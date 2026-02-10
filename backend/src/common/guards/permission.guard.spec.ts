@@ -1,11 +1,11 @@
-import { EAdminRole, EAdminStatus } from '@lbss9/zap-food-packages';
+import { EAdminRole, EAdminStatus } from '@lbss9/vortex-packages';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
+import { IS_PUBLIC_KEY } from '../decorators/is-public-route.decorator';
+import { PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
 import { CurrentUserDTO } from '../dto/current-user.dto';
 import { PermissionGuard } from './permission.guard';
-import { PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
-import { IS_PUBLIC_KEY } from '../decorators/is-public-route.decorator';
 
 describe('PermissionGuard', () => {
   let guard: PermissionGuard;
