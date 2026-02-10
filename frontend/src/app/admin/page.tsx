@@ -17,7 +17,7 @@ import {
   Package,
   MessageSquare,
   UserCog,
-  Zap,
+  Ticket,
 } from 'lucide-react';
 
 const fadeInUp = {
@@ -91,12 +91,13 @@ export default function AdminOverviewPage() {
   ];
 
   const quickActions = [
-    { label: 'World Broadcast', icon: MessageSquare, href: ROUTES.ADMIN_WORLD, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-    { label: 'Create Promo', icon: Gift, href: ROUTES.ADMIN_PROMOS, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
-    { label: 'Post Items', icon: Package, href: ROUTES.ADMIN_ITEMS, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+    { label: 'Accounts', icon: Users, href: ROUTES.ADMIN_ACCOUNTS, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
     { label: 'Online Players', icon: Monitor, href: ROUTES.ADMIN_ONLINE, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
-    { label: 'Manage Accounts', icon: Users, href: ROUTES.ADMIN_ACCOUNTS, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-    { label: 'Kick Player', icon: Zap, href: ROUTES.ADMIN_ACCOUNTS, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+    { label: 'Promo Codes', icon: Gift, href: ROUTES.ADMIN_PROMOS, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+    { label: 'Post Items', icon: Package, href: ROUTES.ADMIN_ITEMS, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+    { label: 'Tickets', icon: Ticket, href: ROUTES.ADMIN_TICKETS, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+    { label: 'Server Control', icon: Server, href: ROUTES.ADMIN_SERVER, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+    { label: 'World Message', icon: MessageSquare, href: ROUTES.ADMIN_WORLD, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
   ];
 
   if (isLoading) {
