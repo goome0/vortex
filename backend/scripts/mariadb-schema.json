@@ -1,0 +1,3655 @@
+{
+  "host": "127.0.0.1",
+  "port": 3306,
+  "user": "comp",
+  "databases": {
+    "comp_hack": {
+      "tables": {
+        "Account": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Username",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "DisplayName",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Email",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Password",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Salt",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "CP",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TicketCount",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "UserLevel",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Enabled",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "APIOnly",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LastLogin",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LastLogout",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BanReason",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "BanInitiator",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Characters",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Migrations": [
+          {
+            "field": "Migration",
+            "type": "varchar(128)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          }
+        ],
+        "PostItem": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Source",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Timestamp",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "FromName",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "GiftMessage",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "DistributionMessageID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Promo": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Code",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "StartTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EndTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "UseLimit",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LimitType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PostItems",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "PromoExchange": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Promo",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "WorldID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Timestamp",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "RegisteredWorld": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "ID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Name",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_general_ci",
+            "comment": ""
+          },
+          {
+            "field": "Status",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ]
+      }
+    },
+    "world": {
+      "tables": {
+        "AccountWorldData": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "DemonBoxes",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemBoxes",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DevilBook",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BazaarData",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Blacklist",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ReunionPoints",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MitamaReunionPoints",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ActionCooldowns",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CleanupRequired",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "BazaarData": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Zone",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MarketID",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ChannelID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Comment",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "NPCType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "State",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Expiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Items",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "BazaarItem": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Item",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "StackSize",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Cost",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Sold",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Character": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Name",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "WorldID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "KillTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Gender",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SkinType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "HairType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "FaceType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EyeType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "HairColor",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LeftEyeColor",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "RightEyeColor",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LNC",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ExpertiseExtension",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "COMP",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "ActiveDemon",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "HomepointZone",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "HomepointSpotID",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LogoutZone",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LogoutInstance",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LogoutX",
+            "type": "float",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LogoutY",
+            "type": "float",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LogoutRotation",
+            "type": "float",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PreviousZone",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LoginPoints",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LastLogin",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Clan",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "CurrentTitle",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TitlePrioritized",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SupportDisplay",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "FusionGauge",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LearnedSkills",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EquippedItems",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EquippedVA",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Materials",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemBoxes",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "VACloset",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Expertises",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "StatusEffects",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Quests",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Hotbars",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CommonSwitch",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "AutoRecovery",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CustomTitles",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ActionCooldowns",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CoreStats",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Progress",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "FriendSettings",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "DemonQuest",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "CultureData",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "PvPData",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          }
+        ],
+        "CharacterProgress": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "MaxCOMPSlots",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Maps",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Plugins",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Valuables",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CompletedQuests",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DemonQuestSequence",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DemonQuestsCompleted",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DemonQuestDaily",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DemonQuestResetTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TimeTrialID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TimeTrialTime",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TimeTrialResult",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TimeTrialRecords",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Titles",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SpecialTitles",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Coins",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ITimePoints",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Bethel",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Cowrie",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DigitalizeLevels",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DigitalizePoints",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DigitalizeAssists",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Clan": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Name",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Level",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BaseZoneID",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Members",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemBase",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemSymbol",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorR1",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorG1",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorB1",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorR2",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorG2",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EmblemColorB2",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "ClanMember": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Clan",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "ClanMessage",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "MemberType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "CultureData": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Zone",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MachineID",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Item",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Expiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Active",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemHistory",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemCount",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Demon": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DemonBox",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "BoxSlot",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "AttackSettings",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "GrowthType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MitamaRank",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MitamaType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MagReduction",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SoulPoints",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Familiarity",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Locked",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BenefitGauge",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ForceStackPending",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "HasQuest",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "AcquiredSkills",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LearnedSkills",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "InheritedSkills",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "StatusEffects",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Reunion",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MitamaReunion",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ForceValues",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ForceStack",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EquippedItems",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CoreStats",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          }
+        ],
+        "DemonBox": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "BoxID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Demons",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "RentalExpiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "DemonQuest": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Demon",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Targets",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TargetCurrentCounts",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "RewardItems",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "XPReward",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BonusItems",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BonusTitles",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BonusXP",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ChanceItem",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ChanceItemCount",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "EntityStats": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Entity",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Level",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "XP",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "HP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MaxHP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MaxMP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "STR",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MAGIC",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "VIT",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "INTEL",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SPEED",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LUCK",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CLSR",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "LNGR",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SPELL",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SUPPORT",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PDEF",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MDEF",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "EventCounter": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "RelatedTo",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Counter",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PreExpireType",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "GroupCounter",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Timestamp",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Expertise": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "ExpertiseID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Disabled",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "FriendSettings": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "FriendMessage",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Friends",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PublicToZone",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Hotbar": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "PageID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemTypes",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Items",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemIDs",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "InheritedSkill": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Skill",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Demon",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Progress",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Item": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ItemBox",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "BoxSlot",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "StackSize",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Durability",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "MaxDurability",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Tarot",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Soul",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BasicEffect",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "SpecialEffect",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ModSlots",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "FuseBonuses",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "RentalExpiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "ItemBox": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "BoxID",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Type",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Account",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Items",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "RentalExpiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Migrations": [
+          {
+            "field": "Migration",
+            "type": "varchar(128)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          }
+        ],
+        "PentalphaEntry": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Match",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Team",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Bethel",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Cowrie",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Active",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "PentalphaMatch": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "StartTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EndTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Previous",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Rankings",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "PvPData": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "BP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "GP",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Ranked",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "KillTotal",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "DeathTotal",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "BPTotal",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ModeStats",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Trophies",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "PenaltyCount",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "Quest": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "QuestID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Phase",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "CustomData",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "FlagStates",
+            "type": "blob",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "RegisteredChannel": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "ID",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Name",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "IP",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Port",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "ReportedPlayer": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "PlayerName",
+            "type": "text",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Player",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Reporter",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Location",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Subject",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Comment",
+            "type": "text",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Resolved",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Resolver",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "ReportTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "ResolveTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "StatusEffect": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Effect",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Entity",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Expiration",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Stack",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "IsConstant",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "UBResult": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Tournament",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Character",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "Points",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TopPoints",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Matches",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TournamentRank",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "AllTimeRank",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "TopPointRank",
+            "type": "int(11)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Ranked",
+            "type": "bit(1)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          }
+        ],
+        "UBTournament": [
+          {
+            "field": "UID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "key": "PRI",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          },
+          {
+            "field": "StartTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "EndTime",
+            "type": "bigint(20)",
+            "nullable": true,
+            "key": "MUL",
+            "default": null,
+            "extra": "",
+            "collation": null,
+            "comment": ""
+          },
+          {
+            "field": "Previous",
+            "type": "varchar(36)",
+            "nullable": true,
+            "key": "",
+            "default": null,
+            "extra": "",
+            "collation": "utf8mb4_unicode_ci",
+            "comment": ""
+          }
+        ]
+      }
+    }
+  }
+}

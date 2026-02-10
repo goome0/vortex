@@ -1,0 +1,570 @@
+{
+  "info": {
+    "name": "Vortex API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:6005"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "serverControlToken",
+      "value": ""
+    },
+    {
+      "key": "serverTargetId",
+      "value": "mariadb"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"P@ssw0rd123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/sign-in"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sign in success', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json && json.data) {",
+                  "  if (json.data.token) pm.collectionVariables.set('token', json.data.token);",
+                  "  if (json.data.refreshToken) pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"P@ssw0rd123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/sign-up"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/refresh-token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Refresh token success', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json && json.data) {",
+                  "  if (json.data.token) pm.collectionVariables.set('token', json.data.token);",
+                  "  if (json.data.refreshToken) pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/profile"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"N3wP@ssw0rd\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/reset-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/accounts"
+          }
+        },
+        {
+          "name": "Get Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/account"
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"disp_name\": \"John\",\n  \"cp\": 0,\n  \"ticket_count\": 0,\n  \"user_level\": 0,\n  \"enabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/account/update"
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/account/delete"
+          }
+        },
+        {
+          "name": "Kick Player",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"kick_level\": 1\n}"
+            },
+            "url": "{{baseUrl}}/admin/kick-player"
+          }
+        },
+        {
+          "name": "Message World",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"world_id\": 1,\n  \"message\": \"Hello world\",\n  \"type\": \"console\",\n  \"from\": \"SYSTEM\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/message-world"
+          }
+        },
+        {
+          "name": "Online",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targets\": [\n    { \"name\": \"john_doe\", \"type\": \"account\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/admin/online"
+          }
+        },
+        {
+          "name": "Post Items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"cp\": 0,\n  \"products\": [1, 2, 3]\n}"
+            },
+            "url": "{{baseUrl}}/admin/post-items"
+          }
+        },
+        {
+          "name": "Get Promos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/promos"
+          }
+        },
+        {
+          "name": "Create Promo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PROMO2026\",\n  \"startTime\": 1739068800,\n  \"endTime\": 1739673600,\n  \"useLimit\": 1,\n  \"limitType\": \"account\",\n  \"items\": [1, 2, 3]\n}"
+            },
+            "url": "{{baseUrl}}/admin/promo/create"
+          }
+        },
+        {
+          "name": "Delete Promo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PROMO2026\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/promo/delete"
+          }
+        },
+        {
+          "name": "Server Control",
+          "item": [
+            {
+              "name": "Targets",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "x-server-control-token",
+                    "value": "{{serverControlToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/admin/server/targets"
+              }
+            },
+            {
+              "name": "Status",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "x-server-control-token",
+                    "value": "{{serverControlToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dryRun\": true,\n  \"reason\": \"Check status\"\n}"
+                },
+                "url": "{{baseUrl}}/admin/server/{{serverTargetId}}/status"
+              }
+            },
+            {
+              "name": "Start",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "x-server-control-token",
+                    "value": "{{serverControlToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dryRun\": true,\n  \"reason\": \"Start service\"\n}"
+                },
+                "url": "{{baseUrl}}/admin/server/{{serverTargetId}}/start"
+              }
+            },
+            {
+              "name": "Stop",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "x-server-control-token",
+                    "value": "{{serverControlToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dryRun\": true,\n  \"reason\": \"Stop service\"\n}"
+                },
+                "url": "{{baseUrl}}/admin/server/{{serverTargetId}}/stop"
+              }
+            },
+            {
+              "name": "Restart",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "x-server-control-token",
+                    "value": "{{serverControlToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dryRun\": true,\n  \"reason\": \"Restart service\"\n}"
+                },
+                "url": "{{baseUrl}}/admin/server/{{serverTargetId}}/restart"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WebGame",
+      "item": [
+        {
+          "name": "Get Coins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/webgame/coins"
+          }
+        },
+        {
+          "name": "Start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"example_game\"\n}"
+            },
+            "url": "{{baseUrl}}/webgame/start"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"tick\",\n  \"data\": {\n    \"key\": \"value\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/webgame/update"
+          }
+        }
+      ]
+    }
+  ]
+}
