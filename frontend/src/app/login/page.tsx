@@ -94,11 +94,14 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" autoComplete="on">
             <Input
               type="text"
               label="Username"
               placeholder="Enter your username"
+              id="username"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               error={formErrors.username}
@@ -110,6 +113,9 @@ export default function LoginPage() {
               type="password"
               label="Password"
               placeholder="Enter your password"
+              id="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={formErrors.password}

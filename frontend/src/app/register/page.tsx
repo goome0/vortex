@@ -126,11 +126,14 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
             <Input
               type="text"
               label="Username"
               placeholder="Choose a username"
+              id="username"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               error={formErrors.username}
@@ -142,6 +145,9 @@ export default function RegisterPage() {
               type="email"
               label="Email Address"
               placeholder="survivor@wasteland.com"
+              id="email"
+              name="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={formErrors.email}
@@ -154,6 +160,9 @@ export default function RegisterPage() {
                 type="password"
                 label="Password"
                 placeholder="Create a strong password"
+                id="new-password"
+                name="new-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 error={formErrors.password}
@@ -189,6 +198,9 @@ export default function RegisterPage() {
               type="password"
               label="Confirm Password"
               placeholder="Confirm your password"
+              id="confirm-password"
+              name="confirm-password"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={formErrors.confirmPassword}
