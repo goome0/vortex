@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Button, Badge } from '@/components/ui';
 import { ROUTES } from '@/lib/constants';
 import {
@@ -94,7 +95,37 @@ const news = [
   },
 ];
 
+type Particle = {
+  id: number;
+  left: string;
+  top: string;
+  durationSeconds: number;
+  delaySeconds: number;
+};
+
 export default function HomePage() {
+  // Avoid React hydration mismatch by generating random particle positions on the client only.
+  const [isMounted, setIsMounted] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    setParticles(
+      [...Array(20)].map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        durationSeconds: 3 + Math.random() * 2,
+        delaySeconds: Math.random() * 2,
+      }))
+    );
+  }, [isMounted]);
+
   return (
     <>
       {/* Hero Section */}
@@ -104,25 +135,26 @@ export default function HomePage() {
 
         {/* Animated Particles */}
         <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
+          {isMounted &&
+            particles.map((p) => (
+              <motion.div
+              key={p.id}
               className="absolute w-1 h-1 bg-cyan-500/50 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: p.left,
+                top: p.top,
               }}
               animate={{
                 opacity: [0, 1, 0],
                 scale: [0, 1.5, 0],
               }}
               transition={{
-                duration: 3 + Math.random() * 2,
+                duration: p.durationSeconds,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: p.delaySeconds,
               }}
             />
-          ))}
+            ))}
         </div>
 
         {/* Content */}
