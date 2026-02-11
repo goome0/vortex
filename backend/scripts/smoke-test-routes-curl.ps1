@@ -70,6 +70,7 @@ $results += Invoke-CurlJson -Name 'auth.sign-up.validation' -Method 'POST' -Path
 
 # --- Admin (safe smoke: GETs + validation errors) ---
 $results += Invoke-CurlJson -Name 'admin.accounts' -Method 'GET' -Path '/admin/accounts' -BearerToken $token
+$results += Invoke-CurlJson -Name 'admin.worlds' -Method 'GET' -Path '/admin/worlds' -BearerToken $token
 $results += Invoke-CurlJson -Name 'admin.account.validation' -Method 'POST' -Path '/admin/account' -Body '{}' -BearerToken $token
 $results += Invoke-CurlJson -Name 'admin.account.update.validation' -Method 'POST' -Path '/admin/account/update' -Body '{}' -BearerToken $token
 $results += Invoke-CurlJson -Name 'admin.account.delete.validation' -Method 'POST' -Path '/admin/account/delete' -Body '{}' -BearerToken $token
@@ -94,6 +95,7 @@ $expectedOk = @(
   'auth.refresh-token',
   'auth.profile',
   'admin.accounts',
+  'admin.worlds',
   'admin.online',
   'admin.promos',
   'webgame.coins'
@@ -108,4 +110,3 @@ foreach ($r in $results) {
     }
   }
 }
-

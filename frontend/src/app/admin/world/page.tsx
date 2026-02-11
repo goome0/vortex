@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, Button, Input, Alert } from '@/components/ui';
 import { adminApi, getErrorMessage } from '@/lib/api';
@@ -17,6 +17,8 @@ import {
 export default function AdminWorldPage() {
   const [message, setMessage] = useState('');
   const [worldId, setWorldId] = useState('0');
+  const [worlds, setWorlds] = useState<Array<{ world_id: number; character_count: number }>>([]);
+  const [worldsLoading, setWorldsLoading] = useState(false);
   const [messageType, setMessageType] = useState<'console' | 'ticker'>('ticker');
   const [from, setFrom] = useState('SYSTEM');
   const [mode, setMode] = useState('0');
@@ -25,14 +27,51 @@ export default function AdminWorldPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadWorlds = async () => {
+      setWorldsLoading(true);
+      try {
+        const res = await adminApi.getWorlds();
+        const list = (res.data?.data?.worlds ?? []) as Array<{ world_id: number; character_count: number }>;
+        if (!cancelled) {
+          setWorlds(list);
+          const hasWorld0 = list.some((w) => w.world_id === 0);
+          if (hasWorld0) {
+            setWorldId('0');
+          } else if (list.length > 0) {
+            setWorldId(String(list[0].world_id));
+          } else {
+            setWorldId('0');
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(getErrorMessage(err));
+        }
+      } finally {
+        if (!cancelled) {
+          setWorldsLoading(false);
+        }
+      }
+    };
+
+    void loadWorlds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
     setIsLoading(true);
     setError('');
     try {
-      const data: Record<string, unknown> = {
-        world_id: parseInt(worldId),
+      const data: Parameters<typeof adminApi.messageWorld>[0] = {
+        world_id: parseInt(worldId, 10),
         message: message.trim(),
         type: messageType,
       };
@@ -40,11 +79,11 @@ export default function AdminWorldPage() {
       if (messageType === 'console') {
         data.from = from || 'SYSTEM';
       } else {
-        data.mode = parseInt(mode);
-        data.sub_mode = parseInt(subMode);
+        data.mode = parseInt(mode, 10);
+        data.sub_mode = parseInt(subMode, 10);
       }
 
-      await adminApi.messageWorld(data as { world_id: number; message: string; type: string; from: string });
+      await adminApi.messageWorld(data);
       setMessage('');
       setSuccessMessage('Message broadcasted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -146,14 +185,44 @@ export default function AdminWorldPage() {
 
               {/* World ID */}
               <div className="mb-6">
-                <Input
-                  type="number"
-                  label="World ID"
-                  placeholder="0 for all worlds"
-                  value={worldId}
-                  onChange={(e) => setWorldId(e.target.value)}
-                  icon={<Monitor className="w-5 h-5" />}
-                />
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  World
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-50 group-focus-within:text-cyan-500 transition-colors pointer-events-none">
+                    <Monitor className="w-5 h-5" />
+                  </div>
+                  <select
+                    value={worldId}
+                    onChange={(e) => setWorldId(e.target.value)}
+                    disabled={worldsLoading}
+                    className={[
+                      'w-full px-4 py-3 rounded-lg',
+                      'bg-slate-900/80 backdrop-blur-sm',
+                      'border border-slate-700/50',
+                      'text-white placeholder:text-slate-500',
+                      'transition-all duration-300',
+                      'focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20',
+                      'hover:border-slate-600',
+                      'pl-10',
+                      worldsLoading ? 'opacity-60 cursor-not-allowed' : '',
+                    ].join(' ')}
+                  >
+                    {worldsLoading && <option value="0">Loading worlds...</option>}
+                    {!worldsLoading && worlds.length === 0 && <option value="0">No active worlds detected</option>}
+                    {!worldsLoading && worlds.length > 0 && worlds.every((w) => w.world_id !== 0) && (
+                      <option value="0">All active worlds</option>
+                    )}
+                    {worlds.map((w) => (
+                      <option key={w.world_id} value={String(w.world_id)}>
+                        World {w.world_id} ({w.character_count} online)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Select a world ID from the server{worlds.every((w) => w.world_id !== 0) ? ' (0 = broadcast to all active worlds)' : ''}
+                </p>
               </div>
 
               {/* Type-specific fields */}
@@ -168,20 +237,56 @@ export default function AdminWorldPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <Input
-                    type="number"
-                    label="Mode"
-                    placeholder="0"
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    label="Sub Mode"
-                    placeholder="0"
-                    value={subMode}
-                    onChange={(e) => setSubMode(e.target.value)}
-                  />
+                  <div className="w-full space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Mode</label>
+                    <select
+                      value={mode}
+                      onChange={(e) => setMode(e.target.value)}
+                      className={[
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-slate-900/80 backdrop-blur-sm',
+                        'border border-slate-700/50',
+                        'text-white placeholder:text-slate-500',
+                        'transition-all duration-300',
+                        'focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20',
+                        'hover:border-slate-600',
+                      ].join(' ')}
+                    >
+                      <option value="0">Red ticker</option>
+                      <option value="1">White ticker</option>
+                      <option value="2">Blue ticker</option>
+                      <option value="3">Purple ticker</option>
+                      <option value="4">COMP shop description</option>
+                    </select>
+                    <p className="text-xs text-slate-500">
+                      Ticker color/type from comp_hack (`SendSystemMessage` type 0-4).
+                    </p>
+                  </div>
+
+                  <div className="w-full space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Sub Mode</label>
+                    <select
+                      value={subMode}
+                      onChange={(e) => setSubMode(e.target.value)}
+                      className={[
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-slate-900/80 backdrop-blur-sm',
+                        'border border-slate-700/50',
+                        'text-white placeholder:text-slate-500',
+                        'transition-all duration-300',
+                        'focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20',
+                        'hover:border-slate-600',
+                      ].join(' ')}
+                    >
+                      <option value="0">0 (default)</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                    <p className="text-xs text-slate-500">
+                      `comp_hack` sends this but appears unused in most cases (default 0).
+                    </p>
+                  </div>
                 </div>
               )}
 

@@ -13,6 +13,7 @@ import { UpdateScheduledCpService } from './services/scheduled-cp/services/updat
 import { DeleteAccountService } from './services/delete-account/delete-account.service';
 import { KickPlayerService } from './services/kick-player/kick-player.service';
 import { MessageWorldService } from './services/message-world/message-world.service';
+import { GetWorldsService } from './services/get-worlds/get-worlds.service';
 import { OnlineService } from './services/online/online.service';
 import { PostItemsService } from './services/post-items/post-items.service';
 import { GetPromosService } from './services/get-promos/get-promos.service';
@@ -64,6 +65,7 @@ export class AdminController {
     private readonly deleteAccountService: DeleteAccountService,
     private readonly kickPlayerService: KickPlayerService,
     private readonly messageWorldService: MessageWorldService,
+    private readonly getWorldsService: GetWorldsService,
     private readonly onlineService: OnlineService,
     private readonly postItemsService: PostItemsService,
     private readonly createItemBundleService: CreateItemBundleService,
@@ -81,6 +83,11 @@ export class AdminController {
   @Get('accounts')
   public async getAccounts(@CurrentUser() currentUser: CurrentUserDTO) {
     return this.getAccountsService.execute(currentUser);
+  }
+
+  @Get('worlds')
+  public async getWorlds(@CurrentUser() currentUser: CurrentUserDTO) {
+    return this.getWorldsService.execute(currentUser);
   }
 
   @Post('account')

@@ -175,6 +175,7 @@ export const webGameApi = {
 // Admin API
 export const adminApi = {
   getAccounts: () => api.get('/admin/accounts'),
+  getWorlds: () => api.get('/admin/worlds'),
   getAccount: (username: string) => api.post('/admin/account', { username }),
   updateAccount: (data: Record<string, unknown>) => api.post('/admin/account/update', data),
   addCp: (username: string, amount: number, reason?: string) =>
@@ -200,7 +201,14 @@ export const adminApi = {
   deleteAccount: (username: string) => api.post('/admin/account/delete', { username }),
   kickPlayer: (username: string, kick_level: number) =>
     api.post('/admin/kick-player', { username, kick_level }),
-  messageWorld: (data: { world_id: number; message: string; type: string; from: string }) =>
+  messageWorld: (data: {
+    world_id: number;
+    message: string;
+    type: 'console' | 'ticker';
+    from?: string;
+    mode?: number;
+    sub_mode?: number;
+  }) =>
     api.post('/admin/message-world', data),
   getOnline: (targets: { name: string; type: string }[]) =>
     api.post('/admin/online', { targets }),

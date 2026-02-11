@@ -141,16 +141,20 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
+                  className={[
+                    'w-4 h-4 rounded border border-slate-600',
+                    'appearance-none bg-slate-900/80',
+                    'checked:bg-cyan-500 checked:border-cyan-500',
+                    'focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:ring-offset-0',
+                    'relative',
+                    "after:content-[''] after:absolute after:left-1/2 after:top-1/2",
+                    'after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white',
+                    'after:-translate-x-1/2 after:-translate-y-1/2 after:rotate-45 after:opacity-0',
+                    'checked:after:opacity-100',
+                  ].join(' ')}
                 />
                 Remember me
               </label>
-              <Link
-                href="#"
-                className="text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                Forgot password?
-              </Link>
             </div>
 
             <Button

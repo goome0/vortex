@@ -99,11 +99,15 @@ export class ImagineAdminMessageWorldDTO extends ImagineSessionDTO {
   @ApiPropertyOptional({ description: 'Mode (for ticker type)', default: 0 })
   @IsOptional()
   @IsInt()
+  @Min(0)
+  @Max(127)
   public mode?: number;
 
   @ApiPropertyOptional({ description: 'Sub mode (for ticker type)', default: 0 })
   @IsOptional()
   @IsInt()
+  @Min(0)
+  @Max(127)
   public sub_mode?: number;
 }
 

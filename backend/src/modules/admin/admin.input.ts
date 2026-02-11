@@ -209,11 +209,15 @@ export class AdminMessageWorldInputDTO {
   @ApiPropertyOptional({ description: 'Mode (for ticker type)', default: 0 })
   @IsOptional()
   @IsInt()
+  @Min(0)
+  @Max(127)
   public mode?: number;
 
   @ApiPropertyOptional({ description: 'Sub mode (for ticker type)', default: 0 })
   @IsOptional()
   @IsInt()
+  @Min(0)
+  @Max(127)
   public sub_mode?: number;
 }
 

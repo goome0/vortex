@@ -14,6 +14,7 @@ import { DeletePromoModule } from './services/delete-promo/delete-promo.module';
 import { AddCpModule } from './services/add-cp/add-cp.module';
 import { ScheduledCpModule } from './services/scheduled-cp/scheduled-cp.module';
 import { ItemBundlesModule } from './services/item-bundles/item-bundles.module';
+import { GetWorldsModule } from './services/get-worlds/get-worlds.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ItemBundlesModule } from './services/item-bundles/item-bundles.module';
     DeleteAccountModule,
     KickPlayerModule,
     MessageWorldModule,
+    GetWorldsModule,
     OnlineModule,
     PostItemsModule,
     GetPromosModule,
