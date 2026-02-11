@@ -1,9 +1,10 @@
 import { ErrorResponse } from '@/common/responses/error-response';
 import { SuccessResponse } from '@/common/responses/success-response';
 import { CurrentUserDTO } from '@/common/dto/current-user.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import {
   EVtxTicketAuthorRole,
   VtxSupportTicketMessageEntity,
@@ -17,12 +18,91 @@ import { AddTicketMessageInputDTO, CreateTicketInputDTO, ResolveTicketInputDTO }
 
 @Injectable()
 export class TicketsService {
+  private readonly logger = new Logger(TicketsService.name);
+
   public constructor(
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     @InjectRepository(VtxSupportTicketEntity)
     private readonly ticketsRepository: Repository<VtxSupportTicketEntity>,
     @InjectRepository(VtxSupportTicketMessageEntity)
     private readonly messagesRepository: Repository<VtxSupportTicketMessageEntity>,
   ) {}
+
+  private async ensureTicketsSchema(): Promise<void> {
+    const g = globalThis as typeof globalThis & { __vortexTicketsSchemaEnsured?: boolean };
+    if (g.__vortexTicketsSchemaEnsured) return;
+
+    // Ensure only one concurrent creator runs.
+    g.__vortexTicketsSchemaEnsured = true;
+
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      await runner.query(`
+        CREATE TABLE IF NOT EXISTS vtx_support_tickets (
+          id varchar(36) NOT NULL,
+          createdByUsername varchar(32) NOT NULL,
+          assignedToUsername varchar(32) NULL,
+          resolvedByUsername varchar(32) NULL,
+          subject varchar(140) NOT NULL,
+          category varchar(32) NULL,
+          priority enum('LOW','MEDIUM','HIGH','URGENT') NOT NULL DEFAULT 'MEDIUM',
+          status enum('OPEN','IN_PROGRESS','RESOLVED','CLOSED') NOT NULL DEFAULT 'OPEN',
+          resolvedAt datetime(3) NULL,
+          closedAt datetime(3) NULL,
+          lastMessageAt datetime(3) NOT NULL,
+          createdAt datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          updatedAt datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      await runner.query(`
+        CREATE TABLE IF NOT EXISTS vtx_support_ticket_messages (
+          id varchar(36) NOT NULL,
+          ticketId varchar(36) NOT NULL,
+          authorUsername varchar(32) NULL,
+          authorRole enum('USER','ADMIN','SYSTEM') NOT NULL,
+          body text NOT NULL,
+          createdAt datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          PRIMARY KEY (id),
+          CONSTRAINT fk_vtx_ticket_messages_ticketId
+            FOREIGN KEY (ticketId) REFERENCES vtx_support_tickets(id)
+            ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+    } finally {
+      await runner.release();
+    }
+
+    this.logger.log('Ensured tickets schema (vtx_support_tickets / vtx_support_ticket_messages)');
+  }
+
+  private isMissingTicketsSchemaError(error: unknown): boolean {
+    if (!(error instanceof QueryFailedError)) return false;
+    const anyErr = error as unknown as { code?: unknown; errno?: unknown; message?: unknown };
+    const code = typeof anyErr.code === 'string' ? anyErr.code : '';
+    const errno = typeof anyErr.errno === 'number' ? anyErr.errno : NaN;
+    const message = String(anyErr.message ?? '');
+
+    return (
+      code === 'ER_NO_SUCH_TABLE' ||
+      errno === 1146 ||
+      message.includes('vtx_support_tickets') ||
+      message.includes('vtx_support_ticket_messages')
+    );
+  }
+
+  private async withTicketsSchema<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn();
+    } catch (error: unknown) {
+      if (!this.isMissingTicketsSchemaError(error)) throw error;
+      await this.ensureTicketsSchema();
+      return await fn();
+    }
+  }
 
   private now(): Date {
     return new Date();
@@ -56,45 +136,49 @@ export class TicketsService {
   }
 
   public async create(input: CreateTicketInputDTO, currentUser: CurrentUserDTO) {
-    const createdAt = this.now();
-    const ticket = this.ticketsRepository.create({
-      createdByUsername: currentUser.username,
-      assignedToUsername: null,
-      resolvedByUsername: null,
-      subject: input.subject,
-      category: input.category ?? null,
-      priority: input.priority ?? EVtxTicketPriority.MEDIUM,
-      status: EVtxTicketStatus.OPEN,
-      resolvedAt: null,
-      closedAt: null,
-      lastMessageAt: createdAt,
-    });
+    return this.withTicketsSchema(async () => {
+      const createdAt = this.now();
+      const ticket = this.ticketsRepository.create({
+        createdByUsername: currentUser.username,
+        assignedToUsername: null,
+        resolvedByUsername: null,
+        subject: input.subject,
+        category: input.category ?? null,
+        priority: input.priority ?? EVtxTicketPriority.MEDIUM,
+        status: EVtxTicketStatus.OPEN,
+        resolvedAt: null,
+        closedAt: null,
+        lastMessageAt: createdAt,
+      });
 
-    const savedTicket = await this.ticketsRepository.save(ticket);
+      const savedTicket = await this.ticketsRepository.save(ticket);
 
-    const message = this.messagesRepository.create({
-      ticketId: savedTicket.id,
-      ticket: savedTicket,
-      authorUsername: currentUser.username,
-      authorRole: EVtxTicketAuthorRole.USER,
-      body: input.message,
-    });
-    await this.messagesRepository.save(message);
+      const message = this.messagesRepository.create({
+        ticketId: savedTicket.id,
+        ticket: savedTicket,
+        authorUsername: currentUser.username,
+        authorRole: EVtxTicketAuthorRole.USER,
+        body: input.message,
+      });
+      await this.messagesRepository.save(message);
 
-    return SuccessResponse.toJson({
-      code: 'TICKET_CREATED',
-      message: 'Ticket created successfully',
-      path: '/tickets',
-      data: { id: savedTicket.id },
-      successCode: HttpStatus.CREATED,
+      return SuccessResponse.toJson({
+        code: 'TICKET_CREATED',
+        message: 'Ticket created successfully',
+        path: '/tickets',
+        data: { id: savedTicket.id },
+        successCode: HttpStatus.CREATED,
+      });
     });
   }
 
   public async listMyTickets(currentUser: CurrentUserDTO) {
-    const tickets = await this.ticketsRepository.find({
-      where: { createdByUsername: currentUser.username },
-      order: { lastMessageAt: 'DESC' },
-    });
+    const tickets = await this.withTicketsSchema(() =>
+      this.ticketsRepository.find({
+        where: { createdByUsername: currentUser.username },
+        order: { lastMessageAt: 'DESC' },
+      })
+    );
 
     return SuccessResponse.toJson({
       code: 'MY_TICKETS_SUCCESS',
@@ -106,14 +190,16 @@ export class TicketsService {
   }
 
   public async getMyTicket(id: string, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
     if (ticket.createdByUsername !== currentUser.username) this.forbidden();
 
-    const messages = await this.messagesRepository.find({
-      where: { ticketId: ticket.id },
-      order: { createdAt: 'ASC' },
-    });
+    const messages = await this.withTicketsSchema(() =>
+      this.messagesRepository.find({
+        where: { ticketId: ticket.id },
+        order: { createdAt: 'ASC' },
+      })
+    );
 
     return SuccessResponse.toJson({
       code: 'TICKET_GET_SUCCESS',
@@ -125,7 +211,7 @@ export class TicketsService {
   }
 
   public async addUserMessage(id: string, input: AddTicketMessageInputDTO, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
     if (ticket.createdByUsername !== currentUser.username) this.forbidden();
 
@@ -137,19 +223,25 @@ export class TicketsService {
       });
     }
 
-    const msg = this.messagesRepository.create({
-      ticketId: ticket.id,
-      ticket,
-      authorUsername: currentUser.username,
-      authorRole: EVtxTicketAuthorRole.USER,
-      body: input.message,
-    });
-    await this.messagesRepository.save(msg);
+    await this.withTicketsSchema(async () => {
+      const msg = this.messagesRepository.create({
+        ticketId: ticket.id,
+        ticket,
+        authorUsername: currentUser.username,
+        authorRole: EVtxTicketAuthorRole.USER,
+        body: input.message,
+      });
+      await this.messagesRepository.save(msg);
 
-    await this.ticketsRepository.update(
-      { id: ticket.id },
-      { lastMessageAt: this.now(), status: ticket.status === EVtxTicketStatus.RESOLVED ? EVtxTicketStatus.IN_PROGRESS : ticket.status },
-    );
+      await this.ticketsRepository.update(
+        { id: ticket.id },
+        {
+          lastMessageAt: this.now(),
+          status:
+            ticket.status === EVtxTicketStatus.RESOLVED ? EVtxTicketStatus.IN_PROGRESS : ticket.status,
+        },
+      );
+    });
 
     return SuccessResponse.toJson({
       code: 'TICKET_MESSAGE_ADDED',
@@ -160,7 +252,7 @@ export class TicketsService {
   }
 
   public async closeByUser(id: string, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
     if (ticket.createdByUsername !== currentUser.username) this.forbidden();
 
@@ -174,9 +266,11 @@ export class TicketsService {
     }
 
     const closedAt = this.now();
-    await this.ticketsRepository.update(
-      { id: ticket.id },
-      { status: EVtxTicketStatus.CLOSED, closedAt, lastMessageAt: closedAt },
+    await this.withTicketsSchema(() =>
+      this.ticketsRepository.update(
+        { id: ticket.id },
+        { status: EVtxTicketStatus.CLOSED, closedAt, lastMessageAt: closedAt },
+      )
     );
 
     return SuccessResponse.toJson({
@@ -190,9 +284,11 @@ export class TicketsService {
   // --- Admin ---
 
   public async listAll(currentUser: CurrentUserDTO) {
-    const tickets = await this.ticketsRepository.find({
-      order: { lastMessageAt: 'DESC' },
-    });
+    const tickets = await this.withTicketsSchema(() =>
+      this.ticketsRepository.find({
+        order: { lastMessageAt: 'DESC' },
+      })
+    );
 
     return SuccessResponse.toJson({
       code: 'TICKETS_LIST_SUCCESS',
@@ -204,13 +300,15 @@ export class TicketsService {
   }
 
   public async getByAdmin(id: string, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
 
-    const messages = await this.messagesRepository.find({
-      where: { ticketId: ticket.id },
-      order: { createdAt: 'ASC' },
-    });
+    const messages = await this.withTicketsSchema(() =>
+      this.messagesRepository.find({
+        where: { ticketId: ticket.id },
+        order: { createdAt: 'ASC' },
+      })
+    );
 
     return SuccessResponse.toJson({
       code: 'TICKET_GET_SUCCESS',
@@ -222,7 +320,7 @@ export class TicketsService {
   }
 
   public async addAdminMessage(id: string, input: AddTicketMessageInputDTO, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
 
     if (ticket.status === EVtxTicketStatus.CLOSED) {
@@ -233,18 +331,23 @@ export class TicketsService {
       });
     }
 
-    const msg = this.messagesRepository.create({
-      ticketId: ticket.id,
-      ticket,
-      authorUsername: currentUser.username,
-      authorRole: EVtxTicketAuthorRole.ADMIN,
-      body: input.message,
-    });
-    await this.messagesRepository.save(msg);
+    await this.withTicketsSchema(async () => {
+      const msg = this.messagesRepository.create({
+        ticketId: ticket.id,
+        ticket,
+        authorUsername: currentUser.username,
+        authorRole: EVtxTicketAuthorRole.ADMIN,
+        body: input.message,
+      });
+      await this.messagesRepository.save(msg);
 
-    const updatedAt = this.now();
-    const status = ticket.status === EVtxTicketStatus.OPEN ? EVtxTicketStatus.IN_PROGRESS : ticket.status;
-    await this.ticketsRepository.update({ id: ticket.id }, { lastMessageAt: updatedAt, status, assignedToUsername: ticket.assignedToUsername ?? currentUser.username });
+      const updatedAt = this.now();
+      const status = ticket.status === EVtxTicketStatus.OPEN ? EVtxTicketStatus.IN_PROGRESS : ticket.status;
+      await this.ticketsRepository.update(
+        { id: ticket.id },
+        { lastMessageAt: updatedAt, status, assignedToUsername: ticket.assignedToUsername ?? currentUser.username },
+      );
+    });
 
     return SuccessResponse.toJson({
       code: 'TICKET_MESSAGE_ADDED',
@@ -255,33 +358,37 @@ export class TicketsService {
   }
 
   public async resolve(id: string, input: ResolveTicketInputDTO, currentUser: CurrentUserDTO) {
-    const ticket = await this.ticketsRepository.findOne({ where: { id } });
+    const ticket = await this.withTicketsSchema(() => this.ticketsRepository.findOne({ where: { id } }));
     if (!ticket) this.notFound();
 
     const resolvedAt = this.now();
-    await this.ticketsRepository.update(
-      { id: ticket.id },
-      {
-        status: EVtxTicketStatus.RESOLVED,
-        resolvedAt,
-        resolvedByUsername: currentUser.username,
-        assignedToUsername: ticket.assignedToUsername ?? currentUser.username,
-        lastMessageAt: resolvedAt,
-      },
+    await this.withTicketsSchema(() =>
+      this.ticketsRepository.update(
+        { id: ticket.id },
+        {
+          status: EVtxTicketStatus.RESOLVED,
+          resolvedAt,
+          resolvedByUsername: currentUser.username,
+          assignedToUsername: ticket.assignedToUsername ?? currentUser.username,
+          lastMessageAt: resolvedAt,
+        },
+      )
     );
 
     const resolutionBody = input.message?.trim();
     const shouldWrite = typeof resolutionBody === 'string' && resolutionBody.length > 0;
 
     if (shouldWrite) {
-      const msg = this.messagesRepository.create({
-        ticketId: ticket.id,
-        ticket,
-        authorUsername: currentUser.username,
-        authorRole: EVtxTicketAuthorRole.ADMIN,
-        body: resolutionBody,
+      await this.withTicketsSchema(async () => {
+        const msg = this.messagesRepository.create({
+          ticketId: ticket.id,
+          ticket,
+          authorUsername: currentUser.username,
+          authorRole: EVtxTicketAuthorRole.ADMIN,
+          body: resolutionBody,
+        });
+        await this.messagesRepository.save(msg);
       });
-      await this.messagesRepository.save(msg);
     }
 
     return SuccessResponse.toJson({
@@ -292,4 +399,3 @@ export class TicketsService {
     });
   }
 }
-

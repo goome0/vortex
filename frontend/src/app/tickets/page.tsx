@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ticketsApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
+import { useAuthStore } from '@/stores';
 import { Badge, Button, Card, CardContent, LoadingSpinner, Alert, Input } from '@/components/ui';
 import { Ticket, Plus, Search, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,7 @@ function priorityBadge(priority: TicketPriority) {
 
 export default function TicketsPage() {
   const router = useRouter();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [tickets, setTickets] = useState<TicketListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -71,8 +73,13 @@ export default function TicketsPage() {
   };
 
   useEffect(() => {
+    if (!isHydrated) return;
+    if (!isAuthenticated) {
+      router.push(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(ROUTES.TICKETS)}`);
+      return;
+    }
     void fetchTickets();
-  }, []);
+  }, [isAuthenticated, isHydrated, router]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -80,7 +87,7 @@ export default function TicketsPage() {
     return tickets.filter((t) => `${t.subject} ${t.category ?? ''} ${t.status} ${t.priority}`.toLowerCase().includes(q));
   }, [tickets, search]);
 
-  if (isLoading) {
+  if (!isHydrated || isLoading) {
     return (
       <div className="min-h-screen pt-28 pb-12 flex items-center justify-center">
         <LoadingSpinner size="lg" />
