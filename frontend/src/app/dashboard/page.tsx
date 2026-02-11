@@ -11,6 +11,7 @@ import {
   Download,
   Gamepad2,
   LogOut,
+  MessageSquare,
   Settings,
   Shield,
   Ticket,
@@ -141,7 +142,7 @@ export default function DashboardPage() {
                 }
               : null,
             {
-              label: "Tickets",
+              label: "Character Tickets",
               value: user.ticket_count?.toString() || "0",
               icon: Ticket,
               color: "text-cyan-400",
@@ -290,15 +291,15 @@ export default function DashboardPage() {
                     <Ticket className="w-5 h-5 text-cyan-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Tickets Available</p>
+                    <p className="text-sm text-slate-400">Character Tickets</p>
                     <p className="text-2xl font-bold text-cyan-400">
                       {user.ticket_count?.toString() || "0"}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-500">
-                  Tickets can be used for special events and promotions within
-                  the game.
+                  Tickets are vouchers used to create additional Player Characters. Max amount of Player Characters you can create per account is{" "}
+                  <span className="font-semibold text-slate-300">20</span>.
                 </p>
               </CardContent>
             </Card>
@@ -337,7 +338,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                        <Ticket className="w-5 h-5 text-emerald-400" />
+                        <MessageSquare className="w-5 h-5 text-emerald-400" />
                       </div>
                       <div>
                         <p className="font-medium text-white">
