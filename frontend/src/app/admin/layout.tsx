@@ -52,7 +52,7 @@ const adminNavGroups: AdminNavGroup[] = [
     items: [
       { href: ROUTES.ADMIN_ACCOUNTS, label: 'Accounts', icon: Users },
       { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
-      { href: ROUTES.ADMIN_TICKETS, label: 'Tickets', icon: Ticket },
+      { href: ROUTES.ADMIN_CASES, label: 'Cases', icon: Ticket },
     ],
   },
   {
@@ -69,7 +69,7 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: ROUTES.ADMIN_PROMOS, label: 'Promo Codes', icon: Gift },
       { href: ROUTES.ADMIN_ITEMS, label: 'Post Items', icon: Package },
       { href: ROUTES.ADMIN_BUNDLES, label: 'Item Bundles', icon: Layers },
-      { href: ROUTES.ADMIN_SCHEDULED_CP, label: 'Scheduled CP', icon: CalendarClock },
+      { href: ROUTES.ADMIN_SCHEDULED_CP, label: 'Scheduled COMP Credits', icon: CalendarClock },
     ],
   },
   {
@@ -78,7 +78,6 @@ const adminNavGroups: AdminNavGroup[] = [
     icon: Server,
     items: [
       { href: ROUTES.ADMIN_WORLD, label: 'World Message', icon: MessageSquare },
-      { href: ROUTES.ADMIN_SERVER, label: 'Server Control', icon: Server },
     ],
   },
 ];

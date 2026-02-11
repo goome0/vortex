@@ -7,23 +7,23 @@ import { PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
 import { CurrentUserDTO } from '../dto/current-user.dto';
 
 /**
- * Guard responsável por validar as permissões do usuário
+ * Guard responsible for validating user permissions
  *
- * Este guard verifica se o usuário tem as permissões necessárias
- * para acessar uma rota específica.
+ * This guard checks if the user has the required permissions
+ * to access a specific route.
  *
- * Regras:
- * 1. Rotas públicas (@IsPublicRoute) não requerem permissões
- * 2. Rotas sem @RequirePermission são acessíveis por usuários autenticados
- * 3. SUPER_ADMIN tem acesso a todas as rotas automaticamente
- * 4. Outros usuários precisam ter TODAS as permissões especificadas em @RequirePermission
+ * Rules:
+ * 1. Public routes (@IsPublicRoute) do not require permissions
+ * 2. Routes without @RequirePermission are accessible by authenticated users
+ * 3. SUPER_ADMIN has access to all routes automatically
+ * 4. Other users must have ALL permissions specified in @RequirePermission
  */
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // Verifica se a rota é pública
+    // Check if route is public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -33,26 +33,26 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    // Obtém as permissões necessárias para a rota
+    // Get required permissions for the route
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    // Verifica se a rota requer admin
+    // Check if route requires admin
     const requireAdmin = this.reflector.getAllAndOverride<boolean>(REQUIRE_ADMIN_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    // Obtém o usuário autenticado do request
+    // Get authenticated user from request
     const request = context.switchToHttp().getRequest<{ user?: CurrentUserDTO }>();
     const user = request.user;
 
-    // Se não há usuário autenticado, não deveria chegar aqui (JwtAuthGuard deveria ter bloqueado)
-    // Mas por segurança, bloqueamos
+    // If no authenticated user, should not reach here (JwtAuthGuard should have blocked)
+    // But for security, we block
     if (!user) {
-      throw new ForbiddenException('Você não tem permissão para acessar este recurso');
+      throw new ForbiddenException('You do not have permission to access this resource');
     }
 
     const userLevel = Number(user.user_level ?? 0);
@@ -63,27 +63,27 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    // Se a rota requer admin e o usuário não é FULL_GM, bloqueia
+    // If route requires admin and user is not FULL_GM, block
     if (requireAdmin) {
-      throw new ForbiddenException('Apenas administradores podem acessar este recurso');
+      throw new ForbiddenException('Only administrators can access this resource');
     }
 
-    // Se não há permissões requeridas, permite acesso (rota protegida apenas por autenticação)
+    // If no required permissions, allow access (route protected only by authentication)
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
 
-    // Verifica se o usuário tem as permissões do banco de dados
+    // Check if user has permissions from database
     const userPermissions = user.permissions ?? [];
 
-    // Verifica se o usuário tem TODAS as permissões necessárias
+    // Check if user has ALL required permissions
     const hasAllPermissions = requiredPermissions.every((permission) => userPermissions.includes(permission));
 
     if (!hasAllPermissions) {
       const missingPermissions = requiredPermissions.filter((permission) => !userPermissions.includes(permission));
 
       throw new ForbiddenException(
-        `Você não tem permissão para acessar este recurso. Permissões faltantes: ${missingPermissions.join(', ')}`,
+        `You do not have permission to access this resource. Missing permissions: ${missingPermissions.join(', ')}`,
       );
     }
 

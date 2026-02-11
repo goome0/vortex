@@ -3,42 +3,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ticketsApi, getErrorMessage } from '@/lib/api';
+import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { Alert, Badge, Button, Card, CardContent, LoadingSpinner } from '@/components/ui';
 import { ArrowLeft, CheckCircle2, MessageSquare, Send, Ticket, XCircle } from 'lucide-react';
 
-type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+type CaseStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+type CasePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 type AuthorRole = 'USER' | 'ADMIN';
 
-interface TicketMessage {
+interface CaseMessage {
   id: string;
-  ticketId: string;
+  caseId: string;
   authorUsername: string;
   authorRole: AuthorRole;
   body: string;
   createdAt: string;
 }
 
-interface TicketDetails {
+interface CaseDetails {
   id: string;
   createdByUsername: string;
   assignedToUsername: string | null;
   resolvedByUsername: string | null;
   subject: string;
   category: string | null;
-  priority: TicketPriority;
-  status: TicketStatus;
+  priority: CasePriority;
+  status: CaseStatus;
   resolvedAt: string | null;
   closedAt: string | null;
   lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
-  messages: TicketMessage[];
+  messages: CaseMessage[];
 }
 
-function statusBadge(status: TicketStatus) {
+function statusBadge(status: CaseStatus) {
   switch (status) {
     case 'OPEN':
       return { label: 'Open', variant: 'info' as const };
@@ -51,12 +51,12 @@ function statusBadge(status: TicketStatus) {
   }
 }
 
-export default function TicketDetailPage() {
+export default function CaseDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params?.id;
 
-  const [ticket, setTicket] = useState<TicketDetails | null>(null);
+  const [ticket, setTicket] = useState<CaseDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -68,8 +68,8 @@ export default function TicketDetailPage() {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await ticketsApi.get(id);
-      setTicket((response?.data ?? null) as TicketDetails | null);
+      const { data: response } = await casesApi.get(id);
+      setTicket((response?.data ?? null) as CaseDetails | null);
     } catch (e: unknown) {
       setError(getErrorMessage(e));
     } finally {
@@ -88,7 +88,7 @@ export default function TicketDetailPage() {
     setIsSending(true);
     setError('');
     try {
-      await ticketsApi.addMessage(id, message.trim());
+      await casesApi.addMessage(id, message.trim());
       setMessage('');
       await fetchTicket();
     } catch (e: unknown) {
@@ -98,12 +98,12 @@ export default function TicketDetailPage() {
     }
   };
 
-  const closeTicket = async () => {
+  const closeCase = async () => {
     if (!id || ticket?.status === 'CLOSED') return;
     setIsClosing(true);
     setError('');
     try {
-      await ticketsApi.close(id);
+      await casesApi.close(id);
       await fetchTicket();
     } catch (e: unknown) {
       setError(getErrorMessage(e));
@@ -133,7 +133,7 @@ export default function TicketDetailPage() {
             <div className="flex items-center gap-3">
               <Ticket className="w-6 h-6 text-emerald-400" />
               <h1 className="text-xl sm:text-2xl font-display font-bold text-white truncate">
-                {ticket?.subject ?? 'Ticket'}
+                {ticket?.subject ?? 'Case'}
               </h1>
             </div>
             <p className="text-slate-400 mt-1 text-sm">
@@ -142,7 +142,7 @@ export default function TicketDetailPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => router.push(ROUTES.TICKETS)}>
+            <Button variant="ghost" onClick={() => router.push(ROUTES.CASES)}>
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
@@ -165,7 +165,7 @@ export default function TicketDetailPage() {
 
         {!ticket && (
           <Alert variant="error">
-            Ticket not found.
+            Case not found.
           </Alert>
         )}
 
@@ -209,7 +209,7 @@ export default function TicketDetailPage() {
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         rows={4}
-                        placeholder={ticket.status === 'CLOSED' ? 'Ticket is closed.' : 'Write a message...'}
+                        placeholder={ticket.status === 'CLOSED' ? 'Case is closed.' : 'Write a message...'}
                         disabled={ticket.status === 'CLOSED'}
                         className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 disabled:opacity-60"
                       />
@@ -265,10 +265,10 @@ export default function TicketDetailPage() {
                     variant="secondary"
                     className="w-full justify-start"
                     disabled={ticket.status === 'CLOSED'}
-                    onClick={closeTicket}
+                    onClick={closeCase}
                     isLoading={isClosing}
                   >
-                    Close ticket
+                    Close case
                   </Button>
 
                   <p className="text-xs text-slate-500">
@@ -283,4 +283,3 @@ export default function TicketDetailPage() {
     </div>
   );
 }
-

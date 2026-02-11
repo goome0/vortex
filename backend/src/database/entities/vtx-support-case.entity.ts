@@ -7,24 +7,24 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { VtxSupportTicketMessageEntity } from './vtx-support-ticket-message.entity';
+import { VtxSupportCaseMessageEntity } from './vtx-support-case-message.entity';
 
-export enum EVtxTicketStatus {
+export enum EVtxCaseStatus {
   OPEN = 'OPEN',
   IN_PROGRESS = 'IN_PROGRESS',
   RESOLVED = 'RESOLVED',
   CLOSED = 'CLOSED',
 }
 
-export enum EVtxTicketPriority {
+export enum EVtxCasePriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
   URGENT = 'URGENT',
 }
 
-@Entity({ name: 'vtx_support_tickets' })
-export class VtxSupportTicketEntity {
+@Entity({ name: 'vtx_support_cases' })
+export class VtxSupportCaseEntity {
   @PrimaryGeneratedColumn('uuid')
   public id!: string;
 
@@ -47,12 +47,12 @@ export class VtxSupportTicketEntity {
   public category!: string | null;
 
   @Index()
-  @Column({ type: 'enum', enum: EVtxTicketPriority, default: EVtxTicketPriority.MEDIUM })
-  public priority!: EVtxTicketPriority;
+  @Column({ type: 'enum', enum: EVtxCasePriority, default: EVtxCasePriority.MEDIUM })
+  public priority!: EVtxCasePriority;
 
   @Index()
-  @Column({ type: 'enum', enum: EVtxTicketStatus, default: EVtxTicketStatus.OPEN })
-  public status!: EVtxTicketStatus;
+  @Column({ type: 'enum', enum: EVtxCaseStatus, default: EVtxCaseStatus.OPEN })
+  public status!: EVtxCaseStatus;
 
   @Column({ type: 'datetime', precision: 3, nullable: true })
   public resolvedAt!: Date | null;
@@ -64,8 +64,8 @@ export class VtxSupportTicketEntity {
   @Column({ type: 'datetime', precision: 3 })
   public lastMessageAt!: Date;
 
-  @OneToMany(() => VtxSupportTicketMessageEntity, (m) => m.ticket)
-  public messages!: VtxSupportTicketMessageEntity[];
+  @OneToMany(() => VtxSupportCaseMessageEntity, (m) => m.supportCase)
+  public messages!: VtxSupportCaseMessageEntity[];
 
   @CreateDateColumn({ type: 'datetime', precision: 3 })
   public createdAt!: Date;
@@ -73,4 +73,3 @@ export class VtxSupportTicketEntity {
   @UpdateDateColumn({ type: 'datetime', precision: 3 })
   public updatedAt!: Date;
 }
-

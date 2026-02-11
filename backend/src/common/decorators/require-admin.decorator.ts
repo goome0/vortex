@@ -1,14 +1,14 @@
 import { SetMetadata } from '@nestjs/common';
 
 /**
- * Chave usada para armazenar a flag de admin nos metadados da rota
+ * Key used to store the admin flag in route metadata
  */
 export const REQUIRE_ADMIN_KEY = 'requireAdmin';
 
 /**
- * Decorator para exigir que o usuário seja um administrador (FULL_GM)
+ * Decorator to require the user to be an administrator (FULL_GM)
  *
- * Apenas usuários com user_level >= 1000 podem acessar rotas marcadas com este decorator.
+ * Only users with user_level >= 1000 can access routes marked with this decorator.
  *
  * @example
  * @RequireAdmin()

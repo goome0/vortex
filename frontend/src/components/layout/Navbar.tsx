@@ -125,7 +125,7 @@ export function Navbar() {
             <div className="hidden lg:flex items-center gap-4">
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
-                  {/* CP Display */}
+                  {/* COMP Credits Display */}
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
                     <Coins className="w-4 h-4 text-yellow-400" />
                     <span className="text-sm font-bold text-yellow-400">
@@ -154,11 +154,11 @@ export function Navbar() {
                         Dashboard
                       </Link>
                       <Link
-                        href={ROUTES.TICKETS}
+                        href={ROUTES.CASES}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors"
                       >
                         <Ticket className="w-4 h-4" />
-                        Tickets
+                        Cases
                       </Link>
                       <Link
                         href={ROUTES.GAME}
@@ -272,7 +272,7 @@ export function Navbar() {
                         <p className="font-semibold text-white">{user?.username}</p>
                         <div className="flex items-center gap-1 text-yellow-400 text-sm">
                           <Coins className="w-3 h-3" />
-                          {user?.cp?.toLocaleString() || 0} CP
+                          {user?.cp?.toLocaleString() || 0} COMP Credits
                         </div>
                       </div>
                     </div>

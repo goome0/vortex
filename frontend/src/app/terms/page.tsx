@@ -247,8 +247,17 @@ export default function TermsPage() {
                 with all legitimate requests.
               </p>
               <p>
-                For general inquiries or concerns, you may reach us through our community 
-                Discord server or via the contact methods provided on this website.
+                For general inquiries or concerns, please contact us through our community Discord:
+              </p>
+              <p>
+                <a
+                  href="https://discord.gg/Njz2wmGr"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
+                >
+                  discord.gg/Njz2wmGr
+                </a>
               </p>
             </div>
           </section>

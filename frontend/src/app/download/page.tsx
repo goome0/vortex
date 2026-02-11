@@ -6,52 +6,40 @@ import { Card, CardContent, Badge, Button } from '@/components/ui';
 import { ROUTES } from '@/lib/constants';
 import {
   Download,
-  Monitor,
-  Apple,
-  Globe,
-  HardDrive,
   Cpu,
-  MemoryStick,
   CheckCircle,
   ChevronRight,
-  Shield,
   Zap,
 } from 'lucide-react';
 
+const CLIENT_LITE_URL = process.env.NEXT_PUBLIC_CLIENT_LITE_URL || '';
+
 const systemRequirements = {
   minimum: [
-    { label: 'OS', value: 'Windows 7/8/10/11 (64-bit)' },
-    { label: 'Processor', value: 'Intel Core i3 or equivalent' },
-    { label: 'Memory', value: '4 GB RAM' },
-    { label: 'Graphics', value: 'NVIDIA GeForce GTX 660 or equivalent' },
-    { label: 'Storage', value: '20 GB available space' },
+    { label: 'OS', value: 'Windows 2000 / XP' },
+    { label: 'Processor', value: 'Pentium 4 / Athlon XP (1.5 GHz)' },
+    { label: 'Memory', value: '512 MB RAM' },
+    { label: 'Graphics', value: 'DirectX 9.0 compatible GPU (64 MB VRAM)' },
+    { label: 'Storage', value: '3 GB available space' },
     { label: 'Network', value: 'Broadband Internet connection' },
   ],
   recommended: [
-    { label: 'OS', value: 'Windows 10/11 (64-bit)' },
-    { label: 'Processor', value: 'Intel Core i5 or better' },
-    { label: 'Memory', value: '8 GB RAM' },
-    { label: 'Graphics', value: 'NVIDIA GeForce GTX 1060 or better' },
-    { label: 'Storage', value: '20 GB SSD' },
+    { label: 'OS', value: 'Windows XP / Vista' },
+    { label: 'Processor', value: 'Pentium 4 (2.4 GHz) or better' },
+    { label: 'Memory', value: '1 GB RAM' },
+    { label: 'Graphics', value: 'DirectX 9.0 compatible GPU (128 MB VRAM)' },
+    { label: 'Storage', value: '3 GB available space' },
     { label: 'Network', value: 'Broadband Internet connection' },
   ],
 };
 
 const downloadOptions = [
   {
-    id: 'full',
-    name: 'Full Client',
-    size: '8.5 GB',
-    description: 'Complete game installation with all assets',
-    recommended: true,
-    icon: HardDrive,
-  },
-  {
     id: 'lite',
-    name: 'Lite Installer',
-    size: '500 MB',
-    description: 'Downloads remaining files during installation',
-    recommended: false,
+    name: 'Client Lite',
+    size: 'N/A',
+    description: 'The only available download option right now.',
+    recommended: true,
     icon: Zap,
   },
 ];
@@ -125,13 +113,29 @@ export default function DownloadPage() {
                       </div>
                     </div>
                     <p className="text-slate-400 mb-6">{option.description}</p>
-                    <Button
-                      className="w-full"
-                      variant={option.recommended ? 'primary' : 'secondary'}
-                    >
-                      <Download className="w-5 h-5" />
-                      Download Now
-                    </Button>
+                    {CLIENT_LITE_URL ? (
+                      <a href={CLIENT_LITE_URL} target="_blank" rel="noreferrer" className="block">
+                        <Button className="w-full" variant="primary">
+                          <Download className="w-5 h-5" />
+                          Download Now
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button className="w-full" variant="primary" disabled>
+                        <Download className="w-5 h-5" />
+                        Download Now
+                      </Button>
+                    )}
+                    {CLIENT_LITE_URL && (
+                      <a
+                        href={CLIENT_LITE_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 block text-center text-sm text-cyan-300 hover:text-cyan-200 underline underline-offset-4"
+                      >
+                        Direct link
+                      </a>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>

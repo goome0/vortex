@@ -13,7 +13,7 @@ async function bootstrap(): Promise<void> {
       'http://127.0.0.1:3001',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-server-control-token'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
   

@@ -3,28 +3,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ticketsApi, getErrorMessage } from '@/lib/api';
+import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
 import { Badge, Button, Card, CardContent, LoadingSpinner, Alert, Input } from '@/components/ui';
 import { Ticket, Plus, Search, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+type CaseStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+type CasePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-interface TicketListItem {
+interface CaseListItem {
   id: string;
   subject: string;
   category: string | null;
-  priority: TicketPriority;
-  status: TicketStatus;
+  priority: CasePriority;
+  status: CaseStatus;
   lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
 }
 
-function statusBadge(status: TicketStatus) {
+function statusBadge(status: CaseStatus) {
   switch (status) {
     case 'OPEN':
       return { label: 'Open', variant: 'info' as const };
@@ -37,7 +37,7 @@ function statusBadge(status: TicketStatus) {
   }
 }
 
-function priorityBadge(priority: TicketPriority) {
+function priorityBadge(priority: CasePriority) {
   switch (priority) {
     case 'LOW':
       return { label: 'Low', variant: 'info' as const };
@@ -50,21 +50,21 @@ function priorityBadge(priority: TicketPriority) {
   }
 }
 
-export default function TicketsPage() {
+export default function CasesPage() {
   const router = useRouter();
   const { isAuthenticated, isHydrated } = useAuthStore();
-  const [tickets, setTickets] = useState<TicketListItem[]>([]);
+  const [cases, setCases] = useState<CaseListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
-  const fetchTickets = async () => {
+  const fetchCases = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await ticketsApi.my();
+      const { data: response } = await casesApi.my();
       const data = response?.data;
-      setTickets(Array.isArray(data) ? data : []);
+      setCases(Array.isArray(data) ? data : []);
     } catch (e: unknown) {
       setError(getErrorMessage(e));
     } finally {
@@ -75,17 +75,17 @@ export default function TicketsPage() {
   useEffect(() => {
     if (!isHydrated) return;
     if (!isAuthenticated) {
-      router.push(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(ROUTES.TICKETS)}`);
+      router.push(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(ROUTES.CASES)}`);
       return;
     }
-    void fetchTickets();
+    void fetchCases();
   }, [isAuthenticated, isHydrated, router]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return tickets;
-    return tickets.filter((t) => `${t.subject} ${t.category ?? ''} ${t.status} ${t.priority}`.toLowerCase().includes(q));
-  }, [tickets, search]);
+    if (!q) return cases;
+    return cases.filter((t) => `${t.subject} ${t.category ?? ''} ${t.status} ${t.priority}`.toLowerCase().includes(q));
+  }, [cases, search]);
 
   if (!isHydrated || isLoading) {
     return (
@@ -105,15 +105,15 @@ export default function TicketsPage() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-white flex items-center gap-3">
               <Ticket className="w-7 h-7 text-emerald-400" />
-              Support Tickets
+              Support Cases
             </h1>
             <p className="text-slate-400 mt-1">
               Track your requests and talk with staff.
             </p>
           </div>
-          <Button onClick={() => router.push(`${ROUTES.TICKETS}/new`)}>
+          <Button onClick={() => router.push(`${ROUTES.CASES}/new`)}>
             <Plus className="w-4 h-4" />
-            New Ticket
+            New Case
           </Button>
         </motion.div>
 
@@ -129,7 +129,7 @@ export default function TicketsPage() {
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Input
-            placeholder="Search tickets..."
+            placeholder="Search cases..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             icon={<Search className="w-5 h-5" />}
@@ -162,7 +162,7 @@ export default function TicketsPage() {
                         className={cn(
                           'border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer',
                         )}
-                        onClick={() => router.push(`${ROUTES.TICKETS}/${t.id}`)}
+                        onClick={() => router.push(`${ROUTES.CASES}/${t.id}`)}
                       >
                         <td className="py-4 px-6">
                           <div className="min-w-0">
@@ -193,14 +193,14 @@ export default function TicketsPage() {
 
             {filtered.length === 0 && (
               <div className="p-10 text-center text-slate-400">
-                No tickets found.
+                No cases found.
               </div>
             )}
           </CardContent>
         </Card>
 
         <div className="flex justify-end">
-          <Button variant="secondary" onClick={fetchTickets}>
+          <Button variant="secondary" onClick={fetchCases}>
             Refresh
           </Button>
         </div>

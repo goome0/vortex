@@ -1,30 +1,30 @@
 import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { VtxSupportTicketEntity } from './vtx-support-ticket.entity';
+import { VtxSupportCaseEntity } from './vtx-support-case.entity';
 
-export enum EVtxTicketAuthorRole {
+export enum EVtxCaseAuthorRole {
   USER = 'USER',
   ADMIN = 'ADMIN',
   SYSTEM = 'SYSTEM',
 }
 
-@Entity({ name: 'vtx_support_ticket_messages' })
-export class VtxSupportTicketMessageEntity {
+@Entity({ name: 'vtx_support_case_messages' })
+export class VtxSupportCaseMessageEntity {
   @PrimaryGeneratedColumn('uuid')
   public id!: string;
 
   @Index()
   @Column({ type: 'uuid' })
-  public ticketId!: string;
+  public caseId!: string;
 
-  @ManyToOne(() => VtxSupportTicketEntity, (t) => t.messages, { onDelete: 'CASCADE' })
-  public ticket!: VtxSupportTicketEntity;
+  @ManyToOne(() => VtxSupportCaseEntity, (t) => t.messages, { onDelete: 'CASCADE' })
+  public supportCase!: VtxSupportCaseEntity;
 
   @Index()
   @Column({ type: 'varchar', length: 32, nullable: true })
   public authorUsername!: string | null;
 
-  @Column({ type: 'enum', enum: EVtxTicketAuthorRole })
-  public authorRole!: EVtxTicketAuthorRole;
+  @Column({ type: 'enum', enum: EVtxCaseAuthorRole })
+  public authorRole!: EVtxCaseAuthorRole;
 
   @Column({ type: 'text' })
   public body!: string;
@@ -32,4 +32,3 @@ export class VtxSupportTicketMessageEntity {
   @CreateDateColumn({ type: 'datetime', precision: 3 })
   public createdAt!: Date;
 }
-

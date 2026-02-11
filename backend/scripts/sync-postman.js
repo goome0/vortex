@@ -9,12 +9,12 @@ const workspaceId = process.env.POSTMAN_WORKSPACE_ID;
 const collectionName = 'ZapFood Admin Restaurant API';
 
 if (!apiKey) {
-  console.error('❌ POSTMAN_API_KEY não configurada!');
+  console.error('❌ POSTMAN_API_KEY not configured!');
   process.exit(1);
 }
 
 if (!workspaceId) {
-  console.error('❌ POSTMAN_WORKSPACE_ID não configurada!');
+  console.error('❌ POSTMAN_WORKSPACE_ID not configured!');
   process.exit(1);
 }
 
@@ -27,7 +27,7 @@ const config = {
 
 async function syncCollection() {
   try {
-    console.log('\n📦 Sincronizando Collection...');
+    console.log('\n📦 Syncing Collection...');
     console.log('━'.repeat(50));
 
     const collectionPath = path.join(
@@ -37,7 +37,7 @@ async function syncCollection() {
 
     if (!fs.existsSync(collectionPath)) {
       console.log(
-        '⚠️  Arquivo postman-collections.json não encontrado. Pulando...',
+        '⚠️  postman-collections.json file not found. Skipping...',
       );
       return;
     }
@@ -63,26 +63,26 @@ async function syncCollection() {
     };
 
     if (existing) {
-      console.log(`📝 Atualizando collection "${collectionName}"...`);
+      console.log(`📝 Updating collection "${collectionName}"...`);
       await axios.put(
         `https://api.postman.com/collections/${existing.uid}`,
         payload,
         config,
       );
-      console.log(`✅ Collection atualizada com sucesso!`);
+      console.log(`✅ Collection updated successfully!`);
       console.log(`   ID: ${existing.uid}`);
     } else {
-      console.log(`➕ Criando nova collection "${collectionName}"...`);
+      console.log(`➕ Creating new collection "${collectionName}"...`);
       const response = await axios.post(
         `https://api.postman.com/collections?workspace=${workspaceId}`,
         payload,
         config,
       );
-      console.log(`✅ Collection criada com sucesso!`);
+      console.log(`✅ Collection created successfully!`);
       console.log(`   ID: ${response.data.collection.id}`);
     }
   } catch (error) {
-    console.error('❌ Erro ao sincronizar collection:');
+    console.error('❌ Error syncing collection:');
     console.error(error.response?.data || error.message);
     throw error;
   }
@@ -90,7 +90,7 @@ async function syncCollection() {
 
 async function syncEnvironments() {
   try {
-    console.log('\n🌍 Sincronizando Environments...');
+    console.log('\n🌍 Syncing Environments...');
     console.log('━'.repeat(50));
 
     const docsDir = path.join(__dirname, '../docs');
@@ -106,7 +106,7 @@ async function syncEnvironments() {
 
     if (files.length === 0) {
       console.log(
-        '⚠️  Nenhum arquivo de environment encontrado em docs/. Pulando...',
+        '⚠️  No environment file found in docs/. Skipping...',
       );
       return;
     }
@@ -132,34 +132,34 @@ async function syncEnvironments() {
       };
 
       if (existing) {
-        console.log(`📝 Atualizando environment "${environmentName}"...`);
+        console.log(`📝 Updating environment "${environmentName}"...`);
         await axios.put(
           `https://api.postman.com/environments/${existing.uid}`,
           payload,
           config,
         );
-        console.log(`✅ Environment atualizado!`);
+        console.log(`✅ Environment updated!`);
         console.log(`   ID: ${existing.uid}`);
       } else {
-        console.log(`➕ Criando environment "${environmentName}"...`);
+        console.log(`➕ Creating environment "${environmentName}"...`);
         const response = await axios.post(
           `https://api.postman.com/environments?workspace=${workspaceId}`,
           payload,
           config,
         );
-        console.log(`✅ Environment criado!`);
+        console.log(`✅ Environment created!`);
         console.log(`   ID: ${response.data.environment.id}`);
       }
     }
   } catch (error) {
-    console.error('❌ Erro ao sincronizar environments:');
+    console.error('❌ Error syncing environments:');
     console.error(error.response?.data || error.message);
     throw error;
   }
 }
 
 async function main() {
-  console.log('\n🚀 Iniciando sincronização com Postman');
+  console.log('\n🚀 Starting Postman sync');
   console.log('═'.repeat(50));
 
   const startTime = Date.now();
@@ -171,11 +171,11 @@ async function main() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     console.log('\n' + '═'.repeat(50));
-    console.log(`🎉 Sincronização completa em ${duration}s!`);
+    console.log(`🎉 Sync complete in ${duration}s!`);
     console.log('═'.repeat(50) + '\n');
   } catch (error) {
     console.error('\n' + '═'.repeat(50));
-    console.error('💥 Falha na sincronização!');
+    console.error('💥 Sync failed!');
     console.error('═'.repeat(50) + '\n');
     process.exit(1);
   }

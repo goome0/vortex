@@ -1,5 +1,5 @@
 -- Executado automaticamente no primeiro boot (volume vazio).
--- Cria o banco + usuário necessários pro "comp_hack".
+-- Creates the database and user required for "comp_hack".
 
 CREATE DATABASE IF NOT EXISTS comp_hack
   CHARACTER SET utf8mb4

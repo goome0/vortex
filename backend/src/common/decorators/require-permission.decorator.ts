@@ -1,27 +1,27 @@
 import { SetMetadata } from '@nestjs/common';
 
 /**
- * Chave usada para armazenar as permissões necessárias nos metadados da rota
+ * Key used to store required permissions in route metadata
  */
 export const PERMISSIONS_KEY = 'permissions';
 
 /**
- * Decorator para exigir permissões específicas em uma rota
+ * Decorator to require specific permissions on a route
  *
- * @param permissions - Array de permissões necessárias para acessar a rota
+ * @param permissions - Array of permissions required to access the route
  *
  * @example
- * // Requer uma permissão específica
+ * // Require a specific permission
  * @RequirePermission(['create.manager'])
  * createManager() { ... }
  *
  * @example
- * // Requer múltiplas permissões (usuário precisa ter TODAS)
+ * // Require multiple permissions (user must have ALL of them)
  * @RequirePermission(['read.admin', 'update.admin'])
  * updateAdmin() { ... }
  *
  * @example
- * // Usar com enum EPermission (recomendado)
+ * // Use with EPermission enum (recommended)
  * @RequirePermission([EPermission.CREATE_MANAGER])
  * createManager() { ... }
  */

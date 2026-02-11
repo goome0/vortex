@@ -168,7 +168,7 @@ export default function AdminItemsPage() {
                   <div>
                     <p className="text-cyan-400 font-medium text-sm">Product IDs</p>
                     <p className="text-xs text-cyan-400/70 mt-1">
-                      These are the product IDs from the CP shop database. Items are delivered to the player&apos;s post box.
+                      These are the product IDs from the COMP Credits (CP) shop database. Items are delivered to the player&apos;s post box.
                     </p>
                   </div>
                 </div>
@@ -201,18 +201,18 @@ export default function AdminItemsPage() {
                 />
               </div>
 
-              {/* CP Cost */}
+              {/* COMP Credits Cost */}
               <div className="mb-6">
                 <Input
                   type="number"
-                  label="CP Cost (0 = free)"
+                  label="COMP Credits Cost (0 = free)"
                   placeholder="0"
                   value={cpCost}
                   onChange={(e) => setCpCost(e.target.value)}
                   icon={<Coins className="w-5 h-5" />}
                 />
                 <p className="text-xs text-slate-500 mt-1">
-                  Set to 0 to send items for free. Otherwise, the player pays this CP amount to claim.
+                  Set to 0 to send items for free. Otherwise, the player pays this COMP Credits amount to claim.
                 </p>
               </div>
 
@@ -229,8 +229,8 @@ export default function AdminItemsPage() {
                     <span className="text-white font-medium">{products.length} item(s)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">CP Cost</span>
-                    <span className="text-yellow-400 font-medium">{parseInt(cpCost) || 0} CP</span>
+                    <span className="text-slate-400">COMP Credits Cost</span>
+                    <span className="text-yellow-400 font-medium">{parseInt(cpCost) || 0} COMP</span>
                   </div>
                 </div>
               </div>

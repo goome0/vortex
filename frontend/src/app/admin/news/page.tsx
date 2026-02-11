@@ -105,7 +105,7 @@ export default function AdminNewsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-display font-bold text-white">News</h1>
-            <p className="text-slate-400">CRUD completo de anúncios/notícias (visível na tela /news e no updater).</p>
+            <p className="text-slate-400">Full CRUD for announcements/news (visible on page /news and in the updater).</p>
           </div>
         </div>
       </motion.div>
@@ -183,7 +183,7 @@ export default function AdminNewsPage() {
               className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[90px]"
               value={create.excerpt}
               onChange={(e) => setCreate((p) => ({ ...p, excerpt: e.target.value }))}
-              placeholder="Resumo curto que aparece nos cards"
+              placeholder="Short summary that appears on the cards"
             />
           </div>
 
@@ -193,7 +193,7 @@ export default function AdminNewsPage() {
               className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[160px]"
               value={create.content}
               onChange={(e) => setCreate((p) => ({ ...p, content: e.target.value }))}
-              placeholder="Conteúdo (pode usar quebras de linha)."
+              placeholder="Content (line breaks are supported)."
             />
           </div>
 

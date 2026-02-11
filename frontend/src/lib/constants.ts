@@ -10,7 +10,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   GAME: '/game',
-  TICKETS: '/tickets',
+  CASES: '/cases',
   NEWS: '/news',
   DOWNLOAD: '/download',
   // Admin Routes
@@ -22,8 +22,7 @@ export const ROUTES = {
   ADMIN_BUNDLES: '/admin/bundles',
   ADMIN_SCHEDULED_CP: '/admin/scheduled-cp',
   ADMIN_WORLD: '/admin/world',
-  ADMIN_TICKETS: '/admin/tickets',
-  ADMIN_SERVER: '/admin/server',
+  ADMIN_CASES: '/admin/cases',
   ADMIN_NEWS: '/admin/news',
 } as const;
 

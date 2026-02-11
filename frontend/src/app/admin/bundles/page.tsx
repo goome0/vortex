@@ -252,7 +252,7 @@ export default function AdminBundlesPage() {
               onChange={(e) => setBundleDescription(e.target.value)}
             />
             <Input
-              label="CP Cost (0 = free)"
+              label="COMP Credits Cost (0 = free)"
               type="number"
               value={bundleCpCost}
               onChange={(e) => setBundleCpCost(e.target.value)}
@@ -325,7 +325,7 @@ export default function AdminBundlesPage() {
                 </select>
                 {selectedBundle && (
                   <p className="text-xs text-slate-500">
-                    CP cost: <span className="text-yellow-400">{selectedBundle.cpCost}</span> • Items: {selectedBundle.products.length}
+                    COMP Credits cost: <span className="text-yellow-400">{selectedBundle.cpCost}</span> • Items: {selectedBundle.products.length}
                   </p>
                 )}
               </div>
@@ -436,7 +436,7 @@ export default function AdminBundlesPage() {
                     <p className="text-white font-semibold truncate">{b.name}</p>
                     {b.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{b.description}</p>}
                     <p className="text-xs text-slate-500 mt-2">
-                      Items: <span className="text-white">{b.products?.length ?? 0}</span> • CP: <span className="text-yellow-400">{b.cpCost}</span>
+                      Items: <span className="text-white">{b.products?.length ?? 0}</span> • COMP: <span className="text-yellow-400">{b.cpCost}</span>
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -457,4 +457,3 @@ export default function AdminBundlesPage() {
     </div>
   );
 }
-

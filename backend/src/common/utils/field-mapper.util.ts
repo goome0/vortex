@@ -1,36 +1,36 @@
 /**
- * Tipo auxiliar para criar o tipo de retorno após mapeamento de campos
+ * Helper type to create the return type after field mapping
  */
 type MapFieldsResult<T extends Record<string, any>, M extends Partial<Record<keyof T, string>>> = Omit<T, keyof M> & {
   [K in keyof M as M[K] extends string ? M[K] : never]: K extends keyof T ? T[K] : never;
 };
 
 /**
- * Mapeia e renomeia campos de um objeto ou array de objetos de forma type-safe
+ * Maps and renames fields of an object or array of objects in a type-safe way
  *
- * @template T - Tipo do objeto de entrada
- * @template M - Tipo do mapeamento de campos (ex: { oldField: 'newField' })
+ * @template T - Type of the input object
+ * @template M - Type of the field mapping (e.g. { oldField: 'newField' })
  *
  * @example
- * // Renomear campos de um objeto
+ * // Rename fields of an object
  * const user = { id: 1, firstName: 'John', lastName: 'Doe' };
  * const mapped = mapFields(user, { firstName: 'name', lastName: 'surname' });
- * // Resultado: { id: 1, name: 'John', surname: 'Doe' }
+ * // Result: { id: 1, name: 'John', surname: 'Doe' }
  *
  * @example
- * // Renomear campos de um array
+ * // Rename fields of an array
  * const users = [
  *   { id: 1, firstName: 'John' },
  *   { id: 2, firstName: 'Jane' }
  * ];
  * const mapped = mapFields(users, { firstName: 'name' });
- * // Resultado: [{ id: 1, name: 'John' }, { id: 2, name: 'Jane' }]
+ * // Result: [{ id: 1, name: 'John' }, { id: 2, name: 'Jane' }]
  *
  * @example
- * // Selecionar apenas campos específicos e renomeá-los
+ * // Select only specific fields and rename them
  * const order = { id: 1, total: 100, status: 'pending', createdAt: '2024-01-01' };
  * const mapped = mapFields(order, { total: 'amount', status: 'orderStatus' });
- * // Resultado: { id: 1, amount: 100, orderStatus: 'pending', createdAt: '2024-01-01' }
+ * // Result: { id: 1, amount: 100, orderStatus: 'pending', createdAt: '2024-01-01' }
  */
 export function mapFields<T extends Record<string, any>, M extends Partial<Record<keyof T, string>>>(
   data: T | T[],
@@ -53,22 +53,22 @@ export function mapFields<T extends Record<string, any>, M extends Partial<Recor
 }
 
 /**
- * Tipo auxiliar para criar o tipo de retorno após mapeamento de campos selecionados
+ * Helper type to create the return type after mapping selected fields
  */
 type MapSelectedFieldsResult<T extends Record<string, any>, M extends Partial<Record<keyof T, string>>> = {
   [K in keyof M as M[K] extends string ? M[K] : never]: K extends keyof T ? T[K] : never;
 };
 
 /**
- * Mapeia campos selecionando apenas os campos especificados e renomeando-os
+ * Maps fields by selecting only the specified fields and renaming them
  *
- * @template T - Tipo do objeto de entrada
- * @template M - Tipo do mapeamento de campos
+ * @template T - Type of the input object
+ * @template M - Type of the field mapping
  *
  * @example
  * const order = { id: 1, total: 100, status: 'pending', createdAt: '2024-01-01' };
  * const mapped = mapSelectedFields(order, { total: 'amount', status: 'orderStatus' });
- * // Resultado: { amount: 100, orderStatus: 'pending' } (apenas os campos mapeados)
+ * // Result: { amount: 100, orderStatus: 'pending' } (only mapped fields)
  */
 export function mapSelectedFields<T extends Record<string, any>, M extends Partial<Record<keyof T, string>>>(
   data: T | T[],

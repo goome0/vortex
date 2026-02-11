@@ -210,7 +210,7 @@ export default function AdminAccountsPage() {
     const username = selectedAccount?.username;
     if (!username) return;
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError('CP amount must be a positive number');
+      setError('COMP Credits amount must be a positive number');
       return;
     }
 
@@ -223,12 +223,12 @@ export default function AdminAccountsPage() {
           return;
         }
         await adminApi.scheduleCp(username, amount, scheduledAtMs, addCpReason.trim() || undefined);
-        setSuccessMessage(`Scheduled ${amount.toLocaleString()} CP for ${username}.`);
+        setSuccessMessage(`Scheduled ${amount.toLocaleString()} COMP Credits for ${username}.`);
       } else {
         const { data: response } = await adminApi.addCp(username, amount, addCpReason.trim() || undefined);
         const newCp = response?.data?.newCp as number | undefined;
         setSuccessMessage(
-          `Added ${amount.toLocaleString()} CP to ${username}${typeof newCp === 'number' ? ` (new balance: ${newCp.toLocaleString()})` : ''}!`
+          `Added ${amount.toLocaleString()} COMP Credits to ${username}${typeof newCp === 'number' ? ` (new balance: ${newCp.toLocaleString()})` : ''}!`
         );
         if (selectedAccount?.username === username && typeof newCp === 'number') {
           setSelectedAccount({ ...selectedAccount, cp: newCp });
@@ -346,7 +346,7 @@ export default function AdminAccountsPage() {
                   <tr className="border-b border-slate-700/50">
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">User</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Email</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">CP</th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">COMP Credits</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Level</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Status</th>
                     <th className="text-right py-4 px-6 text-sm font-semibold text-slate-400">Actions</th>
@@ -510,7 +510,7 @@ export default function AdminAccountsPage() {
                         <div className="relative flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                           <Coins className="w-5 h-5 text-yellow-400" />
                           <div>
-                            <p className="text-sm text-yellow-400">CP</p>
+                            <p className="text-sm text-yellow-400">COMP Credits</p>
                             <p className="text-xl font-bold text-yellow-400">
                               {selectedAccount.cp?.toLocaleString() || '0'}
                             </p>
@@ -519,7 +519,7 @@ export default function AdminAccountsPage() {
                             type="button"
                             onClick={openAddCpModal}
                             className="absolute top-3 right-3 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 hover:text-yellow-200 hover:bg-yellow-500/20 transition-colors"
-                            title="Add CP"
+                            title="Add COMP Credits"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
@@ -558,7 +558,7 @@ export default function AdminAccountsPage() {
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <Input
-                        label="CP"
+                        label="COMP Credits"
                         type="number"
                         value={editForm.cp}
                         onChange={(e) => setEditForm({ ...editForm, cp: e.target.value })}
@@ -709,7 +709,7 @@ export default function AdminAccountsPage() {
         )}
       </AnimatePresence>
 
-      {/* Add CP Modal */}
+      {/* Add COMP Credits Modal */}
       <AnimatePresence>
         {showAddCpModal && (
           <motion.div
@@ -731,7 +731,7 @@ export default function AdminAccountsPage() {
               <div className="flex items-center justify-between p-6 border-b border-slate-800">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <Coins className="w-5 h-5 text-yellow-400" />
-                  Add CP
+                  Add COMP Credits
                 </h3>
                 <button
                   onClick={() => setShowAddCpModal(false)}
@@ -764,7 +764,7 @@ export default function AdminAccountsPage() {
                 </div>
 
                 <Input
-                  label="CP Amount"
+                  label="COMP Credits Amount"
                   type="number"
                   placeholder="Ex: 100"
                   autoFocus
@@ -801,7 +801,7 @@ export default function AdminAccountsPage() {
                 </Button>
                 <Button className="flex-1" onClick={handleAddCp} isLoading={actionLoading} disabled={!selectedAccount?.username}>
                   <Coins className="w-4 h-4" />
-                  Add CP
+                  Add COMP Credits
                 </Button>
               </div>
             </motion.div>

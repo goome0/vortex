@@ -26,6 +26,6 @@ export class TaxIdValidator implements ValidatorConstraintInterface {
   }
 
   public defaultMessage(_args: ValidationArguments): string {
-    return 'Documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos) válido';
+    return 'Document must be a valid CPF (11 digits) or CNPJ (14 digits)';
   }
 }

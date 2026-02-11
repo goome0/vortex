@@ -33,7 +33,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   ): TUser {
     if (err || !user) {
       throw ErrorResponse.toHttpException({
-        message: 'Token inválido ou expirado',
+        message: 'Invalid or expired token',
         statusCode: HttpStatus.UNAUTHORIZED,
         code: 'UNAUTHORIZED',
       });

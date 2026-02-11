@@ -36,6 +36,6 @@ export class CpfValidator implements ValidatorConstraintInterface {
   }
 
   public defaultMessage(_args: ValidationArguments): string {
-    return 'CPF inválido';
+    return 'Invalid CPF';
   }
 }

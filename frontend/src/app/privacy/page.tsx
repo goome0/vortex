@@ -245,8 +245,16 @@ export default function PrivacyPage() {
             </h3>
             <p className="text-slate-300 mb-6">
               If you have any questions about this Privacy Policy, please reach out 
-              to us through our community channels.
+              to us through our community Discord.
             </p>
+            <a
+              href="https://discord.gg/Njz2wmGr"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:text-cyan-200 hover:border-cyan-500/50 transition-colors mb-6"
+            >
+              discord.gg/Njz2wmGr
+            </a>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href={ROUTES.HOME}>
                 <Button variant="ghost" size="lg">

@@ -17,6 +17,7 @@ import {
   TrendingUp,
   User,
   UserCircle,
+  type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -59,6 +60,9 @@ export default function DashboardPage() {
   }
 
   const isAdmin = user.user_level >= 1000;
+  const showUserLevel = user.user_level === 1 || user.user_level >= 1000;
+
+  type Stat = { label: string; value: string; icon: LucideIcon; color: string };
 
   return (
     <div className="min-h-screen pt-28 pb-12">
@@ -120,19 +124,22 @@ export default function DashboardPage() {
           variants={staggerContainer}
           className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
-          {[
+          {(
+            [
             {
-              label: "CP Balance",
+              label: "COMP Credits",
               value: user.cp?.toLocaleString() || "0",
               icon: Coins,
               color: "text-yellow-400",
             },
-            {
-              label: "User Level",
-              value: user.user_level?.toString() || "0",
-              icon: TrendingUp,
-              color: "text-green-400",
-            },
+            showUserLevel
+              ? {
+                  label: "User Level",
+                  value: user.user_level?.toString() || "0",
+                  icon: TrendingUp,
+                  color: "text-green-400",
+                }
+              : null,
             {
               label: "Tickets",
               value: user.ticket_count?.toString() || "0",
@@ -145,7 +152,10 @@ export default function DashboardPage() {
               icon: UserCircle,
               color: "text-blue-400",
             },
-          ].map((stat) => {
+            ] satisfies Array<Stat | null>
+          )
+            .filter((s): s is Stat => s !== null)
+            .map((stat) => {
             const Icon = stat.icon;
             return (
               <motion.div
@@ -251,7 +261,7 @@ export default function DashboardPage() {
             transition={{ delay: 0.2 }}
             className="lg:col-span-2 space-y-6"
           >
-            {/* CP Balance Card */}
+            {/* COMP Credits Card */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -259,15 +269,15 @@ export default function DashboardPage() {
                     <Coins className="w-5 h-5 text-yellow-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Your CP Balance</p>
+                    <p className="text-sm text-slate-400">Your COMP Credits</p>
                     <p className="text-2xl font-bold text-yellow-400">
                       {user.cp?.toLocaleString() || "0"}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-500">
-                  CP (Cash Points) can be used for in-game purchases. This is a
-                  free server — no real money transactions.
+                  COMP Credits (CP) can be used for in-game purchases. This is a free server — no real money
+                  transactions.
                 </p>
               </CardContent>
             </Card>
@@ -321,7 +331,7 @@ export default function DashboardPage() {
 
               <Card
                 className="border-emerald-500/20 hover:border-emerald-500/40 transition-colors cursor-pointer group"
-                onClick={() => router.push(ROUTES.TICKETS)}
+                onClick={() => router.push(ROUTES.CASES)}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
@@ -331,7 +341,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <p className="font-medium text-white">
-                          Support Tickets
+                          Support Cases
                         </p>
                         <p className="text-sm text-slate-400">
                           Open & track requests

@@ -85,12 +85,12 @@ export default function AdminScheduledCpPage() {
   const visible = useMemo(() => items, [items]);
 
   const cancel = async (id: string) => {
-    if (!confirm('Cancel this scheduled CP grant?')) return;
+    if (!confirm('Cancel this scheduled COMP Credits grant?')) return;
     setActionLoading(true);
     setError('');
     try {
       await adminApi.cancelScheduledCp(id);
-      setSuccessMessage('Scheduled CP grant cancelled.');
+      setSuccessMessage('Scheduled COMP Credits grant cancelled.');
       setTimeout(() => setSuccessMessage(''), 3000);
       await load();
     } catch (e) {
@@ -117,7 +117,7 @@ export default function AdminScheduledCpPage() {
     const scheduledAtMs = Number.isFinite(Date.parse(editScheduledAtLocal)) ? Date.parse(editScheduledAtLocal) : NaN;
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError('CP amount must be a positive number');
+      setError('COMP Credits amount must be a positive number');
       return;
     }
     if (!Number.isFinite(scheduledAtMs)) {
@@ -135,7 +135,7 @@ export default function AdminScheduledCpPage() {
         // Always send reason so user can clear it by submitting empty.
         reason: editReason,
       });
-      setSuccessMessage('Scheduled CP grant updated.');
+      setSuccessMessage('Scheduled COMP Credits grant updated.');
       setTimeout(() => setSuccessMessage(''), 3000);
       setEditRow(null);
       await load();
@@ -160,9 +160,9 @@ export default function AdminScheduledCpPage() {
         <div>
           <h1 className="text-2xl font-display font-bold text-white flex items-center gap-3">
             <CalendarClock className="w-7 h-7 text-yellow-400" />
-            Scheduled CP
+            Scheduled COMP Credits
           </h1>
-          <p className="text-slate-400 mt-1">Monitor and cancel pending CP grants scheduled by GMs.</p>
+          <p className="text-slate-400 mt-1">Monitor and cancel pending COMP Credits grants scheduled by GMs.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={load} disabled={actionLoading}>
@@ -241,7 +241,7 @@ export default function AdminScheduledCpPage() {
           {visible.length === 0 ? (
             <div className="text-center py-12">
               <CalendarClock className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400">No scheduled CP grants found</p>
+              <p className="text-slate-400">No scheduled COMP Credits grants found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -329,7 +329,7 @@ export default function AdminScheduledCpPage() {
             >
               <div className="flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
-                  <h3 className="text-xl font-bold text-white">Edit Scheduled CP</h3>
+                  <h3 className="text-xl font-bold text-white">Edit Scheduled COMP Credits</h3>
                   <p className="text-sm text-slate-400 mt-1">
                     {editRow.username} • <span className="text-slate-500">id</span> {editRow.id.slice(0, 8)}…
                   </p>
@@ -345,7 +345,7 @@ export default function AdminScheduledCpPage() {
 
               <div className="p-6 space-y-4">
                 <Input
-                  label="CP Amount"
+                  label="COMP Credits Amount"
                   type="number"
                   value={editAmount}
                   onChange={(e) => setEditAmount(e.target.value)}
@@ -393,4 +393,3 @@ export default function AdminScheduledCpPage() {
     </div>
   );
 }
-

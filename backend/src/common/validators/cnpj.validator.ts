@@ -47,6 +47,6 @@ export class CnpjValidator implements ValidatorConstraintInterface {
   }
 
   public defaultMessage(_args: ValidationArguments): string {
-    return 'CNPJ inválido';
+    return 'Invalid CNPJ';
   }
 }

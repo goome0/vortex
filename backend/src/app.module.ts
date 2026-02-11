@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import path from 'path';
 import { AppLoggerModule } from './common/app-logger';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -12,15 +13,21 @@ import { DatabaseRepositoriesModule } from './database/database-repositories.mod
 import { COMP_HACK_ENTITIES, WORLD_ENTITIES } from './database/entities';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CasesModule } from './modules/cases/cases.module';
 import { NewsModule } from './modules/news/news.module';
-import { ServerControlModule } from './modules/server-control/server-control.module';
-import { TicketsModule } from './modules/tickets/tickets.module';
 import { WebGameModule } from './modules/webgame/webgame.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      // Support running the backend from either the repo root or `backend/`.
+      // - When CWD is repo root: loads `backend/.env`
+      // - When CWD is `backend/`: loads `.env`
+      envFilePath: [
+        path.resolve(process.cwd(), '.env'),
+        path.resolve(process.cwd(), 'backend', '.env'),
+      ],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -60,8 +67,7 @@ import { WebGameModule } from './modules/webgame/webgame.module';
     AuthModule,
     NewsModule,
     AdminModule,
-    TicketsModule,
-    ServerControlModule,
+    CasesModule,
     WebGameModule,
   ],
   providers: [

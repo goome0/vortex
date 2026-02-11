@@ -100,9 +100,8 @@ export default function AdminOverviewPage() {
     { label: 'News', icon: Newspaper, href: ROUTES.ADMIN_NEWS, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
     { label: 'Post Items', icon: Package, href: ROUTES.ADMIN_ITEMS, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
     { label: 'Item Bundles', icon: Layers, href: ROUTES.ADMIN_BUNDLES, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-    { label: 'Scheduled CP', icon: CalendarClock, href: ROUTES.ADMIN_SCHEDULED_CP, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
-    { label: 'Tickets', icon: Ticket, href: ROUTES.ADMIN_TICKETS, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-    { label: 'Server Control', icon: Server, href: ROUTES.ADMIN_SERVER, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+    { label: 'Scheduled COMP Credits', icon: CalendarClock, href: ROUTES.ADMIN_SCHEDULED_CP, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+    { label: 'Cases', icon: Ticket, href: ROUTES.ADMIN_CASES, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
     { label: 'World Message', icon: MessageSquare, href: ROUTES.ADMIN_WORLD, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
   ];
 

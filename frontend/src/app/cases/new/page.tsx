@@ -1,23 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, ArrowLeft, Send } from 'lucide-react';
 import { Alert, Button, Card, CardContent, Input } from '@/components/ui';
-import { ticketsApi, getErrorMessage } from '@/lib/api';
+import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 
-type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+type CasePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-export default function NewTicketPage() {
+export default function NewCasePage() {
   const router = useRouter();
   const [subject, setSubject] = useState('');
   const [category, setCategory] = useState('ACCOUNT');
-  const [priority, setPriority] = useState<TicketPriority>('MEDIUM');
+  const [priority, setPriority] = useState<CasePriority>('MEDIUM');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URL(window.location.href).searchParams;
+
+    const cat = (sp.get('category') || '').toUpperCase();
+    if (cat === 'ACCOUNT' || cat === 'BUG' || cat === 'REPORT' || cat === 'OTHER') {
+      setCategory(cat);
+    }
+
+    const subj = sp.get('subject');
+    if (typeof subj === 'string' && subj.trim().length > 0) {
+      setSubject(subj);
+    }
+  }, []);
 
   const canSubmit = subject.trim().length >= 4 && message.trim().length >= 4;
 
@@ -26,7 +41,7 @@ export default function NewTicketPage() {
     setIsSubmitting(true);
     setError('');
     try {
-      const { data: response } = await ticketsApi.create({
+      const { data: response } = await casesApi.create({
         subject: subject.trim(),
         category,
         priority,
@@ -34,10 +49,10 @@ export default function NewTicketPage() {
       });
       const id = response?.data?.id as string | undefined;
       if (id) {
-        router.push(`${ROUTES.TICKETS}/${id}`);
+        router.push(`${ROUTES.CASES}/${id}`);
         return;
       }
-      router.push(ROUTES.TICKETS);
+      router.push(ROUTES.CASES);
     } catch (e: unknown) {
       setError(getErrorMessage(e));
     } finally {
@@ -55,11 +70,11 @@ export default function NewTicketPage() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-white flex items-center gap-3">
               <Ticket className="w-7 h-7 text-emerald-400" />
-              New Ticket
+              New Case
             </h1>
-            <p className="text-slate-400 mt-1">Describe your issue and we’ll get back to you.</p>
+            <p className="text-slate-400 mt-1">Describe your issue and we'll get back to you.</p>
           </div>
-          <Button variant="ghost" onClick={() => router.push(ROUTES.TICKETS)}>
+          <Button variant="ghost" onClick={() => router.push(ROUTES.CASES)}>
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
@@ -74,6 +89,17 @@ export default function NewTicketPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <Card className="border-cyan-500/20 bg-cyan-500/5">
+          <CardContent className="pt-6 space-y-2 text-sm text-slate-300">
+            <p className="font-semibold text-cyan-300">Account & Character Creation</p>
+            <p>You can request account help using a ticket.</p>
+            <p>
+              You can create a Player Character with a ticket. Max amount of Player Characters you can create for each account is{' '}
+              <span className="font-semibold text-white">20</span>.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card className="border-slate-700/50">
           <CardContent className="pt-6 space-y-4">
@@ -103,7 +129,7 @@ export default function NewTicketPage() {
                 <label className="block text-sm font-medium text-slate-300">Priority</label>
                 <select
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value as TicketPriority)}
+                  onChange={(e) => setPriority(e.target.value as CasePriority)}
                   className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
                 >
                   <option value="LOW">Low</option>
@@ -126,12 +152,12 @@ export default function NewTicketPage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button variant="secondary" onClick={() => router.push(ROUTES.TICKETS)} disabled={isSubmitting}>
+              <Button variant="secondary" onClick={() => router.push(ROUTES.CASES)} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button onClick={submit} disabled={!canSubmit} isLoading={isSubmitting}>
                 <Send className="w-4 h-4" />
-                Create Ticket
+                Create Case
               </Button>
             </div>
           </CardContent>
@@ -140,4 +166,3 @@ export default function NewTicketPage() {
     </div>
   );
 }
-

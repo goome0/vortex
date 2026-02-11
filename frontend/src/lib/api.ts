@@ -211,37 +211,22 @@ export const adminApi = {
   deletePromo: (code: string) => api.post('/admin/promo/delete', { code }),
 };
 
-// Tickets API (User)
-export const ticketsApi = {
+// Cases API (User)
+export const casesApi = {
   create: (data: { subject: string; message: string; category?: string; priority?: string }) =>
-    api.post('/tickets', data),
-  my: () => api.get('/tickets/my'),
-  get: (id: string) => api.get(`/tickets/${id}`),
-  addMessage: (id: string, message: string) => api.post(`/tickets/${id}/messages`, { message }),
-  close: (id: string) => api.post(`/tickets/${id}/close`),
+    api.post('/cases', data),
+  my: () => api.get('/cases/my'),
+  get: (id: string) => api.get(`/cases/${id}`),
+  addMessage: (id: string, message: string) => api.post(`/cases/${id}/messages`, { message }),
+  close: (id: string) => api.post(`/cases/${id}/close`),
 };
 
-// Tickets API (Admin / GM Panel)
-export const adminTicketsApi = {
-  list: () => api.get('/admin/tickets'),
-  get: (id: string) => api.get(`/admin/tickets/${id}`),
-  addMessage: (id: string, message: string) => api.post(`/admin/tickets/${id}/messages`, { message }),
-  resolve: (id: string, data: { message: string }) => api.post(`/admin/tickets/${id}/resolve`, data),
-};
-
-// Server Control API (Admin / GM Panel)
-// Requires x-server-control-token header in addition to Bearer token.
-export const serverControlApi = {
-  targets: (serverControlToken: string) =>
-    api.get('/admin/server/targets', { headers: { 'x-server-control-token': serverControlToken } }),
-  status: (serverControlToken: string, targetId: string, data?: { dryRun?: boolean; reason?: string }) =>
-    api.post(`/admin/server/${targetId}/status`, data ?? {}, { headers: { 'x-server-control-token': serverControlToken } }),
-  start: (serverControlToken: string, targetId: string, data?: { dryRun?: boolean; reason?: string }) =>
-    api.post(`/admin/server/${targetId}/start`, data ?? {}, { headers: { 'x-server-control-token': serverControlToken } }),
-  stop: (serverControlToken: string, targetId: string, data?: { dryRun?: boolean; reason?: string }) =>
-    api.post(`/admin/server/${targetId}/stop`, data ?? {}, { headers: { 'x-server-control-token': serverControlToken } }),
-  restart: (serverControlToken: string, targetId: string, data?: { dryRun?: boolean; reason?: string }) =>
-    api.post(`/admin/server/${targetId}/restart`, data ?? {}, { headers: { 'x-server-control-token': serverControlToken } }),
+// Cases API (Admin / GM Panel)
+export const adminCasesApi = {
+  list: () => api.get('/admin/cases'),
+  get: (id: string) => api.get(`/admin/cases/${id}`),
+  addMessage: (id: string, message: string) => api.post(`/admin/cases/${id}/messages`, { message }),
+  resolve: (id: string, data: { message: string }) => api.post(`/admin/cases/${id}/resolve`, data),
 };
 
 // Public News API

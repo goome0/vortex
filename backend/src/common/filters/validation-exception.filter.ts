@@ -25,7 +25,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
             : undefined;
         const messages = Array.isArray(er?.message)
           ? (er?.message as string[])
-          : [typeof er?.message === 'string' ? er?.message : 'Erro de validação'];
+          : [typeof er?.message === 'string' ? er?.message : 'Validation error'];
 
         response.status(status).json({
           success: false,

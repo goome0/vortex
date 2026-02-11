@@ -6,24 +6,21 @@ import { motion } from 'framer-motion';
 import { ROUTES, APP_NAME } from '@/lib/constants';
 import {
   Gamepad2,
-  Github,
-  Twitter,
   MessageCircle,
   Heart,
   ExternalLink,
 } from 'lucide-react';
 
+const DISCORD_INVITE_URL = 'https://discord.gg/Njz2wmGr';
+
 const footerLinks = {
   game: [
     { label: 'Download', href: ROUTES.DOWNLOAD },
     { label: 'News', href: ROUTES.NEWS },
-    { label: 'Wiki', href: '#' },
   ],
   community: [
-    { label: 'Discord', href: '#', external: true },
-    { label: 'Forums', href: '#', external: true },
-    { label: 'Support', href: '#' },
-    { label: 'Bug Report', href: '#' },
+    { label: 'Discord', href: DISCORD_INVITE_URL, external: true },
+    { label: 'Bug Report', href: `${ROUTES.CASES}/new?category=BUG&subject=${encodeURIComponent('Bug Report: ')}` },
   ],
   legal: [
     { label: 'Terms of Service', href: '/terms' },
@@ -32,9 +29,7 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: MessageCircle, href: '#', label: 'Discord' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Github, href: '#', label: 'GitHub' },
+  { icon: MessageCircle, href: DISCORD_INVITE_URL, label: 'Discord' },
 ];
 
 export function Footer() {
@@ -159,7 +154,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="py-6 border-t border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+            (c) {new Date().getFullYear()} {APP_NAME}. All rights reserved.
           </p>
           <p className="text-sm text-slate-600 flex items-center gap-1">
             Made with <Heart className="w-4 h-4 text-red-500" /> by the Vortex Team

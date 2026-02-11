@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminTicketsApi, getErrorMessage } from '@/lib/api';
+import { adminCasesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { Alert, Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
 import { ArrowLeft, CheckCircle2, MessageSquare, Send, Ticket, User, Wrench } from 'lucide-react';
@@ -14,7 +14,7 @@ type AuthorRole = 'USER' | 'ADMIN';
 
 interface TicketMessage {
   id: string;
-  ticketId: string;
+  caseId: string;
   authorUsername: string;
   authorRole: AuthorRole;
   body: string;
@@ -51,7 +51,7 @@ function statusBadge(status: TicketStatus) {
   }
 }
 
-export default function AdminTicketDetailPage() {
+export default function AdminCaseDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params?.id;
@@ -71,7 +71,7 @@ export default function AdminTicketDetailPage() {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await adminTicketsApi.get(id);
+      const { data: response } = await adminCasesApi.get(id);
       setTicket((response?.data ?? null) as TicketDetails | null);
     } catch (e: unknown) {
       setError(getErrorMessage(e));
@@ -92,7 +92,7 @@ export default function AdminTicketDetailPage() {
     setIsReplying(true);
     setError('');
     try {
-      await adminTicketsApi.addMessage(id, reply.trim());
+      await adminCasesApi.addMessage(id, reply.trim());
       setReply('');
       await fetchTicket();
     } catch (e: unknown) {
@@ -107,7 +107,7 @@ export default function AdminTicketDetailPage() {
     setIsResolving(true);
     setError('');
     try {
-      await adminTicketsApi.resolve(id, { message: resolution.trim() });
+      await adminCasesApi.resolve(id, { message: resolution.trim() });
       setResolution('');
       await fetchTicket();
     } catch (e: unknown) {
@@ -134,7 +134,7 @@ export default function AdminTicketDetailPage() {
           <div className="flex items-center gap-3">
             <Ticket className="w-6 h-6 text-cyan-400" />
             <h1 className="text-xl sm:text-2xl font-display font-bold text-white truncate">
-              {ticket?.subject ?? 'Ticket'}
+              {ticket?.subject ?? 'Case'}
             </h1>
           </div>
           <p className="text-slate-400 mt-1 text-sm">
@@ -142,7 +142,7 @@ export default function AdminTicketDetailPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => router.push(ROUTES.ADMIN_TICKETS)}>
+          <Button variant="ghost" onClick={() => router.push(ROUTES.ADMIN_CASES)}>
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
@@ -163,11 +163,11 @@ export default function AdminTicketDetailPage() {
         )}
       </AnimatePresence>
 
-      {!ticket && (
-        <Alert variant="error">
-          Ticket not found.
-        </Alert>
-      )}
+        {!ticket && (
+          <Alert variant="error">
+            Case not found.
+          </Alert>
+        )}
 
       {ticket && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -208,7 +208,7 @@ export default function AdminTicketDetailPage() {
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     rows={4}
-                    placeholder={ticket.status === 'CLOSED' ? 'Ticket is closed.' : 'Write a reply to the user...'}
+                    placeholder={ticket.status === 'CLOSED' ? 'Case is closed.' : 'Write a reply to the user...'}
                     disabled={ticket.status === 'CLOSED'}
                     className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 disabled:opacity-60"
                   />
@@ -228,7 +228,7 @@ export default function AdminTicketDetailPage() {
               <CardContent className="pt-6 space-y-3">
                 <div className="flex items-center gap-2 text-white font-semibold">
                   <User className="w-5 h-5 text-slate-300" />
-                  Ticket Info
+                  Case Info
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-400">User</span>
@@ -289,4 +289,3 @@ export default function AdminTicketDetailPage() {
     </div>
   );
 }
-
