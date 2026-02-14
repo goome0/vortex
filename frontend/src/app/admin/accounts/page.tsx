@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, Button, Input, Badge, Alert, LoadingSpinner, DateTimePicker } from '@/components/ui';
 import { adminApi, getErrorMessage } from '@/lib/api';
@@ -76,7 +76,28 @@ export default function AdminAccountsPage() {
   const [characterForm, setCharacterForm] = useState({ name: '', points: '', lnc: '', loginPoints: '' });
   const [isCharactersLoading, setIsCharactersLoading] = useState(false);
   const [isCharacterSaving, setIsCharacterSaving] = useState(false);
+  const [characterSuccess, setCharacterSuccess] = useState('');
   const [characterError, setCharacterError] = useState('');
+  const characterSuccessTimeoutRef = useRef<number | null>(null);
+
+  const showCharacterSuccess = useCallback((message: string) => {
+    setCharacterSuccess(message);
+    if (characterSuccessTimeoutRef.current) {
+      window.clearTimeout(characterSuccessTimeoutRef.current);
+    }
+    characterSuccessTimeoutRef.current = window.setTimeout(() => {
+      setCharacterSuccess('');
+      characterSuccessTimeoutRef.current = null;
+    }, 2500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (characterSuccessTimeoutRef.current) {
+        window.clearTimeout(characterSuccessTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -214,6 +235,7 @@ export default function AdminAccountsPage() {
     setCharacters([]);
     setSelectedCharacterUid('');
     setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
+    setCharacterSuccess('');
     setCharacterError('');
 
     setIsCharactersLoading(true);
@@ -244,6 +266,7 @@ export default function AdminAccountsPage() {
     setCharacters([]);
     setSelectedCharacterUid('');
     setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
+    setCharacterSuccess('');
     setCharacterError('');
     setIsCharactersLoading(false);
     setIsCharacterSaving(false);
@@ -259,6 +282,7 @@ export default function AdminAccountsPage() {
     setSelectedCharacterUid(uid);
     const c = characters.find((x) => x.uid === uid);
     if (!c) return;
+    setCharacterSuccess('');
     setCharacterError('');
     setCharacterForm({
       name: String(c.name ?? ''),
@@ -299,7 +323,15 @@ export default function AdminAccountsPage() {
       const updated = response.data as AccountCharacter | undefined;
       if (updated?.uid) {
         setCharacters((prev) => prev.map((c) => (c.uid === updated.uid ? { ...c, ...updated } : c)));
+        setCharacterForm({
+          name: String(updated.name ?? ''),
+          points: String(updated.points ?? 0),
+          lnc: String(updated.lnc ?? 0),
+          loginPoints: String(updated.loginPoints ?? 0),
+        });
       }
+
+      showCharacterSuccess(opts?.revive ? 'Character revived successfully.' : 'Character saved successfully.');
     } catch (err) {
       setCharacterError(getErrorMessage(err));
     } finally {
@@ -928,6 +960,11 @@ export default function AdminAccountsPage() {
               </div>
 
               <div className="p-6 space-y-4">
+                {characterSuccess && (
+                  <Alert variant="success" dismissible onDismiss={() => setCharacterSuccess('')}>
+                    {characterSuccess}
+                  </Alert>
+                )}
                 {characterError && (
                   <Alert variant="error" dismissible onDismiss={() => setCharacterError('')}>
                     {characterError}
