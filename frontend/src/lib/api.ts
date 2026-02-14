@@ -194,20 +194,11 @@ export const adminApi = {
   updateScheduledCp: (data: { id: string; amount?: number; scheduledAtMs?: number; reason?: string }) =>
     api.post('/admin/account/scheduled-cp/update', data),
   // Item bundles
-  createBundle: (data: {
-    name: string;
-    description?: string;
-    cpCost?: number;
-    products: number[] | { productId: number; quantity: number }[];
-  }) => api.post('/admin/bundles/create', data),
+  createBundle: (data: { name: string; description?: string; cpCost?: number; products: number[] }) =>
+    api.post('/admin/bundles/create', data),
   listBundles: (data?: { q?: string; page?: number; limit?: number }) => api.post('/admin/bundles/list', data ?? {}),
-  updateBundle: (data: {
-    id: string;
-    name?: string;
-    description?: string;
-    cpCost?: number;
-    products?: number[] | { productId: number; quantity: number }[];
-  }) => api.post('/admin/bundles/update', data),
+  updateBundle: (data: { id: string; name?: string; description?: string; cpCost?: number; products?: number[] }) =>
+    api.post('/admin/bundles/update', data),
   deleteBundle: (id: string) => api.post('/admin/bundles/delete', { id }),
   scheduleBundleSend: (data: { bundleId: string; usernames: string[]; scheduledAtMs?: number; reason?: string }) =>
     api.post('/admin/bundles/send', data),
@@ -227,11 +218,8 @@ export const adminApi = {
     api.post('/admin/message-world', data),
   getOnline: (targets: { name: string; type: string; world_id?: number }[]) =>
     api.post('/admin/online', { targets }),
-  postItems: (data: {
-    username: string;
-    cp: number;
-    products: number[] | { productId: number; quantity: number }[];
-  }) => api.post('/admin/post-items', data),
+  postItems: (data: { username: string; cp: number; products: number[] }) =>
+    api.post('/admin/post-items', data),
   getPromos: (params?: { q?: string; page?: number; limit?: number }) =>
     api.get('/admin/promos', { params }),
   getPromoInsights: (params?: { q?: string; page?: number; limit?: number }) =>

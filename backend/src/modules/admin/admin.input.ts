@@ -364,9 +364,6 @@ export class AdminOnlineInputDTO {
   public targets?: AdminOnlineTargetInputDTO[];
 }
 
-/** Product with optional quantity. Number = qty 1. */
-export type ProductInput = number | { productId: number; quantity: number };
-
 export class AdminPostItemsInputDTO {
   @ApiProperty({ description: 'Username to post items to' })
   @IsNotEmpty()
@@ -379,13 +376,10 @@ export class AdminPostItemsInputDTO {
   @Min(0)
   public cp?: number;
 
-  @ApiProperty({
-    description: 'Products: array of product IDs (qty 1 each) or { productId, quantity }',
-    example: [{ productId: 800, quantity: 50000 }],
-  })
+  @ApiProperty({ description: 'Product IDs' })
   @IsNotEmpty()
   @IsArray()
-  public products!: ProductInput[];
+  public products!: number[];
 }
 
 // --- Item Bundles ---
@@ -409,15 +403,12 @@ export class AdminCreateItemBundleInputDTO {
   @Min(0)
   public cpCost?: number;
 
-  @ApiProperty({
-    description: 'Products: product IDs (qty 1) or { productId, quantity }',
-    example: [{ productId: 800, quantity: 50000 }],
-  })
+  @ApiProperty({ description: 'Product IDs', type: [Number] })
   @IsNotEmpty()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(200)
-  public products!: ProductInput[];
+  public products!: number[];
 }
 
 export class AdminUpdateItemBundleInputDTO {
@@ -444,14 +435,12 @@ export class AdminUpdateItemBundleInputDTO {
   @Min(0)
   public cpCost?: number;
 
-  @ApiPropertyOptional({
-    description: 'Products: product IDs (qty 1) or { productId, quantity }',
-  })
+  @ApiPropertyOptional({ description: 'Product IDs', type: [Number] })
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(200)
-  public products?: ProductInput[];
+  public products?: number[];
 }
 
 export class AdminDeleteItemBundleInputDTO {

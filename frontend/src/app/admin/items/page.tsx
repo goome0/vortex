@@ -19,7 +19,6 @@ import {
 interface ProductEntry {
   id: string;
   productId: number;
-  quantity: number;
 }
 
 export default function AdminItemsPage() {
@@ -27,18 +26,15 @@ export default function AdminItemsPage() {
   const [cpCost, setCpCost] = useState('0');
   const [products, setProducts] = useState<ProductEntry[]>([]);
   const [newProductId, setNewProductId] = useState('');
-  const [newProductQty, setNewProductQty] = useState('1');
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddProduct = () => {
     const id = parseInt(newProductId);
-    const qty = Math.max(1, parseInt(newProductQty, 10) || 1);
     if (isNaN(id) || id <= 0) return;
-    setProducts([...products, { id: Date.now().toString(), productId: id, quantity: qty }]);
+    setProducts([...products, { id: Date.now().toString(), productId: id }]);
     setNewProductId('');
-    setNewProductQty('1');
   };
 
   const handleRemoveProduct = (entryId: string) => {
@@ -51,14 +47,12 @@ export default function AdminItemsPage() {
     setIsLoading(true);
     setError('');
     try {
-      const productsPayload = products.map((p) => ({ productId: p.productId, quantity: p.quantity }));
-      const totalItems = products.reduce((sum, p) => sum + p.quantity, 0);
       await adminApi.postItems({
         username: targetPlayer,
         cp: parseInt(cpCost) || 0,
-        products: productsPayload,
+        products: products.map((p) => p.productId),
       });
-      setSuccessMessage(`Successfully sent ${totalItems} item(s) to ${targetPlayer}!`);
+      setSuccessMessage(`Successfully sent ${products.length} product(s) to ${targetPlayer}!`);
       setProducts([]);
       setTargetPlayer('');
       setCpCost('0');
@@ -117,7 +111,7 @@ export default function AdminItemsPage() {
                 Add Products
               </h3>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="flex gap-3 mb-6">
                 <div className="flex-grow">
                   <Input
                     type="number"
@@ -126,16 +120,6 @@ export default function AdminItemsPage() {
                     onChange={(e) => setNewProductId(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddProduct()}
                     icon={<Hash className="w-5 h-5" />}
-                  />
-                </div>
-                <div className="w-full sm:w-28">
-                  <Input
-                    type="number"
-                    placeholder="Qty"
-                    min={1}
-                    value={newProductQty}
-                    onChange={(e) => setNewProductQty(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddProduct()}
                   />
                 </div>
                 <Button onClick={handleAddProduct} disabled={!newProductId || parseInt(newProductId) <= 0}>
@@ -158,9 +142,7 @@ export default function AdminItemsPage() {
                       <div className="px-2 py-1 rounded text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
                         #{product.productId}
                       </div>
-                      <span className="text-white">
-                        Product {product.productId} × {product.quantity.toLocaleString()}
-                      </span>
+                      <span className="text-white">Product ID: {product.productId}</span>
                     </div>
                     <button
                       onClick={() => handleRemoveProduct(product.id)}
@@ -244,9 +226,7 @@ export default function AdminItemsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Products</span>
-                    <span className="text-white font-medium">
-                      {products.reduce((sum, p) => sum + p.quantity, 0)} item(s)
-                    </span>
+                    <span className="text-white font-medium">{products.length} item(s)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">COMP Credits Cost</span>
@@ -264,7 +244,7 @@ export default function AdminItemsPage() {
                 onClick={handleSendItems}
               >
                 <Send className="w-5 h-5" />
-                Send {products.reduce((sum, p) => sum + p.quantity, 0)} Item(s) to {targetPlayer || 'Player'}
+                Send {products.length} Product(s) to {targetPlayer || 'Player'}
               </Button>
             </CardContent>
           </Card>

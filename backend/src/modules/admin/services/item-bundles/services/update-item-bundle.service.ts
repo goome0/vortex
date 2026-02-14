@@ -6,7 +6,6 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminUpdateItemBundleInputDTO } from '../../../admin.input';
-import { normalizeProducts } from '../../../utils/product-quantity.util';
 
 @Injectable()
 export class UpdateItemBundleService {
@@ -45,8 +44,7 @@ export class UpdateItemBundleService {
       entity.cpCost = input.cpCost;
     }
     if (Array.isArray(input.products)) {
-      const normalized = normalizeProducts(input.products);
-      if (normalized.length > 0) entity.products = normalized;
+      entity.products = input.products;
     }
 
     const saved = await this.repo.save(entity);

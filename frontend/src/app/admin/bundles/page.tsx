@@ -8,21 +8,14 @@ import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import { Layers, Plus, Trash2, Save, Send, Users, Hash, CalendarClock, RefreshCw } from 'lucide-react';
 import { AccountPickerModal } from '@/components/admin/AccountPickerModal';
 
-type ProductEntry = { productId: number; quantity: number };
-
 type Bundle = {
   id: string;
   name: string;
   description: string | null;
   cpCost: number;
-  products: number[] | ProductEntry[];
+  products: number[];
   createdAt: string;
 };
-
-function totalItemCount(products: number[] | ProductEntry[]): number {
-  if (!Array.isArray(products)) return 0;
-  return products.reduce((sum, p) => sum + (typeof p === 'number' ? 1 : (p.quantity || 1)), 0);
-}
 
 type SendBatch = {
   id: string;
@@ -55,9 +48,8 @@ export default function AdminBundlesPage() {
   const [bundleName, setBundleName] = useState('');
   const [bundleDescription, setBundleDescription] = useState('');
   const [bundleCpCost, setBundleCpCost] = useState('0');
-  const [products, setProducts] = useState<ProductEntry[]>([]);
+  const [productIds, setProductIds] = useState<number[]>([]);
   const [newProductId, setNewProductId] = useState('');
-  const [newProductQty, setNewProductQty] = useState('1');
 
   // Send
   const [sendMode, setSendMode] = useState<'now' | 'schedule'>('now');
@@ -124,7 +116,7 @@ export default function AdminBundlesPage() {
   const bundlesTotalPages = Math.max(1, Math.ceil((bundlesTotal || 0) / bundlesLimit));
   const batchesTotalPages = Math.max(1, Math.ceil((batchesTotal || 0) / batchesLimit));
 
-  const canCreate = bundleName.trim().length >= 3 && products.length > 0;
+  const canCreate = bundleName.trim().length >= 3 && productIds.length > 0;
   const canSend = !!selectedBundle && sendUsernames.length > 0;
 
   const openUserPicker = () => setShowUserPicker(true);
@@ -135,21 +127,13 @@ export default function AdminBundlesPage() {
 
   const addProduct = () => {
     const id = parseInt(newProductId, 10);
-    const qty = Math.max(1, parseInt(newProductQty, 10) || 1);
     if (!Number.isFinite(id) || id <= 0) return;
-    setProducts((prev) => {
-      const existing = prev.find((p) => p.productId === id);
-      if (existing) {
-        return prev.map((p) => (p.productId === id ? { ...p, quantity: p.quantity + qty } : p));
-      }
-      return [...prev, { productId: id, quantity: qty }];
-    });
+    setProductIds((prev) => Array.from(new Set([...prev, id])));
     setNewProductId('');
-    setNewProductQty('1');
   };
 
-  const removeProduct = (productId: number) => {
-    setProducts((prev) => prev.filter((p) => p.productId !== productId));
+  const removeProduct = (id: number) => {
+    setProductIds((prev) => prev.filter((x) => x !== id));
   };
 
   const createBundle = async () => {
@@ -161,14 +145,14 @@ export default function AdminBundlesPage() {
         name: bundleName.trim(),
         description: bundleDescription.trim() || undefined,
         cpCost: parseInt(bundleCpCost, 10) || 0,
-        products,
+        products: productIds,
       });
       setSuccessMessage('Bundle created!');
       setTimeout(() => setSuccessMessage(''), 3000);
       setBundleName('');
       setBundleDescription('');
       setBundleCpCost('0');
-      setProducts([]);
+      setProductIds([]);
       await loadBundles();
     } catch (e) {
       setError(getErrorMessage(e));
@@ -303,7 +287,7 @@ export default function AdminBundlesPage() {
               onChange={(e) => setBundleCpCost(e.target.value)}
             />
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-3">
               <div className="flex-grow">
                 <Input
                   type="number"
@@ -314,16 +298,6 @@ export default function AdminBundlesPage() {
                   icon={<Hash className="w-5 h-5" />}
                 />
               </div>
-              <div className="w-full sm:w-28">
-                <Input
-                  type="number"
-                  placeholder="Qty"
-                  min={1}
-                  value={newProductQty}
-                  onChange={(e) => setNewProductQty(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addProduct()}
-                />
-              </div>
               <Button onClick={addProduct} disabled={!newProductId}>
                 <Plus className="w-4 h-4" />
                 Add
@@ -331,17 +305,15 @@ export default function AdminBundlesPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {products.map((p) => (
-                <span key={p.productId} className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                  <span className="text-white text-sm font-mono">
-                    #{p.productId} × {p.quantity.toLocaleString()}
-                  </span>
-                  <button className="text-red-400 hover:text-red-300" onClick={() => removeProduct(p.productId)} title="Remove">
+              {productIds.map((id) => (
+                <span key={id} className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                  <span className="text-white text-sm font-mono">#{id}</span>
+                  <button className="text-red-400 hover:text-red-300" onClick={() => removeProduct(id)} title="Remove">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </span>
               ))}
-              {products.length === 0 && <p className="text-sm text-slate-500">Add at least 1 product (ID + quantity).</p>}
+              {productIds.length === 0 && <p className="text-sm text-slate-500">Add at least 1 product ID.</p>}
             </div>
 
             <Button className="w-full" onClick={createBundle} disabled={!canCreate} isLoading={actionLoading}>
@@ -376,13 +348,13 @@ export default function AdminBundlesPage() {
                   <option value="">Select bundle...</option>
                   {bundles.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.name} ({totalItemCount(b.products ?? [])} items)
+                      {b.name} ({b.products?.length ?? 0} items)
                     </option>
                   ))}
                 </select>
                 {selectedBundle && (
                   <p className="text-xs text-slate-500">
-                    COMP Credits cost: <span className="text-yellow-400">{selectedBundle.cpCost}</span> • Items: {totalItemCount(selectedBundle.products ?? [])}
+                    COMP Credits cost: <span className="text-yellow-400">{selectedBundle.cpCost}</span> • Items: {selectedBundle.products.length}
                   </p>
                 )}
               </div>
@@ -546,7 +518,7 @@ export default function AdminBundlesPage() {
                     <p className="text-white font-semibold truncate">{b.name}</p>
                     {b.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{b.description}</p>}
                     <p className="text-xs text-slate-500 mt-2">
-                      Items: <span className="text-white">{totalItemCount(b.products ?? [])}</span> • COMP: <span className="text-yellow-400">{b.cpCost}</span>
+                      Items: <span className="text-white">{b.products?.length ?? 0}</span> • COMP: <span className="text-yellow-400">{b.cpCost}</span>
                     </p>
                   </div>
                   <div className="flex gap-2">
