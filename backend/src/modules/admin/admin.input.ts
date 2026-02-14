@@ -11,7 +11,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
   Max,
   MaxLength,
   Min,
@@ -84,7 +83,8 @@ export class AdminUpdateAccountCharacterInputDTO {
   public points?: number;
 
   @ApiPropertyOptional({
-    description: 'Character name (must be unique globally). Allows letters, numbers, underscore, hyphen, space, brackets, parentheses.',
+    description:
+      'Character name (must be unique globally). Allows letters, numbers, underscore, hyphen, space, brackets, parentheses.',
     minLength: 1,
     maxLength: 32,
     example: '[GM] Ghostbay',
@@ -94,9 +94,6 @@ export class AdminUpdateAccountCharacterInputDTO {
   @IsString()
   @MinLength(1)
   @MaxLength(32)
-  @Matches(/^[A-Za-z0-9_\-\s\[\]()]+$/, {
-    message: 'Character name can only contain letters, numbers, _ - space [ ] ( )',
-  })
   public name?: string;
 
   @ApiPropertyOptional({
