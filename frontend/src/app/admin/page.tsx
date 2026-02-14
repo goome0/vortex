@@ -60,16 +60,15 @@ export default function AdminOverviewPage() {
     setError('');
     try {
       const [accountsRes, promosRes] = await Promise.allSettled([
-        adminApi.getAccounts(),
-        adminApi.getPromos(),
+        adminApi.getAccounts({ page: 1, limit: 1 }),
+        adminApi.getPromos({ page: 1, limit: 1 }),
       ]);
 
       if (accountsRes.status === 'fulfilled') {
-        setAccounts(accountsRes.value.data?.data?.accounts || accountsRes.value.data?.data || []);
+        setAccounts((accountsRes.value.data?.data?.items ?? []) as AccountSummary[]);
       }
       if (promosRes.status === 'fulfilled') {
-        const promos = promosRes.value.data?.data?.promos || promosRes.value.data?.data || [];
-        setPromoCount(Array.isArray(promos) ? promos.length : 0);
+        setPromoCount((promosRes.value.data?.data?.total as number) ?? 0);
       }
     } catch (err) {
       setError(getErrorMessage(err));

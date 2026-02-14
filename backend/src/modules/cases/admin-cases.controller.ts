@@ -1,8 +1,8 @@
 import { RequireAdmin } from '@/common/decorators';
 import { CurrentUser } from '@/common/decorators';
 import { CurrentUserDTO } from '@/common/dto/current-user.dto';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { AddCaseMessageInputDTO, ResolveCaseInputDTO } from './cases.input';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { AddCaseMessageInputDTO, AdminListCasesQueryDTO, ResolveCaseInputDTO } from './cases.input';
 import { CasesService } from './cases.service';
 
 @Controller('admin/cases')
@@ -11,8 +11,11 @@ export class AdminCasesController {
   public constructor(private readonly casesService: CasesService) {}
 
   @Get()
-  public async listAll(@CurrentUser() currentUser: CurrentUserDTO) {
-    return this.casesService.listAll(currentUser);
+  public async listAll(
+    @Query() query: AdminListCasesQueryDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.casesService.listAll(currentUser, query);
   }
 
   @Get(':id')

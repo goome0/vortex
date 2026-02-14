@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -15,12 +16,41 @@ import {
 } from 'class-validator';
 import { EVtxScheduledCpStatus } from '@/database/entities/vtx-scheduled-cp-grant.entity';
 
+export class AdminPaginationInputDTO {
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 50, maximum: 200 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  public limit?: number;
+}
+
+export class AdminSearchablePaginationInputDTO extends AdminPaginationInputDTO {
+  @ApiPropertyOptional({ description: 'Search query' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  public q?: string;
+}
+
 export class AdminGetAccountInputDTO {
   @ApiProperty({ description: 'Username to fetch' })
   @IsNotEmpty({ message: 'Username is required' })
   @IsString({ message: 'Username must be a string' })
   public username!: string;
 }
+
+export class AdminListAccountsQueryDTO extends AdminSearchablePaginationInputDTO {}
+
+export class AdminListPromosQueryDTO extends AdminSearchablePaginationInputDTO {}
 
 export class AdminUpdateAccountInputDTO {
   @ApiProperty({ description: 'Username to update' })
@@ -123,6 +153,21 @@ export class AdminListScheduledCpInputDTO {
   @IsOptional()
   @IsString()
   public status?: EVtxScheduledCpStatus;
+
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 50, maximum: 200 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  public limit?: number;
 }
 
 export class AdminCancelScheduledCpInputDTO {
@@ -331,6 +376,21 @@ export class AdminListItemBundlesInputDTO {
   @IsOptional()
   @IsString()
   public q?: string;
+
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 50, maximum: 200 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  public limit?: number;
 }
 
 export class AdminScheduleItemBundleSendInputDTO {
@@ -367,6 +427,21 @@ export class AdminListItemBundleSendsInputDTO {
   @IsOptional()
   @IsUUID()
   public bundleId?: string;
+
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 50, maximum: 200 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  public limit?: number;
 }
 
 export class AdminCancelItemBundleSendInputDTO {

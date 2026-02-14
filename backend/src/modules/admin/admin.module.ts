@@ -9,6 +9,7 @@ import { MessageWorldModule } from './services/message-world/message-world.modul
 import { OnlineModule } from './services/online/online.module';
 import { PostItemsModule } from './services/post-items/post-items.module';
 import { GetPromosModule } from './services/get-promos/get-promos.module';
+import { GetPromoInsightsModule } from './services/get-promo-insights/get-promo-insights.module';
 import { CreatePromoModule } from './services/create-promo/create-promo.module';
 import { DeletePromoModule } from './services/delete-promo/delete-promo.module';
 import { AddCpModule } from './services/add-cp/add-cp.module';
@@ -31,6 +32,7 @@ import { GetWorldsModule } from './services/get-worlds/get-worlds.module';
     OnlineModule,
     PostItemsModule,
     GetPromosModule,
+    GetPromoInsightsModule,
     CreatePromoModule,
     DeletePromoModule,
   ],

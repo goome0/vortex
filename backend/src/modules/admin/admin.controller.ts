@@ -1,7 +1,7 @@
 import { RequireAdmin } from '@/common/decorators';
 import { CurrentUserDTO } from '@/common/dto/current-user.dto';
 import { CurrentUser } from '@/common/decorators';
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { GetAccountsService } from './services/get-accounts/get-accounts.service';
 import { GetAccountService } from './services/get-account/get-account.service';
 import { UpdateAccountService } from './services/update-account/update-account.service';
@@ -17,6 +17,7 @@ import { GetWorldsService } from './services/get-worlds/get-worlds.service';
 import { OnlineService } from './services/online/online.service';
 import { PostItemsService } from './services/post-items/post-items.service';
 import { GetPromosService } from './services/get-promos/get-promos.service';
+import { GetPromoInsightsService } from './services/get-promo-insights/get-promo-insights.service';
 import { CreatePromoService } from './services/create-promo/create-promo.service';
 import { DeletePromoService } from './services/delete-promo/delete-promo.service';
 import { CreateItemBundleService } from './services/item-bundles/services/create-item-bundle.service';
@@ -48,6 +49,8 @@ import {
   AdminCancelItemBundleSendInputDTO,
   AdminCreatePromoInputDTO,
   AdminDeletePromoInputDTO,
+  AdminListAccountsQueryDTO,
+  AdminListPromosQueryDTO,
 } from './admin.input';
 
 @Controller('admin')
@@ -76,13 +79,17 @@ export class AdminController {
     private readonly listItemBundleSendsService: ListItemBundleSendsService,
     private readonly cancelItemBundleSendService: CancelItemBundleSendService,
     private readonly getPromosService: GetPromosService,
+    private readonly getPromoInsightsService: GetPromoInsightsService,
     private readonly createPromoService: CreatePromoService,
     private readonly deletePromoService: DeletePromoService,
   ) {}
 
   @Get('accounts')
-  public async getAccounts(@CurrentUser() currentUser: CurrentUserDTO) {
-    return this.getAccountsService.execute(currentUser);
+  public async getAccounts(
+    @Query() query: AdminListAccountsQueryDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.getAccountsService.execute(currentUser, query);
   }
 
   @Get('worlds')
@@ -188,8 +195,19 @@ export class AdminController {
   }
 
   @Get('promos')
-  public async getPromos(@CurrentUser() currentUser: CurrentUserDTO) {
-    return this.getPromosService.execute(currentUser);
+  public async getPromos(
+    @Query() query: AdminListPromosQueryDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.getPromosService.execute(currentUser, query);
+  }
+
+  @Get('promos/insights')
+  public async getPromoInsights(
+    @Query() query: AdminListPromosQueryDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.getPromoInsightsService.execute(currentUser, query);
   }
 
   @Post('promo/create')

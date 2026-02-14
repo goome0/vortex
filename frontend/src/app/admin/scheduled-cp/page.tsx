@@ -51,6 +51,9 @@ export default function AdminScheduledCpPage() {
   const [items, setItems] = useState<ScheduledCpGrant[]>([]);
   const [username, setUsername] = useState('');
   const [status, setStatus] = useState<'ALL' | ScheduledCpStatus>('ALL');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [total, setTotal] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -69,20 +72,30 @@ export default function AdminScheduledCpPage() {
       const filter: { username?: string; status?: string } = {};
       if (username.trim()) filter.username = username.trim().toLowerCase();
       if (status !== 'ALL') filter.status = status;
-      const { data: response } = await adminApi.listScheduledCp(filter);
-      setItems((response.data ?? []) as ScheduledCpGrant[]);
+      const { data: response } = await adminApi.listScheduledCp({ ...filter, page, limit });
+      const nextItems = (response.data?.items ?? []) as ScheduledCpGrant[];
+      setItems(nextItems);
+      setTotal((response.data?.total ?? nextItems.length) as number);
     } catch (e) {
       setError(getErrorMessage(e));
     } finally {
       setIsLoading(false);
     }
-  }, [status, username]);
+  }, [status, username, page, limit]);
 
   useEffect(() => {
-    load();
+    const t = setTimeout(() => {
+      load();
+    }, 250);
+    return () => clearTimeout(t);
   }, [load]);
 
   const visible = useMemo(() => items, [items]);
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+
+  useEffect(() => {
+    setPage(1);
+  }, [username, status, limit]);
 
   const cancel = async (id: string) => {
     if (!confirm('Cancel this scheduled COMP Credits grant?')) return;
@@ -146,7 +159,7 @@ export default function AdminScheduledCpPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && items.length === 0) {
     return (
       <div className="flex items-center justify-center py-24">
         <LoadingSpinner size="lg" />
@@ -191,7 +204,7 @@ export default function AdminScheduledCpPage() {
 
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input
               label="Username (optional)"
               placeholder="ex: playername"
@@ -216,6 +229,19 @@ export default function AdminScheduledCpPage() {
               </select>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Items per page</label>
+              <select
+                value={limit}
+                onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
             <div className="flex items-end">
               <Button className="w-full" onClick={load} disabled={actionLoading}>
                 <RefreshCw className="w-4 h-4" />
@@ -234,7 +260,7 @@ export default function AdminScheduledCpPage() {
               Latest grants
             </h3>
             <p className="text-sm text-slate-500">
-              Showing <span className="text-white font-medium">{visible.length}</span> (max 200)
+              Total <span className="text-white font-medium">{total}</span> â€¢ Page {page}/{totalPages}
             </p>
           </div>
 
@@ -308,6 +334,25 @@ export default function AdminScheduledCpPage() {
               </table>
             </div>
           )}
+
+          <div className="flex items-center justify-end gap-2 pt-4">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || isLoading}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

@@ -29,6 +29,12 @@ export class PublicListNewsQueryDTO {
   @Transform(({ value }) => (value == null ? undefined : Number(value)))
   @IsInt()
   @Min(1)
+  public page?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
   @Max(50)
   public limit?: number;
 }
@@ -47,6 +53,12 @@ export class AdminListNewsInputDTO {
   @IsOptional()
   @IsBoolean()
   public onlyPublished?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
 
   @IsOptional()
   @Transform(({ value }) => (value == null ? undefined : Number(value)))
@@ -159,4 +171,3 @@ export class AdminDeleteNewsInputDTO {
   @IsUUID()
   public id!: string;
 }
-

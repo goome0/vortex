@@ -1,7 +1,7 @@
 import { CurrentUser } from '@/common/decorators';
 import { CurrentUserDTO } from '@/common/dto/current-user.dto';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { AddCaseMessageInputDTO, CreateCaseInputDTO } from './cases.input';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { AddCaseMessageInputDTO, CreateCaseInputDTO, ListMyCasesQueryDTO } from './cases.input';
 import { CasesService } from './cases.service';
 
 @Controller('cases')
@@ -14,8 +14,11 @@ export class CasesController {
   }
 
   @Get('my')
-  public async my(@CurrentUser() currentUser: CurrentUserDTO) {
-    return this.casesService.listMyCases(currentUser);
+  public async my(
+    @CurrentUser() currentUser: CurrentUserDTO,
+    @Query() query: ListMyCasesQueryDTO,
+  ) {
+    return this.casesService.listMyCases(currentUser, query);
   }
 
   @Get(':id')

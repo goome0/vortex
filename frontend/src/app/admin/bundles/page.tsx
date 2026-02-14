@@ -46,6 +46,9 @@ function parseUsernames(text: string): string[] {
 
 export default function AdminBundlesPage() {
   const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [bundlesPage, setBundlesPage] = useState(1);
+  const [bundlesLimit, setBundlesLimit] = useState(25);
+  const [bundlesTotal, setBundlesTotal] = useState(0);
   const [selectedBundleId, setSelectedBundleId] = useState<string>('');
   const selectedBundle = useMemo(
     () => bundles.find((b) => b.id === selectedBundleId) ?? null,
@@ -67,6 +70,9 @@ export default function AdminBundlesPage() {
 
   // batches
   const [batches, setBatches] = useState<SendBatch[]>([]);
+  const [batchesPage, setBatchesPage] = useState(1);
+  const [batchesLimit, setBatchesLimit] = useState(10);
+  const [batchesTotal, setBatchesTotal] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -75,33 +81,50 @@ export default function AdminBundlesPage() {
 
   const loadBundles = useCallback(async () => {
     setError('');
-    const { data: response } = await adminApi.listBundles();
-    setBundles(response.data ?? []);
-  }, []);
+    const { data: response } = await adminApi.listBundles({ page: bundlesPage, limit: bundlesLimit });
+    const items = (response.data?.items ?? []) as Bundle[];
+    setBundles(items);
+    setBundlesTotal((response.data?.total ?? items.length) as number);
+  }, [bundlesPage, bundlesLimit]);
 
   const loadBatches = useCallback(async (bundleId?: string) => {
     setError('');
-    const { data: response } = await adminApi.listBundleSends(bundleId ? { bundleId } : {});
-    setBatches(response.data ?? []);
-  }, []);
+    const { data: response } = await adminApi.listBundleSends(
+      bundleId ? { bundleId, page: batchesPage, limit: batchesLimit } : { page: batchesPage, limit: batchesLimit },
+    );
+    const items = (response.data?.items ?? []) as SendBatch[];
+    setBatches(items);
+    setBatchesTotal((response.data?.total ?? items.length) as number);
+  }, [batchesPage, batchesLimit]);
 
   useEffect(() => {
     (async () => {
       setIsLoading(true);
       try {
-        await Promise.all([loadBundles(), loadBatches()]);
+        await loadBundles();
       } catch (e) {
         setError(getErrorMessage(e));
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [loadBundles, loadBatches]);
+  }, [loadBundles]);
 
   useEffect(() => {
     if (!selectedBundleId) return;
     loadBatches(selectedBundleId).catch((e) => setError(getErrorMessage(e)));
   }, [selectedBundleId, loadBatches]);
+
+  useEffect(() => {
+    setBundlesPage(1);
+  }, [bundlesLimit]);
+
+  useEffect(() => {
+    setBatchesPage(1);
+  }, [selectedBundleId, batchesLimit]);
+
+  const bundlesTotalPages = Math.max(1, Math.ceil((bundlesTotal || 0) / bundlesLimit));
+  const batchesTotalPages = Math.max(1, Math.ceil((batchesTotal || 0) / batchesLimit));
 
   const canCreate = bundleName.trim().length >= 3 && productIds.length > 0;
   const usernames = useMemo(() => parseUsernames(sendUsernamesText), [sendUsernamesText]);
@@ -380,18 +403,27 @@ export default function AdminBundlesPage() {
 
             {selectedBundle && (
               <div className="pt-4 border-t border-slate-800/50 space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <h4 className="text-sm font-semibold text-slate-300">Recent sends</h4>
-                  <Button variant="ghost" size="sm" onClick={() => loadBatches(selectedBundle.id).catch((e) => setError(getErrorMessage(e)))}>
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={batchesLimit}
+                      onChange={(e) => setBatchesLimit(parseInt(e.target.value, 10) || 10)}
+                      className="px-3 py-2 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white text-sm transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                      title="Items per page"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <Button variant="ghost" size="sm" onClick={() => loadBatches(selectedBundle.id).catch((e) => setError(getErrorMessage(e)))}>
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  {batches
-                    .filter((b) => b.bundleId === selectedBundle.id)
-                    .slice(0, 8)
-                    .map((b) => (
+                  {batches.map((b) => (
                       <div key={b.id} className="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -412,9 +444,35 @@ export default function AdminBundlesPage() {
                         )}
                       </div>
                     ))}
-                  {batches.filter((b) => b.bundleId === selectedBundle.id).length === 0 && (
+                  {batches.length === 0 && (
                     <p className="text-sm text-slate-500">No sends yet for this bundle.</p>
                   )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-slate-500">
+                    Total <span className="text-slate-200">{batchesTotal}</span> • Page{' '}
+                    <span className="text-slate-200">{batchesPage}</span> of{' '}
+                    <span className="text-slate-200">{batchesTotalPages}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setBatchesPage((p) => Math.max(1, p - 1))}
+                      disabled={batchesPage <= 1 || isLoading}
+                    >
+                      Prev
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setBatchesPage((p) => Math.min(batchesTotalPages, p + 1))}
+                      disabled={batchesPage >= batchesTotalPages || isLoading}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -451,6 +509,46 @@ export default function AdminBundlesPage() {
               </div>
             ))}
             {bundles.length === 0 && <p className="text-slate-500">No bundles yet.</p>}
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-slate-500">
+                Total <span className="text-slate-200">{bundlesTotal}</span> • Page{' '}
+                <span className="text-slate-200">{bundlesPage}</span> of{' '}
+                <span className="text-slate-200">{bundlesTotalPages}</span>
+              </p>
+
+              <select
+                value={bundlesLimit}
+                onChange={(e) => setBundlesLimit(parseInt(e.target.value, 10) || 25)}
+                className="px-3 py-2 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white text-sm transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                title="Items per page"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBundlesPage((p) => Math.max(1, p - 1))}
+                disabled={bundlesPage <= 1 || isLoading}
+              >
+                Prev
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBundlesPage((p) => Math.min(bundlesTotalPages, p + 1))}
+                disabled={bundlesPage >= bundlesTotalPages || isLoading}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

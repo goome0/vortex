@@ -18,19 +18,28 @@ export class ListScheduledCpService {
     if (input.username) where.username = input.username.trim().toLowerCase();
     if (input.status) where.status = input.status as EVtxScheduledCpStatus;
 
-    const data = await this.repo.find({
+    const page = input.page ?? 1;
+    const limit = input.limit ?? 50;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.repo.findAndCount({
       where,
       order: { scheduledAt: 'DESC' },
-      take: 200,
+      take: limit,
+      skip,
     });
 
     return SuccessResponse.toJson({
       code: 'SCHEDULED_CP_LIST_SUCCESS',
       message: 'Scheduled CP grants retrieved successfully',
       path: '/admin/account/scheduled-cp',
-      data,
+      data: {
+        items,
+        total,
+        page,
+        limit,
+      },
       successCode: HttpStatus.OK,
     });
   }
 }
-

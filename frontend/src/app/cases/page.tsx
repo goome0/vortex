@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { casesApi, getErrorMessage } from '@/lib/api';
@@ -57,14 +57,30 @@ export default function CasesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
 
   const fetchCases = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await casesApi.my();
+      const { data: response } = await casesApi.my({
+        q: search.trim() || undefined,
+        page,
+        limit,
+      });
       const data = response?.data;
-      setCases(Array.isArray(data) ? data : []);
+      if (Array.isArray(data?.items)) {
+        setCases(data.items);
+        setTotal(typeof data.total === 'number' ? data.total : data.items.length);
+      } else if (Array.isArray(data)) {
+        setCases(data);
+        setTotal(data.length);
+      } else {
+        setCases([]);
+        setTotal(0);
+      }
     } catch (e: unknown) {
       setError(getErrorMessage(e));
     } finally {
@@ -78,16 +94,15 @@ export default function CasesPage() {
       router.push(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(ROUTES.CASES)}`);
       return;
     }
-    void fetchCases();
-  }, [isAuthenticated, isHydrated, router]);
+    const timeout = setTimeout(() => {
+      void fetchCases();
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [isAuthenticated, isHydrated, router, page, limit, search]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return cases;
-    return cases.filter((t) => `${t.subject} ${t.category ?? ''} ${t.status} ${t.priority}`.toLowerCase().includes(q));
-  }, [cases, search]);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  if (!isHydrated || isLoading) {
+  if (!isHydrated || (isLoading && cases.length === 0)) {
     return (
       <div className="min-h-screen pt-28 pb-12 flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -131,7 +146,10 @@ export default function CasesPage() {
           <Input
             placeholder="Search cases..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             icon={<Search className="w-5 h-5" />}
           />
         </motion.div>
@@ -150,7 +168,7 @@ export default function CasesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t, idx) => {
+                  {cases.map((t, idx) => {
                     const s = statusBadge(t.status);
                     const p = priorityBadge(t.priority);
                     return (
@@ -191,7 +209,7 @@ export default function CasesPage() {
               </table>
             </div>
 
-            {filtered.length === 0 && (
+            {cases.length === 0 && (
               <div className="p-10 text-center text-slate-400">
                 No cases found.
               </div>
@@ -199,10 +217,39 @@ export default function CasesPage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button variant="secondary" onClick={fetchCases}>
-            Refresh
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-sm text-slate-400">
+            Total {total} • Page {page} of {totalPages}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={String(limit)}
+              onChange={(e) => {
+                setLimit(parseInt(e.target.value, 10));
+                setPage(1);
+              }}
+              className="px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700/50 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+
+            <Button variant="secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+              Prev
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+            >
+              Next
+            </Button>
+            <Button variant="secondary" onClick={fetchCases} isLoading={isLoading}>
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
     </div>

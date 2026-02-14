@@ -14,7 +14,13 @@ import {
   EVtxCaseStatus,
   VtxSupportCaseEntity,
 } from '@/database/entities/vtx-support-case.entity';
-import { AddCaseMessageInputDTO, CreateCaseInputDTO, ResolveCaseInputDTO } from './cases.input';
+import {
+  AddCaseMessageInputDTO,
+  AdminListCasesQueryDTO,
+  CreateCaseInputDTO,
+  ListMyCasesQueryDTO,
+  ResolveCaseInputDTO,
+} from './cases.input';
 
 @Injectable()
 export class CasesService {
@@ -198,19 +204,45 @@ export class CasesService {
     });
   }
 
-  public async listMyCases(currentUser: CurrentUserDTO) {
-    const cases = await this.withCasesSchema(() =>
-      this.casesRepository.find({
-        where: { createdByUsername: currentUser.username },
-        order: { lastMessageAt: 'DESC' },
-      })
-    );
+  public async listMyCases(currentUser: CurrentUserDTO, query: ListMyCasesQueryDTO) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 25;
+    const skip = (page - 1) * limit;
+    const q = query.q?.trim();
+    const status = query.status;
+
+    const [cases, total] = await this.withCasesSchema(() => {
+      const qb = this.casesRepository.createQueryBuilder('c');
+      qb.where('c.createdByUsername = :username', { username: currentUser.username });
+      if (status) qb.andWhere('c.status = :status', { status });
+
+      if (q) {
+        const like = `%${q}%`;
+        qb.andWhere(
+          '(' +
+            'c.subject LIKE :like OR ' +
+            'c.category LIKE :like OR ' +
+            'c.status LIKE :like OR ' +
+            'c.priority LIKE :like' +
+          ')',
+          { like },
+        );
+      }
+
+      qb.orderBy('c.lastMessageAt', 'DESC').skip(skip).take(limit);
+      return qb.getManyAndCount();
+    });
 
     return SuccessResponse.toJson({
       code: 'MY_CASES_SUCCESS',
       message: 'Cases retrieved successfully',
       path: '/cases/my',
-      data: cases.map((t) => this.sanitizeCase(t)),
+      data: {
+        items: cases.map((t) => this.sanitizeCase(t)),
+        total,
+        page,
+        limit,
+      },
       successCode: HttpStatus.OK,
     });
   }
@@ -313,18 +345,46 @@ export class CasesService {
 
   // --- Admin ---
 
-  public async listAll(currentUser: CurrentUserDTO) {
-    const cases = await this.withCasesSchema(() =>
-      this.casesRepository.find({
-        order: { lastMessageAt: 'DESC' },
-      })
-    );
+  public async listAll(currentUser: CurrentUserDTO, query: AdminListCasesQueryDTO) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 25;
+    const skip = (page - 1) * limit;
+    const q = query.q?.trim();
+    const status = query.status;
+
+    const [cases, total] = await this.withCasesSchema(() => {
+      const qb = this.casesRepository.createQueryBuilder('c');
+      if (status) qb.where('c.status = :status', { status });
+
+      if (q) {
+        const like = `%${q}%`;
+        qb.andWhere(
+          '(' +
+            'c.subject LIKE :like OR ' +
+            'c.category LIKE :like OR ' +
+            'c.createdByUsername LIKE :like OR ' +
+            'c.assignedToUsername LIKE :like OR ' +
+            'c.status LIKE :like OR ' +
+            'c.priority LIKE :like' +
+          ')',
+          { like },
+        );
+      }
+
+      qb.orderBy('c.lastMessageAt', 'DESC').skip(skip).take(limit);
+      return qb.getManyAndCount();
+    });
 
     return SuccessResponse.toJson({
       code: 'CASES_LIST_SUCCESS',
       message: 'Cases retrieved successfully',
       path: '/admin/cases',
-      data: cases.map((t) => this.sanitizeCase(t)),
+      data: {
+        items: cases.map((t) => this.sanitizeCase(t)),
+        total,
+        page,
+        limit,
+      },
       successCode: HttpStatus.OK,
     });
   }

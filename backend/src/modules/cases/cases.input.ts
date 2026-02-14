@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { EVtxCasePriority } from '@/database/entities/vtx-support-case.entity';
+import { EVtxCaseStatus } from '@/database/entities/vtx-support-case.entity';
 
 export enum EVtxCaseCategory {
   ACCOUNT = 'ACCOUNT',
@@ -45,10 +47,66 @@ export class AddCaseMessageInputDTO {
   public message!: string;
 }
 
+export class ListMyCasesQueryDTO {
+  @ApiPropertyOptional({ description: 'Search query' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  public q?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by status', enum: EVtxCaseStatus })
+  @IsOptional()
+  @IsEnum(EVtxCaseStatus)
+  public status?: EVtxCaseStatus;
+
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 25, maximum: 50 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  public limit?: number;
+}
+
 export class ResolveCaseInputDTO {
   @ApiPropertyOptional({ description: 'Resolution message', example: 'Issue fixed. Please try again.' })
   @IsOptional()
   @IsString()
   @MaxLength(4000)
   public message?: string;
+}
+
+export class AdminListCasesQueryDTO {
+  @ApiPropertyOptional({ description: 'Search query' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  public q?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by status', enum: EVtxCaseStatus })
+  @IsOptional()
+  @IsEnum(EVtxCaseStatus)
+  public status?: EVtxCaseStatus;
+
+  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  public page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', default: 25, maximum: 50 })
+  @IsOptional()
+  @Transform(({ value }) => (value == null ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  public limit?: number;
 }

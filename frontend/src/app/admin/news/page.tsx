@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
@@ -40,6 +40,12 @@ function variantToBadge(variant: NewsAdminItem['badgeVariant']): 'default' | 'in
 export default function AdminNewsPage() {
   const qc = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+
+  useEffect(() => {
+    setPage(1);
+  }, [limit]);
 
   const [create, setCreate] = useState({
     title: '',
@@ -53,14 +59,21 @@ export default function AdminNewsPage() {
   });
 
   const listQuery = useQuery({
-    queryKey: ['admin', 'news', 'list'],
+    queryKey: ['admin', 'news', 'list', { page, limit }],
     queryFn: async () => {
-      const res = await adminNewsApi.list({ limit: 200 });
-      return (res.data?.data ?? []) as NewsAdminItem[];
+      const res = await adminNewsApi.list({ page, limit });
+      return (res.data?.data ?? { items: [], total: 0, page, limit }) as {
+        items: NewsAdminItem[];
+        total: number;
+        page: number;
+        limit: number;
+      };
     },
   });
 
-  const items = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+  const items = useMemo(() => (listQuery.data?.items ?? []) as NewsAdminItem[], [listQuery.data]);
+  const total = (listQuery.data?.total ?? 0) as number;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -363,9 +376,50 @@ export default function AdminNewsPage() {
               );
             })}
           </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="text-xs text-slate-500">
+                Total <span className="text-slate-200">{total}</span> • Page{' '}
+                <span className="text-slate-200">{page}</span> of{' '}
+                <span className="text-slate-200">{totalPages}</span>
+              </p>
+
+              <div className="w-full sm:w-40 space-y-1.5">
+                <label className="block text-sm font-medium text-slate-300">Items per page</label>
+                <select
+                  value={limit}
+                  onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || listQuery.isLoading}
+              >
+                Prev
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || listQuery.isLoading}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
-

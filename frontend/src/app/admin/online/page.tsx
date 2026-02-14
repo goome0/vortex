@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, Button, Input, Badge, Alert } from '@/components/ui';
 import { adminApi, getErrorMessage } from '@/lib/api';
@@ -35,6 +35,8 @@ export default function AdminOnlinePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasChecked, setHasChecked] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const handleAddTarget = () => {
     if (!newName.trim()) return;
@@ -54,6 +56,7 @@ export default function AdminOnlinePage() {
       const { data: response } = await adminApi.getOnline(targets.length > 0 ? targets : []);
       setResults(response.data?.results || response.data || []);
       setHasChecked(true);
+      setPage(1);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -68,6 +71,7 @@ export default function AdminOnlinePage() {
       const { data: response } = await adminApi.getOnline([]);
       setResults(response.data?.results || response.data || []);
       setHasChecked(true);
+      setPage(1);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -76,6 +80,16 @@ export default function AdminOnlinePage() {
   };
 
   const onlineCount = results.filter((r) => r.online).length;
+  const totalPages = Math.max(1, Math.ceil(results.length / limit));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pagedResults = useMemo(() => {
+    const start = (page - 1) * limit;
+    return results.slice(start, start + limit);
+  }, [limit, page, results]);
 
   return (
     <div className="space-y-6">
@@ -226,7 +240,7 @@ export default function AdminOnlinePage() {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {results.map((result, index) => (
+                  {pagedResults.map((result, index) => (
                     <motion.div
                       key={`${result.name}-${index}`}
                       initial={{ opacity: 0, scale: 0.95 }}
@@ -254,6 +268,39 @@ export default function AdminOnlinePage() {
                       </Badge>
                     </motion.div>
                   ))}
+                </div>
+              )}
+
+              {!isLoading && hasChecked && results.length > 0 && (
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="text-sm text-slate-400">
+                    Total {results.length} • Page {page} of {totalPages}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={String(limit)}
+                      onChange={(e) => {
+                        setLimit(parseInt(e.target.value, 10));
+                        setPage(1);
+                      }}
+                      className="px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700/50 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                    >
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                    </select>
+
+                    <Button variant="secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+                      Prev
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>

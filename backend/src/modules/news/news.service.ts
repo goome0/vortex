@@ -111,7 +111,9 @@ export class NewsService {
 
   // -------- Public --------
   public async publicList(query: PublicListNewsQueryDTO) {
-    const limit = query.limit ?? 8;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 12;
+    const skip = (page - 1) * limit;
 
     const qb = this.newsRepository
       .createQueryBuilder('n')
@@ -124,9 +126,10 @@ export class NewsService {
     qb.orderBy('n.featured', 'DESC')
       .addOrderBy('n.publishedAt', 'DESC')
       .addOrderBy('n.createdAt', 'DESC')
+      .skip(skip)
       .take(limit);
 
-    const items = await qb.getMany();
+    const [items, total] = await qb.getManyAndCount();
 
     const data: PublicNewsListItem[] = items.map((n) => ({
       id: n.id,
@@ -146,7 +149,12 @@ export class NewsService {
       code: 'NEWS_LIST_SUCCESS',
       message: 'News retrieved successfully',
       path: '/news',
-      data,
+      data: {
+        items: data,
+        total,
+        page,
+        limit,
+      },
     });
   }
 
@@ -186,7 +194,9 @@ export class NewsService {
 
   // -------- Admin --------
   public async adminList(input: AdminListNewsInputDTO, currentUser: CurrentUserDTO) {
+    const page = input.page ?? 1;
     const limit = input.limit ?? 50;
+    const skip = (page - 1) * limit;
 
     const qb = this.newsRepository.createQueryBuilder('n');
     if (input.onlyPublished) qb.where('n.isPublished = 1');
@@ -197,15 +207,21 @@ export class NewsService {
       .addOrderBy('n.featured', 'DESC')
       .addOrderBy('n.publishedAt', 'DESC')
       .addOrderBy('n.updatedAt', 'DESC')
+      .skip(skip)
       .take(limit);
 
-    const items = await qb.getMany();
+    const [items, total] = await qb.getManyAndCount();
 
     return SuccessResponse.toJson({
       code: 'ADMIN_NEWS_LIST_SUCCESS',
       message: 'News retrieved successfully',
       path: '/admin/news/list',
-      data: items,
+      data: {
+        items,
+        total,
+        page,
+        limit,
+      },
     });
   }
 
@@ -330,4 +346,3 @@ export class NewsService {
     });
   }
 }
-

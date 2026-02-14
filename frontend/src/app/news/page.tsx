@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Card, CardContent, Badge, Button, LoadingSpinner } from '@/components/ui';
@@ -62,20 +62,35 @@ function formatDate(s: string | null | undefined): string {
 }
 
 export default function NewsPage() {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  useEffect(() => {
+    setPage(1);
+  }, [limit]);
+
   const query = useQuery({
-    queryKey: ['news', { limit: 12 }],
+    queryKey: ['news', { page, limit }],
     queryFn: async () => {
-      const res = await newsApi.list({ limit: 12 });
-      return (res.data?.data ?? []) as NewsItem[];
+      const res = await newsApi.list({ limit, page });
+      return (res.data?.data ?? { items: [], total: 0, page, limit }) as {
+        items: NewsItem[];
+        total: number;
+        page: number;
+        limit: number;
+      };
     },
   });
 
   const { featuredNews, regularNews } = useMemo(() => {
-    const items = (query.data ?? []) as NewsItem[];
+    const items = (query.data?.items ?? []) as NewsItem[];
     const featured = items.find((i) => i.featured) ?? items[0];
     const regular = items.filter((i) => i.id !== featured?.id);
     return { featuredNews: featured, regularNews: regular };
   }, [query.data]);
+
+  const total = (query.data?.total ?? 0) as number;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
   return (
     <div className="min-h-screen pt-20">
@@ -239,10 +254,49 @@ export default function NewsPage() {
           transition={{ delay: 0.5 }}
           className="mt-12 text-center"
         >
-          <Button variant="outline" size="lg" disabled>
-            Load More News
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+          <div className="max-w-xl mx-auto space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+              <div className="space-y-1.5 text-left">
+                <label className="block text-sm font-medium text-slate-300">Items per page</label>
+                <select
+                  value={limit}
+                  onChange={(e) => setLimit(parseInt(e.target.value, 10) || 10)}
+                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-xs text-slate-500">
+                  Total <span className="text-slate-200">{total}</span> • Page{' '}
+                  <span className="text-slate-200">{page}</span> of{' '}
+                  <span className="text-slate-200">{totalPages}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || query.isLoading}
+              >
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || query.isLoading}
+              >
+                Next
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminCasesApi, getErrorMessage } from '@/lib/api';
@@ -61,14 +61,25 @@ export default function AdminCasesPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'ALL' | CaseStatus>('ALL');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [total, setTotal] = useState(0);
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
   const fetchCases = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await adminCasesApi.list();
-      const data = response?.data;
-      setCases(Array.isArray(data) ? data : []);
+      const { data: response } = await adminCasesApi.list({
+        q: search.trim() || undefined,
+        status: status === 'ALL' ? undefined : status,
+        page,
+        limit,
+      });
+      const items = (response?.data?.items ?? []) as CaseListItem[];
+      const total = (response?.data?.total ?? items.length) as number;
+      setCases(items);
+      setTotal(total);
     } catch (e: unknown) {
       setError(getErrorMessage(e));
     } finally {
@@ -77,21 +88,17 @@ export default function AdminCasesPage() {
   };
 
   useEffect(() => {
-    void fetchCases();
-  }, []);
+    const t = setTimeout(() => {
+      void fetchCases();
+    }, 250);
+    return () => clearTimeout(t);
+  }, [search, status, page, limit]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const byStatus = status === 'ALL' ? cases : cases.filter((t) => t.status === status);
-    if (!q) return byStatus;
-    return byStatus.filter((t) =>
-      `${t.subject} ${t.category ?? ''} ${t.createdByUsername} ${t.assignedToUsername ?? ''} ${t.status} ${t.priority}`
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [cases, search, status]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, status, limit]);
 
-  if (isLoading) {
+  if (isLoading && cases.length === 0) {
     return (
       <div className="flex items-center justify-center py-24">
         <LoadingSpinner size="lg" />
@@ -108,11 +115,11 @@ export default function AdminCasesPage() {
             Cases
           </h1>
           <p className="text-slate-400 mt-1">
-            <span className="text-white font-medium">{cases.length}</span> total cases
+            <span className="text-white font-medium">{total}</span> total cases
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={fetchCases}>
+          <Button variant="secondary" onClick={() => { if (page === 1) void fetchCases(); else setPage(1); }}>
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
@@ -129,7 +136,7 @@ export default function AdminCasesPage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
         <div className="lg:col-span-2">
           <Input
             label="Search"
@@ -156,6 +163,19 @@ export default function AdminCasesPage() {
             </select>
           </div>
         </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-slate-300">Items per page</label>
+          <select
+            value={limit}
+            onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+            className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
       </div>
 
       <Card>
@@ -173,7 +193,7 @@ export default function AdminCasesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((t, idx) => {
+                {cases.map((t, idx) => {
                   const s = statusBadge(t.status);
                   const p = priorityBadge(t.priority);
                   return (
@@ -211,7 +231,33 @@ export default function AdminCasesPage() {
             </table>
           </div>
 
-          {filtered.length === 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t border-slate-800/50">
+            <p className="text-xs text-slate-500">
+              Total <span className="text-slate-200">{total}</span> • Page{' '}
+              <span className="text-slate-200">{page}</span> of{' '}
+              <span className="text-slate-200">{totalPages}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || isLoading}
+              >
+                Prev
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || isLoading}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+
+          {cases.length === 0 && (
             <div className="p-10 text-center text-slate-400">No cases found.</div>
           )}
         </CardContent>

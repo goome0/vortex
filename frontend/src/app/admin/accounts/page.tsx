@@ -37,6 +37,9 @@ interface Account {
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [total, setTotal] = useState(0);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,24 +93,35 @@ export default function AdminAccountsPage() {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await adminApi.getAccounts();
-      setAccounts(response.data?.accounts || response.data || []);
+      const { data: response } = await adminApi.getAccounts({
+        q: searchQuery.trim() || undefined,
+        page,
+        limit,
+      });
+      const items = (response.data?.items ?? []) as Account[];
+      const total = (response.data?.total ?? items.length) as number;
+      setAccounts(items);
+      setTotal(total);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [searchQuery, page, limit]);
 
   useEffect(() => {
-    fetchAccounts();
+    const t = setTimeout(() => {
+      fetchAccounts();
+    }, 250);
+    return () => clearTimeout(t);
   }, [fetchAccounts]);
 
-  const filteredAccounts = accounts.filter(
-    (account) =>
-      account.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      account.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAccounts = accounts;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, limit]);
 
   const handleViewAccount = async (account: Account) => {
     try {
@@ -263,7 +277,7 @@ export default function AdminAccountsPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && accounts.length === 0) {
     return (
       <div className="flex items-center justify-center py-24">
         <LoadingSpinner size="lg" />
@@ -285,7 +299,7 @@ export default function AdminAccountsPage() {
             Account Management
           </h1>
           <p className="text-slate-400 mt-1">
-            <span className="text-white font-medium">{accounts.length}</span> total accounts
+            <span className="text-white font-medium">{total}</span> total accounts
           </p>
         </div>
         <div className="flex gap-2">
@@ -324,12 +338,56 @@ export default function AdminAccountsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Input
-          placeholder="Search by username or email..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          icon={<Search className="w-5 h-5" />}
-        />
+        <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+          <div className="flex-1">
+            <Input
+              placeholder="Search by username or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<Search className="w-5 h-5" />}
+            />
+          </div>
+
+          <div className="w-full lg:w-48 space-y-1.5">
+            <label className="block text-sm font-medium text-slate-300">Items per page</label>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+              className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+          <p className="text-xs text-slate-500">
+            Total <span className="text-slate-200">{total}</span> • Page{' '}
+            <span className="text-slate-200">{page}</span> of{' '}
+            <span className="text-slate-200">{totalPages}</span>
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || isLoading}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Accounts Table */}
@@ -430,8 +488,7 @@ export default function AdminAccountsPage() {
             {/* Footer */}
             <div className="flex items-center justify-between p-4 border-t border-slate-800/50">
               <p className="text-sm text-slate-400">
-                Showing <span className="text-white">{filteredAccounts.length}</span> of{' '}
-                <span className="text-white">{accounts.length}</span> accounts
+                Showing <span className="text-white">{filteredAccounts.length}</span> accounts
               </p>
             </div>
           </CardContent>

@@ -15,19 +15,28 @@ export class ListItemBundlesService {
 
   public async execute(input: AdminListItemBundlesInputDTO, currentUser: CurrentUserDTO) {
     const q = input.q?.trim();
-    const data = await this.repo.find({
+    const page = input.page ?? 1;
+    const limit = input.limit ?? 50;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.repo.findAndCount({
       where: q ? { name: Like(`%${q}%`) } : {},
       order: { createdAt: 'DESC' },
-      take: 200,
+      take: limit,
+      skip,
     });
 
     return SuccessResponse.toJson({
       code: 'BUNDLES_LIST_SUCCESS',
       message: 'Bundles retrieved successfully',
       path: '/admin/bundles/list',
-      data,
+      data: {
+        items,
+        total,
+        page,
+        limit,
+      },
       successCode: HttpStatus.OK,
     });
   }
 }
-

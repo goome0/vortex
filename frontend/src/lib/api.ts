@@ -174,7 +174,8 @@ export const webGameApi = {
 
 // Admin API
 export const adminApi = {
-  getAccounts: () => api.get('/admin/accounts'),
+  getAccounts: (params?: { q?: string; page?: number; limit?: number }) =>
+    api.get('/admin/accounts', { params }),
   getWorlds: () => api.get('/admin/worlds'),
   getAccount: (username: string) => api.post('/admin/account', { username }),
   updateAccount: (data: Record<string, unknown>) => api.post('/admin/account/update', data),
@@ -182,7 +183,7 @@ export const adminApi = {
     api.post('/admin/account/add-cp', { username, amount, ...(reason ? { reason } : {}) }),
   scheduleCp: (username: string, amount: number, scheduledAtMs: number, reason?: string) =>
     api.post('/admin/account/schedule-cp', { username, amount, scheduledAtMs, ...(reason ? { reason } : {}) }),
-  listScheduledCp: (filter?: { username?: string; status?: string }) =>
+  listScheduledCp: (filter?: { username?: string; status?: string; page?: number; limit?: number }) =>
     api.post('/admin/account/scheduled-cp', filter ?? {}),
   cancelScheduledCp: (id: string) => api.post('/admin/account/scheduled-cp/cancel', { id }),
   updateScheduledCp: (data: { id: string; amount?: number; scheduledAtMs?: number; reason?: string }) =>
@@ -190,13 +191,13 @@ export const adminApi = {
   // Item bundles
   createBundle: (data: { name: string; description?: string; cpCost?: number; products: number[] }) =>
     api.post('/admin/bundles/create', data),
-  listBundles: (data?: { q?: string }) => api.post('/admin/bundles/list', data ?? {}),
+  listBundles: (data?: { q?: string; page?: number; limit?: number }) => api.post('/admin/bundles/list', data ?? {}),
   updateBundle: (data: { id: string; name?: string; description?: string; cpCost?: number; products?: number[] }) =>
     api.post('/admin/bundles/update', data),
   deleteBundle: (id: string) => api.post('/admin/bundles/delete', { id }),
   scheduleBundleSend: (data: { bundleId: string; usernames: string[]; scheduledAtMs?: number; reason?: string }) =>
     api.post('/admin/bundles/send', data),
-  listBundleSends: (data?: { bundleId?: string }) => api.post('/admin/bundles/sends', data ?? {}),
+  listBundleSends: (data?: { bundleId?: string; page?: number; limit?: number }) => api.post('/admin/bundles/sends', data ?? {}),
   cancelBundleSend: (id: string) => api.post('/admin/bundles/sends/cancel', { id }),
   deleteAccount: (username: string) => api.post('/admin/account/delete', { username }),
   kickPlayer: (username: string, kick_level: number) =>
@@ -214,7 +215,10 @@ export const adminApi = {
     api.post('/admin/online', { targets }),
   postItems: (data: { username: string; cp: number; products: number[] }) =>
     api.post('/admin/post-items', data),
-  getPromos: () => api.get('/admin/promos'),
+  getPromos: (params?: { q?: string; page?: number; limit?: number }) =>
+    api.get('/admin/promos', { params }),
+  getPromoInsights: (params?: { q?: string; page?: number; limit?: number }) =>
+    api.get('/admin/promos/insights', { params }),
   createPromo: (data: Record<string, unknown>) => api.post('/admin/promo/create', data),
   deletePromo: (code: string) => api.post('/admin/promo/delete', { code }),
 };
@@ -223,7 +227,8 @@ export const adminApi = {
 export const casesApi = {
   create: (data: { subject: string; message: string; category?: string; priority?: string }) =>
     api.post('/cases', data),
-  my: () => api.get('/cases/my'),
+  my: (params?: { q?: string; status?: string; page?: number; limit?: number }) =>
+    api.get('/cases/my', { params }),
   get: (id: string) => api.get(`/cases/${id}`),
   addMessage: (id: string, message: string) => api.post(`/cases/${id}/messages`, { message }),
   close: (id: string) => api.post(`/cases/${id}/close`),
@@ -231,7 +236,8 @@ export const casesApi = {
 
 // Cases API (Admin / GM Panel)
 export const adminCasesApi = {
-  list: () => api.get('/admin/cases'),
+  list: (params?: { q?: string; status?: string; page?: number; limit?: number }) =>
+    api.get('/admin/cases', { params }),
   get: (id: string) => api.get(`/admin/cases/${id}`),
   addMessage: (id: string, message: string) => api.post(`/admin/cases/${id}/messages`, { message }),
   resolve: (id: string, data: { message: string }) => api.post(`/admin/cases/${id}/resolve`, data),
@@ -239,13 +245,13 @@ export const adminCasesApi = {
 
 // Public News API
 export const newsApi = {
-  list: (params?: { q?: string; category?: string; limit?: number }) => api.get('/news', { params }),
+  list: (params?: { q?: string; category?: string; page?: number; limit?: number }) => api.get('/news', { params }),
   get: (idOrSlug: string) => api.get(`/news/${idOrSlug}`),
 };
 
 // Admin News API (GM Panel)
 export const adminNewsApi = {
-  list: (data?: { q?: string; category?: string; onlyPublished?: boolean; limit?: number }) =>
+  list: (data?: { q?: string; category?: string; onlyPublished?: boolean; page?: number; limit?: number }) =>
     api.post('/admin/news/list', data ?? {}),
   create: (data: {
     title: string;

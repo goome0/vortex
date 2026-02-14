@@ -11,10 +11,11 @@ import {
   Copy,
   Trash2,
   Calendar,
-  Users,
   Check,
   X,
   RefreshCw,
+  Info,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface Promo {
@@ -27,13 +28,22 @@ interface Promo {
 }
 
 export default function AdminPromosPage() {
-  const [promos, setPromos] = useState<Promo[]>([]);
+  const [promos, setPromos] = useState<Array<Promo & {
+    status?: 'scheduled' | 'active' | 'expired';
+    variants?: number;
+    exchangesTotal?: number;
+    lastExchangeAtSec?: number;
+  }>>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [total, setTotal] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [cloningFrom, setCloningFrom] = useState<string | null>(null);
 
   // Create form state
   const [newPromo, setNewPromo] = useState({
@@ -49,22 +59,35 @@ export default function AdminPromosPage() {
     setIsLoading(true);
     setError('');
     try {
-      const { data: response } = await adminApi.getPromos();
-      setPromos(response.data?.promos || []);
+      const { data: response } = await adminApi.getPromoInsights({
+        q: searchQuery.trim() || undefined,
+        page,
+        limit,
+      });
+      const items = (response.data?.items ?? []) as typeof promos;
+      const nextTotal = (response.data?.total ?? items.length) as number;
+      setPromos(items);
+      setTotal(nextTotal);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [searchQuery, page, limit]);
 
   useEffect(() => {
-    fetchPromos();
+    const t = setTimeout(() => {
+      fetchPromos();
+    }, 250);
+    return () => clearTimeout(t);
   }, [fetchPromos]);
 
-  const filteredPromos = promos.filter((promo) =>
-    promo.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPromos = promos;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, limit]);
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -72,17 +95,46 @@ export default function AdminPromosPage() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  const normalizeCode = (code: string) => code.trim().toUpperCase();
+
+  const toIsoLocal = (tsSec: number): string => {
+    if (!tsSec) return '';
+    const d = new Date(tsSec * 1000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const existingCodes = new Set(promos.map((p) => normalizeCode(p.code)));
+  const isDuplicateCode = !!normalizeCode(newPromo.code) && existingCodes.has(normalizeCode(newPromo.code));
+
+  const handleClonePromo = (promo: Promo) => {
+    setCloningFrom(promo.code);
+    setIsCreating(true);
+    setNewPromo({
+      code: `${normalizeCode(promo.code)}_COPY`,
+      startTime: toIsoLocal(Math.floor(Date.now() / 1000)),
+      endTime: toIsoLocal(Math.floor(Date.now() / 1000) + 86400 * 30),
+      useLimit: String(promo.useLimit ?? 1),
+      limitType: promo.limitType || 'account',
+      items: (promo.items ?? []).join(', '),
+    });
+  };
+
   const handleCreatePromo = async () => {
     if (!newPromo.code) return;
 
     try {
+      if (isDuplicateCode) {
+        throw new Error('Promo code already exists. Choose a unique code.');
+      }
+
       // Parse items from comma-separated string
       const items = newPromo.items
         ? newPromo.items.split(',').map((s) => parseInt(s.trim())).filter((n) => !isNaN(n))
         : [];
 
       await adminApi.createPromo({
-        code: newPromo.code.toUpperCase(),
+        code: normalizeCode(newPromo.code),
         startTime: newPromo.startTime ? Math.floor(new Date(newPromo.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000),
         endTime: newPromo.endTime ? Math.floor(new Date(newPromo.endTime).getTime() / 1000) : Math.floor(Date.now() / 1000) + 86400 * 30,
         useLimit: parseInt(newPromo.useLimit) || 1,
@@ -92,6 +144,7 @@ export default function AdminPromosPage() {
 
       setNewPromo({ code: '', startTime: '', endTime: '', useLimit: '1', limitType: 'account', items: '' });
       setIsCreating(false);
+      setCloningFrom(null);
       setSuccessMessage('Promo code created successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
       fetchPromos();
@@ -102,6 +155,12 @@ export default function AdminPromosPage() {
 
   const handleDeletePromo = async (code: string) => {
     try {
+      const promo = promos.find((p) => p.code === code);
+      const variants = promo?.variants ?? 0;
+      if (variants > 1) {
+        const ok = window.confirm(`This code has ${variants} variants in comp_hack. Deleting will remove ALL of them. Continue?`);
+        if (!ok) return;
+      }
       await adminApi.deletePromo(code);
       setSuccessMessage('Promo deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -124,7 +183,14 @@ export default function AdminPromosPage() {
     return endTime > 0 && endTime * 1000 < Date.now();
   };
 
-  if (isLoading) {
+  const statusBadge = (promo: Promo & { status?: 'scheduled' | 'active' | 'expired' }) => {
+    if (promo.status === 'scheduled') return { variant: 'info' as const, label: 'Scheduled' };
+    if (promo.status === 'expired') return { variant: 'danger' as const, label: 'Expired' };
+    if (isExpired(promo.endTime)) return { variant: 'danger' as const, label: 'Expired' };
+    return { variant: 'success' as const, label: 'Active' };
+  };
+
+  if (isLoading && promos.length === 0) {
     return (
       <div className="flex items-center justify-center py-24">
         <LoadingSpinner size="lg" />
@@ -148,7 +214,13 @@ export default function AdminPromosPage() {
           <p className="text-slate-400 mt-1">Create and manage promotional codes</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={fetchPromos}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (page === 1) fetchPromos();
+              else setPage(1);
+            }}
+          >
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
@@ -159,6 +231,8 @@ export default function AdminPromosPage() {
         </div>
       </motion.div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
       {/* Alerts */}
       <AnimatePresence>
         {successMessage && (
@@ -196,7 +270,14 @@ export default function AdminPromosPage() {
             <Card variant="glow">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white">Create New Promo Code</h3>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Create New Promo Code</h3>
+                    {cloningFrom && (
+                      <p className="text-sm text-slate-400 mt-1">
+                        Cloning from <span className="font-mono text-white">{cloningFrom}</span> — use a unique code.
+                      </p>
+                    )}
+                  </div>
                   <button
                     onClick={() => setIsCreating(false)}
                     className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
@@ -204,6 +285,14 @@ export default function AdminPromosPage() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+
+                {isDuplicateCode && (
+                  <div className="mb-6">
+                    <Alert variant="error" dismissible onDismiss={() => setNewPromo({ ...newPromo, code: '' })}>
+                      Promo code already exists. Choose a unique code (comp_hack can create duplicates, but they’re hard to manage).
+                    </Alert>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   <Input
@@ -228,8 +317,11 @@ export default function AdminPromosPage() {
                     >
                       <option value="account">Per Account</option>
                       <option value="character">Per Character</option>
-                      <option value="global">Global</option>
+                      <option value="world">Per World</option>
                     </select>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Use limits are enforced per account (and optionally per character/world) by comp_hack.
+                    </p>
                   </div>
                   <Input
                     type="datetime-local"
@@ -255,7 +347,7 @@ export default function AdminPromosPage() {
                   <Button variant="ghost" onClick={() => setIsCreating(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleCreatePromo}>
+                  <Button onClick={handleCreatePromo} disabled={isDuplicateCode}>
                     <Check className="w-4 h-4" />
                     Create Promo
                   </Button>
@@ -272,12 +364,56 @@ export default function AdminPromosPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Input
-          placeholder="Search promo codes..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          icon={<Search className="w-5 h-5" />}
-        />
+        <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+          <div className="flex-1">
+            <Input
+              placeholder="Search promo codes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<Search className="w-5 h-5" />}
+            />
+          </div>
+
+          <div className="w-full lg:w-48 space-y-1.5">
+            <label className="block text-sm font-medium text-slate-300">Items per page</label>
+            <select
+              value={limit}
+              onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+              className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+          <p className="text-xs text-slate-500">
+            Total <span className="text-slate-200">{total}</span> • Page{' '}
+            <span className="text-slate-200">{page}</span> of{' '}
+            <span className="text-slate-200">{totalPages}</span>
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || isLoading}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Promos Grid */}
@@ -288,7 +424,8 @@ export default function AdminPromosPage() {
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
       >
         {filteredPromos.map((promo, index) => {
-          const expired = isExpired(promo.endTime);
+          const badge = statusBadge(promo);
+          const variants = promo.variants ?? 0;
           return (
             <motion.div
               key={promo.code}
@@ -296,7 +433,7 @@ export default function AdminPromosPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className={`h-full transition-all duration-300 ${expired ? 'opacity-60' : 'hover:border-yellow-500/30'}`}>
+              <Card className={`h-full transition-all duration-300 ${badge.label === 'Expired' ? 'opacity-60' : 'hover:border-yellow-500/30'}`}>
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -314,10 +451,9 @@ export default function AdminPromosPage() {
                         </button>
                       </div>
                       <div className="flex gap-2 mt-2">
-                        <Badge variant={expired ? 'danger' : 'success'}>
-                          {expired ? 'Expired' : 'Active'}
-                        </Badge>
+                        <Badge variant={badge.variant}>{badge.label}</Badge>
                         <Badge variant="info">{promo.limitType}</Badge>
+                        {variants > 1 && <Badge variant="warning">{variants} variants</Badge>}
                       </div>
                     </div>
                     <div className="text-right">
@@ -341,6 +477,13 @@ export default function AdminPromosPage() {
                       </span>
                       <span className="text-white">{formatTimestamp(promo.endTime)}</span>
                     </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span className="flex items-center gap-2">
+                        <Gift className="w-4 h-4" />
+                        Redeems (total)
+                      </span>
+                      <span className="text-white font-mono text-xs">{promo.exchangesTotal ?? 0}</span>
+                    </div>
                     {promo.items && promo.items.length > 0 && (
                       <div className="flex items-center justify-between text-slate-400">
                         <span className="flex items-center gap-2">
@@ -355,6 +498,15 @@ export default function AdminPromosPage() {
                   </div>
 
                   <div className="flex items-center gap-2 pt-4 border-t border-slate-800">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleClonePromo(promo)}
+                    >
+                      <Copy className="w-4 h-4" />
+                      Clone
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -382,6 +534,51 @@ export default function AdminPromosPage() {
           <p className="text-slate-400">No promo codes found</p>
         </motion.div>
       )}
+        </div>
+
+        <div className="space-y-6">
+          <Card variant="glow">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Info className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-bold text-white">Promo tips</h3>
+              </div>
+
+              <div className="space-y-3 text-sm text-slate-300">
+                <div>
+                  <p className="text-slate-400">Window status</p>
+                  <p>
+                    Scheduled/Active/Expired is derived from <span className="font-mono text-white">startTime</span> and <span className="font-mono text-white">endTime</span>.
+                    In comp_hack, <span className="font-mono text-white">endTime = 0</span> means “no expiry”.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-slate-400">Use limit</p>
+                  <p>
+                    <span className="font-mono text-white">useLimit</span> is enforced per account, optionally scoped per character/world depending on <span className="font-mono text-white">limitType</span>.
+                    “Redeems (total)” counts all exchanges across all accounts (useful as a health metric, not a remaining counter).
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-slate-400">Duplicates</p>
+                  <p>
+                    comp_hack can store multiple promos with the same code. This panel blocks duplicate codes on create and warns when deleting variants.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+                <p className="text-sm text-yellow-200">
+                  Deleting a promo code removes all variants with that code in the comp_hack database.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
