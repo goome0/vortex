@@ -469,13 +469,13 @@ export default function AdminScheduledCpPage() {
                     </Button>
                   </div>
                   <Input
-                    placeholder="ex: playername (or select via button)"
+                    placeholder="Select user(s) via button above"
                     value={createUsername}
-                    onChange={(e) => setCreateUsername(e.target.value)}
+                    readOnly
                     icon={<User className="w-5 h-5" />}
                     disabled={actionLoading}
+                    className="cursor-default"
                   />
-                  <p className="text-xs text-slate-500">You can also type multiple usernames (comma or newline separated).</p>
                 </div>
 
                 <Input
