@@ -6,6 +6,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminCreateItemBundleInputDTO } from '../../../admin.input';
+import { normalizeProducts } from '../../../utils/product-quantity.util';
 
 @Injectable()
 export class CreateItemBundleService {
@@ -25,11 +26,20 @@ export class CreateItemBundleService {
       });
     }
 
+    const products = normalizeProducts(input.products);
+    if (products.length === 0) {
+      throw ErrorResponse.toHttpException({
+        message: 'At least one valid product is required',
+        statusCode: HttpStatus.BAD_REQUEST,
+        code: 'INVALID_PRODUCTS',
+      });
+    }
+
     const entity = this.repo.create({
       name,
       description: input.description?.trim() || null,
       cpCost: input.cpCost ?? 0,
-      products: input.products,
+      products,
       createdByUsername: currentUser.username.trim().toLowerCase(),
     });
 

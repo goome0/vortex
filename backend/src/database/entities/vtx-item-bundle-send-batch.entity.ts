@@ -32,7 +32,7 @@ export class VtxItemBundleSendBatchEntity {
   public cpCost!: number;
 
   @Column({ type: 'simple-json' })
-  public products!: number[];
+  public products!: number[] | { productId: number; quantity: number }[];
 
   @Column({ type: 'varchar', length: 140, nullable: true })
   public reason!: string | null;

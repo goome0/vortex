@@ -22,9 +22,9 @@ export class VtxItemBundleEntity {
   @Column({ type: 'int', default: 0 })
   public cpCost!: number;
 
-  // Snapshot of product IDs to post.
+  // Products: { productId, quantity }[] or legacy number[] (qty 1 each)
   @Column({ type: 'simple-json' })
-  public products!: number[];
+  public products!: number[] | { productId: number; quantity: number }[];
 
   @Index()
   @Column({ type: 'varchar', length: 32 })

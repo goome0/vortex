@@ -8,6 +8,7 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminScheduleItemBundleSendInputDTO } from '../../../admin.input';
+import { normalizeProducts } from '../../../utils/product-quantity.util';
 
 @Injectable()
 export class ScheduleItemBundleSendService {
@@ -51,11 +52,13 @@ export class ScheduleItemBundleSendService {
 
     this.logger.log(`Scheduling bundle send ${bundle.name} to ${usernames.length} users at ${scheduledAt.toISOString()}`);
 
+    const products = normalizeProducts(bundle.products as unknown);
+
     const batch = this.batchRepo.create({
       bundleId: bundle.id,
       bundleName: bundle.name,
       cpCost: bundle.cpCost,
-      products: bundle.products,
+      products,
       reason: input.reason?.trim() || null,
       createdByUsername: currentUser.username.trim().toLowerCase(),
       scheduledAt,
