@@ -331,7 +331,7 @@ export default function AdminAccountsPage() {
       if (!Number.isFinite(loginPoints) || loginPoints < 0) throw new Error('Login points must be a non-negative integer.');
       const name = characterForm.name.trim();
       if (name.length < 1 || name.length > 32) throw new Error('Name must be 1–32 characters.');
-      if (!/^[A-Za-z0-9_-]+$/.test(name)) throw new Error('Name can only contain letters, numbers, _ and -.');
+      if (!/^[A-Za-z0-9_\-\s\[\]()]+$/.test(name)) throw new Error('Name can only contain letters, numbers, _ - space [ ] ( )');
 
       const { data: response } = await adminApi.updateAccountCharacter({
         username: account.username,

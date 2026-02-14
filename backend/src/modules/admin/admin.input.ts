@@ -84,17 +84,19 @@ export class AdminUpdateAccountCharacterInputDTO {
   public points?: number;
 
   @ApiPropertyOptional({
-    description: 'Character name (must be unique globally)',
+    description: 'Character name (must be unique globally). Allows letters, numbers, underscore, hyphen, space, brackets, parentheses.',
     minLength: 1,
     maxLength: 32,
-    example: 'My_Character-01',
+    example: '[GM] Ghostbay',
   })
   @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @MinLength(1)
   @MaxLength(32)
-  @Matches(/^[A-Za-z0-9_-]+$/, { message: 'Character name contains invalid characters' })
+  @Matches(/^[A-Za-z0-9_\-\s\[\]()]+$/, {
+    message: 'Character name can only contain letters, numbers, _ - space [ ] ( )',
+  })
   public name?: string;
 
   @ApiPropertyOptional({
