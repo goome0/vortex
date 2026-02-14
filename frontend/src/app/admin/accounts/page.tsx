@@ -49,7 +49,7 @@ type AccountCharacter = {
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [onlineFilter, setOnlineFilter] = useState<'all' | 'online' | 'offline'>('all');
+  const [onlineFilter, setOnlineFilter] = useState<'all' | 'online' | 'lobby' | 'offline'>('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
@@ -57,7 +57,7 @@ export default function AdminAccountsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnlineLoading, setIsOnlineLoading] = useState(false);
-  const [onlineByUsername, setOnlineByUsername] = useState<Record<string, boolean>>({});
+  const [onlineByUsername, setOnlineByUsername] = useState<Record<string, 'online' | 'lobby' | 'offline'>>({});
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
@@ -156,9 +156,10 @@ export default function AdminAccountsPage() {
         const targets = items.map((a) => ({ name: a.username, type: 'account' }));
         const { data: onlineResponse } = await adminApi.getOnline(targets);
         const results = (onlineResponse.data?.results || onlineResponse.data || []) as { status?: string; character?: string }[];
-        const next: Record<string, boolean> = {};
+        const next: Record<string, 'online' | 'lobby' | 'offline'> = {};
         targets.forEach((t, i) => {
-          next[t.name] = results[i]?.status === 'Online';
+          const s = results[i]?.status;
+          next[t.name] = s === 'Online' ? 'online' : s === 'Lobby' ? 'lobby' : 'offline';
         });
         setOnlineByUsername(next);
       } catch {
@@ -182,9 +183,10 @@ export default function AdminAccountsPage() {
 
   const filteredAccounts = accounts.filter((a) => {
     if (onlineFilter === 'all') return true;
-    const online = onlineByUsername[a.username];
-    if (onlineFilter === 'online') return online === true;
-    if (onlineFilter === 'offline') return online === false;
+    const status = onlineByUsername[a.username];
+    if (onlineFilter === 'online') return status === 'online';
+    if (onlineFilter === 'lobby') return status === 'lobby';
+    if (onlineFilter === 'offline') return status === 'offline';
     return true;
   });
   const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
@@ -579,7 +581,8 @@ export default function AdminAccountsPage() {
               className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="all">All</option>
-              <option value="online">Online</option>
+              <option value="online">Online (in game)</option>
+              <option value="lobby">Lobby</option>
               <option value="offline">Offline</option>
             </select>
           </div>
@@ -666,9 +669,11 @@ export default function AdminAccountsPage() {
                         {account.user_level}
                       </td>
                       <td className="py-4 px-6">
-                        {onlineByUsername[account.username] === true ? (
+                        {onlineByUsername[account.username] === 'online' ? (
                           <Badge variant="success" size="sm">Online</Badge>
-                        ) : onlineByUsername[account.username] === false ? (
+                        ) : onlineByUsername[account.username] === 'lobby' ? (
+                          <Badge variant="warning" size="sm">Lobby</Badge>
+                        ) : onlineByUsername[account.username] === 'offline' ? (
                           <Badge variant="default" size="sm">Offline</Badge>
                         ) : isOnlineLoading ? (
                           <Badge variant="default" size="sm">…</Badge>
@@ -800,9 +805,11 @@ export default function AdminAccountsPage() {
                           <Badge variant={selectedAccount.enabled ? 'success' : 'danger'}>
                             {selectedAccount.enabled ? 'Active' : 'Disabled'}
                           </Badge>
-                          {onlineByUsername[selectedAccount.username] === true ? (
+                          {onlineByUsername[selectedAccount.username] === 'online' ? (
                             <Badge variant="info">Online</Badge>
-                          ) : onlineByUsername[selectedAccount.username] === false ? (
+                          ) : onlineByUsername[selectedAccount.username] === 'lobby' ? (
+                            <Badge variant="warning">Lobby</Badge>
+                          ) : onlineByUsername[selectedAccount.username] === 'offline' ? (
                             <Badge variant="default">Offline</Badge>
                           ) : null}
                           {selectedAccount.user_level >= 1000 && (
