@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, getErrorMessage } from '@/lib/api';
 import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
 import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
-import { CalendarClock, Coins, RefreshCw, User, X, XCircle, Pencil, Save } from 'lucide-react';
+import { CalendarClock, Coins, Plus, RefreshCw, User, X, XCircle, Pencil, Save } from 'lucide-react';
 
 type ScheduledCpStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 
@@ -60,6 +60,14 @@ export default function AdminScheduledCpPage() {
   const [editAmount, setEditAmount] = useState('0');
   const [editScheduledAtLocal, setEditScheduledAtLocal] = useState('');
   const [editReason, setEditReason] = useState('');
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createUsername, setCreateUsername] = useState('');
+  const [createAmount, setCreateAmount] = useState('100');
+  const [createScheduledAtLocal, setCreateScheduledAtLocal] = useState(() =>
+    toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)),
+  );
+  const [createReason, setCreateReason] = useState('');
 
   const load = useCallback(async () => {
     setError('');
@@ -120,6 +128,51 @@ export default function AdminScheduledCpPage() {
     setEditRow(null);
   };
 
+  const openCreateModal = () => {
+    setCreateUsername('');
+    setCreateAmount('100');
+    setCreateScheduledAtLocal(toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)));
+    setCreateReason('');
+    setShowCreateModal(true);
+  };
+
+  const createScheduledCp = async () => {
+    const amount = parseInt(createAmount, 10);
+    const scheduledAtMs = createScheduledAtLocal ? (parseLocalDatetimeValueToMs(createScheduledAtLocal) ?? NaN) : NaN;
+
+    if (!createUsername.trim()) {
+      setError('Username is required');
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError('COMP Credits amount must be a positive number');
+      return;
+    }
+    if (!Number.isFinite(scheduledAtMs)) {
+      setError('Please choose a valid schedule date/time');
+      return;
+    }
+
+    setActionLoading(true);
+    setError('');
+    try {
+      await adminApi.scheduleCp(
+        createUsername.trim().toLowerCase(),
+        amount,
+        scheduledAtMs,
+        createReason.trim() || undefined,
+      );
+      setSuccessMessage(`Scheduled ${amount.toLocaleString()} COMP Credits for ${createUsername}.`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setShowCreateModal(false);
+      await load();
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const saveEdit = async () => {
     if (!editRow) return;
     const amount = parseInt(editAmount, 10);
@@ -174,6 +227,10 @@ export default function AdminScheduledCpPage() {
           <p className="text-slate-400 mt-1">Monitor and cancel pending COMP Credits grants scheduled by GMs.</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={openCreateModal} disabled={actionLoading}>
+            <Plus className="w-4 h-4" />
+            Schedule CP
+          </Button>
           <Button variant="secondary" onClick={load} disabled={actionLoading}>
             <RefreshCw className="w-4 h-4" />
             Refresh
@@ -351,6 +408,82 @@ export default function AdminScheduledCpPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="relative w-full max-w-lg bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                <h3 className="text-xl font-bold text-white">Schedule COMP Credits</h3>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  disabled={actionLoading}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <Input
+                  label="Username"
+                  placeholder="ex: playername"
+                  value={createUsername}
+                  onChange={(e) => setCreateUsername(e.target.value)}
+                  icon={<User className="w-5 h-5" />}
+                  disabled={actionLoading}
+                />
+
+                <Input
+                  label="COMP Credits Amount"
+                  type="number"
+                  value={createAmount}
+                  onChange={(e) => setCreateAmount(e.target.value)}
+                  disabled={actionLoading}
+                />
+
+                <DateTimePicker
+                  label="Send at"
+                  value={createScheduledAtLocal}
+                  onChange={setCreateScheduledAtLocal}
+                  disabled={actionLoading}
+                  minuteStep={1}
+                />
+
+                <Input
+                  label="Reason (optional)"
+                  placeholder="e.g. Event reward"
+                  value={createReason}
+                  onChange={(e) => setCreateReason(e.target.value)}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-6 border-t border-slate-800 bg-slate-800/30">
+                <Button variant="ghost" className="flex-1" onClick={() => setShowCreateModal(false)} disabled={actionLoading}>
+                  Cancel
+                </Button>
+                <Button className="flex-1" onClick={createScheduledCp} isLoading={actionLoading}>
+                  <Plus className="w-4 h-4" />
+                  Schedule
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit Modal */}
       <AnimatePresence>
