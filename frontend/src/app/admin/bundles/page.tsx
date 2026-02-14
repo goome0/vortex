@@ -6,6 +6,7 @@ import { adminApi, getErrorMessage } from '@/lib/api';
 import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
 import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import { Layers, Plus, Trash2, Save, Send, Users, Hash, CalendarClock, RefreshCw } from 'lucide-react';
+import { AccountPickerModal } from '@/components/admin/AccountPickerModal';
 
 type Bundle = {
   id: string;
@@ -63,6 +64,8 @@ export default function AdminBundlesPage() {
   const [sendAtLocal, setSendAtLocal] = useState(() => toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)));
   const [sendReason, setSendReason] = useState('');
   const [sendUsernamesText, setSendUsernamesText] = useState('');
+  const [showUserPicker, setShowUserPicker] = useState(false);
+  const [userPickerInitialSelected, setUserPickerInitialSelected] = useState<string[]>([]);
 
   // batches
   const [batches, setBatches] = useState<SendBatch[]>([]);
@@ -125,6 +128,11 @@ export default function AdminBundlesPage() {
   const canCreate = bundleName.trim().length >= 3 && productIds.length > 0;
   const usernames = useMemo(() => parseUsernames(sendUsernamesText), [sendUsernamesText]);
   const canSend = !!selectedBundle && usernames.length > 0;
+
+  const openUserPicker = () => {
+    setUserPickerInitialSelected(parseUsernames(sendUsernamesText));
+    setShowUserPicker(true);
+  };
 
   const addProduct = () => {
     const id = parseInt(newProductId, 10);
@@ -255,6 +263,17 @@ export default function AdminBundlesPage() {
         )}
       </AnimatePresence>
 
+      <AccountPickerModal
+        open={showUserPicker}
+        initialSelectedUsernames={userPickerInitialSelected}
+        title="Select users to receive this bundle"
+        onClose={() => setShowUserPicker(false)}
+        onApply={(picked) => {
+          setSendUsernamesText(picked.join('\n'));
+          setShowUserPicker(false);
+        }}
+      />
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Create bundle */}
         <Card className="xl:col-span-1">
@@ -372,11 +391,17 @@ export default function AdminBundlesPage() {
               />
             )}
 
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-300 flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" />
-                Usernames (one per line / comma-separated)
-              </label>
+             <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <label className="block text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  Usernames (one per line / comma-separated)
+                </label>
+                <Button variant="secondary" size="sm" onClick={openUserPicker} disabled={actionLoading}>
+                  <Users className="w-4 h-4" />
+                  Select users
+                </Button>
+              </div>
               <textarea
                 rows={6}
                 value={sendUsernamesText}
