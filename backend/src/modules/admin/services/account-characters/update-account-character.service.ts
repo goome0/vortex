@@ -55,88 +55,92 @@ export class UpdateAccountCharacterService {
 
     const username = input.username.trim();
     const account = await this.getAccountByUsername(username);
-    const accountUid = account.uid;
+    const accountUid = account.uid.trim();
+    const accountUidNoDashes = accountUid.replace(/-/g, '');
     const characterUid = input.characterUid.trim();
     const characterUidNorm = characterUid.toLowerCase();
-
-    const accountUidNoDashes = accountUid.replace(/-/g, '');
-    const awdRows = await this.accountWorldDataRepository
-      .createQueryBuilder('awd')
-      .select(['awd.uid'])
-      .where('awd.account = :accountUid', { accountUid })
-      .orWhere('awd.account IS NOT NULL AND LOWER(TRIM(awd.account)) = LOWER(:username)', { username })
-      .getMany();
-    const awdUids = awdRows.map((r) => r.uid).filter(Boolean);
 
     const allowedUids = new Set(this.parseCharacterUidsFromBlob(account.characters ?? null).map((u) => u.toLowerCase()));
     const isAllowedByBlob = allowedUids.has(characterUidNorm);
 
-    const qb = this.characterRepository
-      .createQueryBuilder('c')
-      .where('LOWER(c.uid) = LOWER(:characterUid)', { characterUid });
+    // Buscar personagem no banco world (comp_hack e world são bancos diferentes)
+    const rawRows = (await this.characterRepository.manager.query(
+      `SELECT UID, Name, Account, WorldID, KillTime, LastLogin, Points, LNC, LoginPoints
+       FROM world.Character
+       WHERE UID = ?`,
+      [characterUid],
+    )) as { UID: string; Name: string | null; Account: string | null; WorldID: number | null; KillTime: string | null; LastLogin: string | null; Points: number | null; LNC: number | null; LoginPoints: number | null }[];
 
-    if (!isAllowedByBlob) {
-      qb.andWhere(
-        [
-          '(c.account = :accountUid)',
-          '(c.account IS NOT NULL AND LOWER(TRIM(c.account)) = LOWER(:username))',
-          '(c.account IS NOT NULL AND REPLACE(c.account, \'-\', \'\') = :accountUidNoDashes)',
-          awdUids.length > 0 ? '(c.account IN (:...awdUids))' : '0=1',
-        ].join(' OR '),
-        { accountUid, username, accountUidNoDashes, awdUids },
-      );
-    }
-
-    const character = await qb.getOne();
-
-    if (!character) {
-      this.logger.warn(
-        `Character not found for update. username=${username} accountUid=${accountUid} characterUid=${characterUid} allowedByBlob=${isAllowedByBlob} blobCount=${allowedUids.size} awdCount=${awdUids.length}`,
-      );
+    const row = rawRows[0];
+    if (!row) {
+      this.logger.warn(`Character not found. characterUid=${characterUid}`);
       throw new NotFoundException('Character not found for this account');
     }
+
+    if (!isAllowedByBlob) {
+      const accountMatch =
+        row.Account === accountUid ||
+        (row.Account != null && row.Account.replace(/-/g, '') === accountUidNoDashes) ||
+        (row.Account != null && row.Account.trim().toLowerCase() === username.toLowerCase());
+      let awdMatch = false;
+      if (!accountMatch) {
+        const awdRows = (await this.characterRepository.manager.query(
+          `SELECT UID FROM world.AccountWorldData WHERE Account = ? OR (Account IS NOT NULL AND REPLACE(Account, '-', '') = ?)`,
+          [accountUid, accountUidNoDashes],
+        )) as { UID: string }[];
+        const awdUids = new Set(awdRows.map((r) => r.UID));
+        awdMatch = row.Account != null && awdUids.has(row.Account);
+      }
+      if (!accountMatch && !awdMatch) {
+        this.logger.warn(`Character not owned by account. characterUid=${characterUid} accountUid=${accountUid}`);
+        throw new NotFoundException('Character not found for this account');
+      }
+    }
+
+    let name = row.Name;
+    let points = row.Points;
+    let lnc = row.LNC;
+    let loginPoints = row.LoginPoints;
+    let killTime = row.KillTime;
 
     if (typeof input.name === 'string') {
       const nextName = input.name.trim();
       if (nextName.length < 1 || nextName.length > 32) {
         throw new BadRequestException('Character name must be between 1 and 32 characters');
       }
-
-      const existing = await this.characterRepository
-        .createQueryBuilder('c')
-        .select(['c.uid'])
-        .where('c.uid <> :uid', { uid: character.uid })
-        .andWhere('c.name IS NOT NULL')
-        .andWhere('LOWER(c.name) = LOWER(:name)', { name: nextName })
-        .getOne();
-
-      if (existing?.uid) {
+      const existing = (await this.characterRepository.manager.query(
+        `SELECT UID FROM world.Character WHERE UID <> ? AND Name IS NOT NULL AND LOWER(TRIM(Name)) = LOWER(?) LIMIT 1`,
+        [characterUid, nextName],
+      )) as { UID: string }[];
+      if (existing.length > 0) {
         throw new BadRequestException('Character name is already taken');
       }
-
-      character.name = nextName;
+      name = nextName;
     }
 
-    if (typeof input.points === 'number') character.points = input.points;
-    if (typeof input.lnc === 'number') character.lnc = input.lnc;
-    if (typeof input.loginPoints === 'number') character.loginPoints = input.loginPoints;
-    if (input.revive) character.killTime = '0';
+    if (typeof input.points === 'number') points = input.points;
+    if (typeof input.lnc === 'number') lnc = input.lnc;
+    if (typeof input.loginPoints === 'number') loginPoints = input.loginPoints;
+    if (input.revive) killTime = '0';
 
-    const saved = await this.characterRepository.save(character);
+    await this.characterRepository.manager.query(
+      `UPDATE world.Character SET Name = ?, Points = ?, LNC = ?, LoginPoints = ?, KillTime = ? WHERE UID = ?`,
+      [name ?? null, points ?? null, lnc ?? null, loginPoints ?? null, killTime ?? null, characterUid],
+    );
 
     return SuccessResponse.toJson({
       code: 'UPDATE_ACCOUNT_CHARACTER_SUCCESS',
       message: 'Character updated successfully',
       path: '/admin/account/character/update',
       data: {
-        uid: saved.uid,
-        name: saved.name,
-        worldId: saved.worldId,
-        killTime: saved.killTime,
-        lastLogin: saved.lastLogin,
-        points: saved.points,
-        lnc: saved.lnc,
-        loginPoints: saved.loginPoints,
+        uid: row.UID,
+        name,
+        worldId: row.WorldID,
+        killTime,
+        lastLogin: row.LastLogin,
+        points,
+        lnc,
+        loginPoints,
       },
     });
   }
