@@ -17,11 +17,24 @@ export class OnlineService {
   public async execute(input: AdminOnlineInputDTO, currentUser: CurrentUserDTO) {
     this.logger.log(`Getting online status - requested by ${currentUser.username}`);
 
+    const rawTargets = input.targets ?? [];
+    this.logger.log(`targets received: ${JSON.stringify(rawTargets)}`);
+
+    // comp_hack expects each target as { name: string, type: string } - ensure proper format
+    const targets = rawTargets
+      .filter((t): t is { name: string; type: string } => !!t && typeof t.name === 'string' && typeof t.type === 'string')
+      .map((t) => ({ name: String(t.name).trim(), type: String(t.type).trim() }))
+      .filter((t) => t.name.length > 0);
+
+    if (targets.length === 0 && rawTargets.length > 0) {
+      this.logger.warn('All targets were invalid (missing name/type) - comp_hack will return counts only');
+    }
+
     const session = await this.compHackAuthService.getSession(currentUser.username);
-    const response = await this.imagineService.getOnline({
-      ...session,
-      targets: input.targets,
-    });
+    const body = { ...session, targets };
+    this.logger.log(`sending to comp_hack: ${JSON.stringify({ ...body, challenge: '[REDACTED]' })}`);
+
+    const response = await this.imagineService.getOnline(body);
 
     this.logger.log(`comp_hack /admin/online raw: ${JSON.stringify(response)}`);
 
