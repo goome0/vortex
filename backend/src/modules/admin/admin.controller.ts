@@ -20,6 +20,10 @@ import { GetPromosService } from './services/get-promos/get-promos.service';
 import { GetPromoInsightsService } from './services/get-promo-insights/get-promo-insights.service';
 import { CreatePromoService } from './services/create-promo/create-promo.service';
 import { DeletePromoService } from './services/delete-promo/delete-promo.service';
+import { DeleteAllPromosService } from './services/promo-bulk-delete/delete-all-promos.service';
+import { DeleteManyPromosService } from './services/promo-bulk-delete/delete-many-promos.service';
+import { ListAccountCharactersService } from './services/account-characters/list-account-characters.service';
+import { UpdateAccountCharacterService } from './services/account-characters/update-account-character.service';
 import { CreateItemBundleService } from './services/item-bundles/services/create-item-bundle.service';
 import { ListItemBundlesService } from './services/item-bundles/services/list-item-bundles.service';
 import { UpdateItemBundleService } from './services/item-bundles/services/update-item-bundle.service';
@@ -49,8 +53,12 @@ import {
   AdminCancelItemBundleSendInputDTO,
   AdminCreatePromoInputDTO,
   AdminDeletePromoInputDTO,
+  AdminDeleteManyPromosInputDTO,
+  AdminDeleteAllPromosInputDTO,
   AdminListAccountsQueryDTO,
   AdminListPromosQueryDTO,
+  AdminListAccountCharactersInputDTO,
+  AdminUpdateAccountCharacterInputDTO,
 } from './admin.input';
 
 @Controller('admin')
@@ -82,6 +90,10 @@ export class AdminController {
     private readonly getPromoInsightsService: GetPromoInsightsService,
     private readonly createPromoService: CreatePromoService,
     private readonly deletePromoService: DeletePromoService,
+    private readonly deleteManyPromosService: DeleteManyPromosService,
+    private readonly deleteAllPromosService: DeleteAllPromosService,
+    private readonly listAccountCharactersService: ListAccountCharactersService,
+    private readonly updateAccountCharacterService: UpdateAccountCharacterService,
   ) {}
 
   @Get('accounts')
@@ -135,6 +147,22 @@ export class AdminController {
   @Post('account/delete')
   public async deleteAccount(@Body() input: AdminDeleteAccountInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
     return this.deleteAccountService.execute(input, currentUser);
+  }
+
+  @Post('account/characters')
+  public async listAccountCharacters(
+    @Body() input: AdminListAccountCharactersInputDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.listAccountCharactersService.execute(input, currentUser);
+  }
+
+  @Post('account/character/update')
+  public async updateAccountCharacter(
+    @Body() input: AdminUpdateAccountCharacterInputDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.updateAccountCharacterService.execute(input, currentUser);
   }
 
   @Post('kick-player')
@@ -218,5 +246,15 @@ export class AdminController {
   @Post('promo/delete')
   public async deletePromo(@Body() input: AdminDeletePromoInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
     return this.deletePromoService.execute(input, currentUser);
+  }
+
+  @Post('promo/delete-many')
+  public async deleteManyPromos(@Body() input: AdminDeleteManyPromosInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
+    return this.deleteManyPromosService.execute(input, currentUser);
+  }
+
+  @Post('promo/delete-all')
+  public async deleteAllPromos(@Body() input: AdminDeleteAllPromosInputDTO, @CurrentUser() currentUser: CurrentUserDTO) {
+    return this.deleteAllPromosService.execute(input, currentUser);
   }
 }

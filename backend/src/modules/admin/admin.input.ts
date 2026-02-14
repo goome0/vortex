@@ -1,3 +1,4 @@
+import { EVtxScheduledCpStatus } from '@/database/entities/vtx-scheduled-cp-grant.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
@@ -10,11 +11,12 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   Max,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
-import { EVtxScheduledCpStatus } from '@/database/entities/vtx-scheduled-cp-grant.entity';
 
 export class AdminPaginationInputDTO {
   @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1 })
@@ -46,6 +48,69 @@ export class AdminGetAccountInputDTO {
   @IsNotEmpty({ message: 'Username is required' })
   @IsString({ message: 'Username must be a string' })
   public username!: string;
+}
+
+export class AdminListAccountCharactersInputDTO {
+  @ApiProperty({ description: 'Account username' })
+  @IsNotEmpty({ message: 'Username is required' })
+  @IsString({ message: 'Username must be a string' })
+  public username!: string;
+}
+
+export class AdminUpdateAccountCharacterInputDTO {
+  @ApiProperty({ description: 'Account username' })
+  @IsNotEmpty({ message: 'Username is required' })
+  @IsString({ message: 'Username must be a string' })
+  public username!: string;
+
+  @ApiProperty({ description: 'Character UID' })
+  @IsNotEmpty()
+  @IsUUID()
+  public characterUid!: string;
+
+  @ApiPropertyOptional({ description: 'Points (overwrites current)', minimum: 0, maximum: 2000000000 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(2000000000)
+  public points?: number;
+
+  @ApiPropertyOptional({
+    description: 'Character name (must be unique globally)',
+    minLength: 1,
+    maxLength: 32,
+    example: 'My_Character-01',
+  })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @MinLength(1)
+  @MaxLength(32)
+  @Matches(/^[A-Za-z0-9_-]+$/, { message: 'Character name contains invalid characters' })
+  public name?: string;
+
+  @ApiPropertyOptional({
+    description: 'LNC (alignment) (overwrites current)',
+    minimum: -2000000000,
+    maximum: 2000000000,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(-2000000000)
+  @Max(2000000000)
+  public lnc?: number;
+
+  @ApiPropertyOptional({ description: 'Login points (overwrites current)', minimum: 0, maximum: 2000000000 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(2000000000)
+  public loginPoints?: number;
+
+  @ApiPropertyOptional({ description: 'Revive character (sets KillTime = 0)', default: false })
+  @IsOptional()
+  @IsBoolean()
+  public revive?: boolean;
 }
 
 export class AdminListAccountsQueryDTO extends AdminSearchablePaginationInputDTO {}
@@ -492,4 +557,24 @@ export class AdminDeletePromoInputDTO {
   @IsNotEmpty()
   @IsString()
   public code!: string;
+}
+
+export class AdminDeleteManyPromosInputDTO {
+  @ApiProperty({ description: 'Promo codes to delete', type: [String] })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1000)
+  @IsString({ each: true })
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map((v) => (typeof v === 'string' ? v.trim() : String(v))) : value,
+  )
+  public codes!: string[];
+}
+
+export class AdminDeleteAllPromosInputDTO {
+  @ApiProperty({ description: 'Must be true to confirm this destructive action', example: true })
+  @IsNotEmpty()
+  @IsBoolean()
+  public confirm!: boolean;
 }

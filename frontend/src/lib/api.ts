@@ -179,6 +179,9 @@ export const adminApi = {
   getWorlds: () => api.get('/admin/worlds'),
   getAccount: (username: string) => api.post('/admin/account', { username }),
   updateAccount: (data: Record<string, unknown>) => api.post('/admin/account/update', data),
+  listAccountCharacters: (username: string) => api.post('/admin/account/characters', { username }),
+  updateAccountCharacter: (data: { username: string; characterUid: string; points?: number; lnc?: number; loginPoints?: number; name?: string; revive?: boolean }) =>
+    api.post('/admin/account/character/update', data),
   addCp: (username: string, amount: number, reason?: string) =>
     api.post('/admin/account/add-cp', { username, amount, ...(reason ? { reason } : {}) }),
   scheduleCp: (username: string, amount: number, scheduledAtMs: number, reason?: string) =>
@@ -221,6 +224,8 @@ export const adminApi = {
     api.get('/admin/promos/insights', { params }),
   createPromo: (data: Record<string, unknown>) => api.post('/admin/promo/create', data),
   deletePromo: (code: string) => api.post('/admin/promo/delete', { code }),
+  deleteManyPromos: (codes: string[]) => api.post('/admin/promo/delete-many', { codes }),
+  deleteAllPromos: () => api.post('/admin/promo/delete-all', { confirm: true }),
 };
 
 // Cases API (User)

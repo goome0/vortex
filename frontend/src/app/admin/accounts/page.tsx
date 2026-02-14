@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, Button, Input, Badge, Alert, LoadingSpinner } from '@/components/ui';
+import { Card, CardContent, Button, Input, Badge, Alert, LoadingSpinner, DateTimePicker } from '@/components/ui';
 import { adminApi, getErrorMessage } from '@/lib/api';
+import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import {
   Users,
   Search,
@@ -12,8 +13,8 @@ import {
   Trash2,
   Mail,
   Shield,
+  User,
   X,
-  Check,
   RefreshCw,
   Zap,
   Save,
@@ -34,18 +35,48 @@ interface Account {
   character_count: number;
 }
 
+interface OnlineResult {
+  name: string;
+  type: string;
+  online: boolean;
+}
+
+type AccountCharacter = {
+  uid: string;
+  name: string | null;
+  worldId: number | null;
+  killTime: string | null;
+  lastLogin: string | null;
+  points: number | null;
+  lnc: number | null;
+  loginPoints: number | null;
+};
+
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [onlineFilter, setOnlineFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOnlineLoading, setIsOnlineLoading] = useState(false);
+  const [onlineByUsername, setOnlineByUsername] = useState<Record<string, boolean>>({});
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+
+  // Character editor modal state
+  const [showCharactersModal, setShowCharactersModal] = useState(false);
+  const [charactersAccount, setCharactersAccount] = useState<Account | null>(null);
+  const [characters, setCharacters] = useState<AccountCharacter[]>([]);
+  const [selectedCharacterUid, setSelectedCharacterUid] = useState('');
+  const [characterForm, setCharacterForm] = useState({ name: '', points: '', lnc: '', loginPoints: '' });
+  const [isCharactersLoading, setIsCharactersLoading] = useState(false);
+  const [isCharacterSaving, setIsCharacterSaving] = useState(false);
+  const [characterError, setCharacterError] = useState('');
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -102,6 +133,23 @@ export default function AdminAccountsPage() {
       const total = (response.data?.total ?? items.length) as number;
       setAccounts(items);
       setTotal(total);
+
+      setIsOnlineLoading(true);
+      try {
+        const targets = items.map((a) => ({ name: a.username, type: 'account' }));
+        const { data: onlineResponse } = await adminApi.getOnline(targets);
+        const results = (onlineResponse.data?.results || onlineResponse.data || []) as OnlineResult[];
+        const next: Record<string, boolean> = {};
+        for (const r of results) {
+          if (!r?.name) continue;
+          next[r.name] = !!r.online;
+        }
+        setOnlineByUsername(next);
+      } catch {
+        setOnlineByUsername({});
+      } finally {
+        setIsOnlineLoading(false);
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -116,7 +164,13 @@ export default function AdminAccountsPage() {
     return () => clearTimeout(t);
   }, [fetchAccounts]);
 
-  const filteredAccounts = accounts;
+  const filteredAccounts = accounts.filter((a) => {
+    if (onlineFilter === 'all') return true;
+    const online = onlineByUsername[a.username];
+    if (onlineFilter === 'online') return online === true;
+    if (onlineFilter === 'offline') return online === false;
+    return true;
+  });
   const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
   useEffect(() => {
@@ -146,6 +200,111 @@ export default function AdminAccountsPage() {
   const handleCloseModal = () => {
     setSelectedAccount(null);
     setIsEditing(false);
+  };
+
+  const openDisconnectModal = (username: string) => {
+    setKickUsername(username);
+    setKickLevel('2');
+    setShowKickModal(true);
+  };
+
+  const openCharactersModal = async (account: Account) => {
+    setShowCharactersModal(true);
+    setCharactersAccount(account);
+    setCharacters([]);
+    setSelectedCharacterUid('');
+    setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
+    setCharacterError('');
+
+    setIsCharactersLoading(true);
+    try {
+      const { data: response } = await adminApi.listAccountCharacters(account.username);
+      const items = (response.data?.items ?? []) as AccountCharacter[];
+      setCharacters(items);
+      const first = items[0];
+      if (first?.uid) {
+        setSelectedCharacterUid(first.uid);
+        setCharacterForm({
+          name: String(first.name ?? ''),
+          points: String(first.points ?? 0),
+          lnc: String(first.lnc ?? 0),
+          loginPoints: String(first.loginPoints ?? 0),
+        });
+      }
+    } catch (err) {
+      setCharacterError(getErrorMessage(err));
+    } finally {
+      setIsCharactersLoading(false);
+    }
+  };
+
+  const closeCharactersModal = () => {
+    setShowCharactersModal(false);
+    setCharactersAccount(null);
+    setCharacters([]);
+    setSelectedCharacterUid('');
+    setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
+    setCharacterError('');
+    setIsCharactersLoading(false);
+    setIsCharacterSaving(false);
+  };
+
+  const selectedCharacter = characters.find((c) => c.uid === selectedCharacterUid) ?? null;
+  const isCharacterDead = (() => {
+    const n = selectedCharacter?.killTime ? Number(selectedCharacter.killTime) : 0;
+    return Number.isFinite(n) && n > 0;
+  })();
+
+  const applySelectedCharacterToForm = (uid: string) => {
+    setSelectedCharacterUid(uid);
+    const c = characters.find((x) => x.uid === uid);
+    if (!c) return;
+    setCharacterError('');
+    setCharacterForm({
+      name: String(c.name ?? ''),
+      points: String(c.points ?? 0),
+      lnc: String(c.lnc ?? 0),
+      loginPoints: String(c.loginPoints ?? 0),
+    });
+  };
+
+  const saveCharacter = async (opts?: { revive?: boolean }) => {
+    const account = charactersAccount;
+    if (!account) return;
+    if (!selectedCharacterUid) return;
+
+    setIsCharacterSaving(true);
+    setCharacterError('');
+    try {
+      const points = parseInt(characterForm.points, 10);
+      const lnc = parseInt(characterForm.lnc, 10);
+      const loginPoints = parseInt(characterForm.loginPoints, 10);
+      if (!Number.isFinite(points) || points < 0) throw new Error('Points must be a non-negative integer.');
+      if (!Number.isFinite(lnc)) throw new Error('LNC must be an integer.');
+      if (!Number.isFinite(loginPoints) || loginPoints < 0) throw new Error('Login points must be a non-negative integer.');
+      const name = characterForm.name.trim();
+      if (name.length < 1 || name.length > 32) throw new Error('Name must be 1–32 characters.');
+      if (!/^[A-Za-z0-9_-]+$/.test(name)) throw new Error('Name can only contain letters, numbers, _ and -.');
+
+      const { data: response } = await adminApi.updateAccountCharacter({
+        username: account.username,
+        characterUid: selectedCharacterUid,
+        name,
+        points,
+        lnc,
+        loginPoints,
+        ...(opts?.revive ? { revive: true } : {}),
+      });
+
+      const updated = response.data as AccountCharacter | undefined;
+      if (updated?.uid) {
+        setCharacters((prev) => prev.map((c) => (c.uid === updated.uid ? { ...c, ...updated } : c)));
+      }
+    } catch (err) {
+      setCharacterError(getErrorMessage(err));
+    } finally {
+      setIsCharacterSaving(false);
+    }
   };
 
   const handleUpdateAccount = async () => {
@@ -212,10 +371,7 @@ export default function AdminAccountsPage() {
     setAddCpReason('');
     setAddCpMode('now');
     // Default schedule: +5 minutes
-    const d = new Date(Date.now() + 5 * 60 * 1000);
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    setScheduleAtLocal(local);
+    setScheduleAtLocal(toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)));
     setShowAddCpModal(true);
   };
 
@@ -231,7 +387,7 @@ export default function AdminAccountsPage() {
     setActionLoading(true);
     try {
       if (addCpMode === 'schedule') {
-        const scheduledAtMs = Number.isFinite(Date.parse(scheduleAtLocal)) ? Date.parse(scheduleAtLocal) : NaN;
+        const scheduledAtMs = scheduleAtLocal ? (parseLocalDatetimeValueToMs(scheduleAtLocal) ?? NaN) : NaN;
         if (!Number.isFinite(scheduledAtMs)) {
           setError('Please choose a valid schedule date/time');
           return;
@@ -360,6 +516,20 @@ export default function AdminAccountsPage() {
               <option value={50}>50</option>
             </select>
           </div>
+
+          <div className="w-full lg:w-48 space-y-1.5">
+            <label className="block text-sm font-medium text-slate-300">Online filter</label>
+            <select
+              value={onlineFilter}
+              onChange={(e) => setOnlineFilter(e.target.value as typeof onlineFilter)}
+              disabled={isOnlineLoading}
+              className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="all">All</option>
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
@@ -406,6 +576,7 @@ export default function AdminAccountsPage() {
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Email</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">COMP Credits</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Level</th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Online</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-400">Status</th>
                     <th className="text-right py-4 px-6 text-sm font-semibold text-slate-400">Actions</th>
                   </tr>
@@ -442,6 +613,17 @@ export default function AdminAccountsPage() {
                         {account.user_level}
                       </td>
                       <td className="py-4 px-6">
+                        {onlineByUsername[account.username] === true ? (
+                          <Badge variant="success" size="sm">Online</Badge>
+                        ) : onlineByUsername[account.username] === false ? (
+                          <Badge variant="default" size="sm">Offline</Badge>
+                        ) : isOnlineLoading ? (
+                          <Badge variant="default" size="sm">…</Badge>
+                        ) : (
+                          <Badge variant="default" size="sm">—</Badge>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
                         <Badge
                           variant={account.enabled ? 'success' : 'danger'}
                           pulse={account.enabled}
@@ -458,6 +640,23 @@ export default function AdminAccountsPage() {
                             title="View/Edit"
                           >
                             <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openCharactersModal(account)}
+                            title="Edit characters"
+                          >
+                            <User className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-300 hover:text-orange-200"
+                            onClick={() => openDisconnectModal(account.username)}
+                            title="Disconnect (force relog)"
+                          >
+                            <Zap className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -548,6 +747,11 @@ export default function AdminAccountsPage() {
                           <Badge variant={selectedAccount.enabled ? 'success' : 'danger'}>
                             {selectedAccount.enabled ? 'Active' : 'Disabled'}
                           </Badge>
+                          {onlineByUsername[selectedAccount.username] === true ? (
+                            <Badge variant="info">Online</Badge>
+                          ) : onlineByUsername[selectedAccount.username] === false ? (
+                            <Badge variant="default">Offline</Badge>
+                          ) : null}
                           {selectedAccount.user_level >= 1000 && (
                             <Badge variant="warning">Admin</Badge>
                           )}
@@ -693,6 +897,154 @@ export default function AdminAccountsPage() {
         )}
       </AnimatePresence>
 
+      {/* Characters Modal */}
+      <AnimatePresence>
+        {showCharactersModal && charactersAccount && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeCharactersModal} />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Characters</h3>
+                  <p className="text-sm text-slate-400 mt-1">{charactersAccount.username}</p>
+                </div>
+                <button
+                  onClick={closeCharactersModal}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  disabled={isCharactersLoading || isCharacterSaving}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {characterError && (
+                  <Alert variant="error" dismissible onDismiss={() => setCharacterError('')}>
+                    {characterError}
+                  </Alert>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-300">Character</label>
+                    <select
+                      value={selectedCharacterUid}
+                      onChange={(e) => applySelectedCharacterToForm(e.target.value)}
+                      disabled={isCharactersLoading || characters.length === 0}
+                      className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {characters.length === 0 ? (
+                        <option value="">No characters</option>
+                      ) : (
+                        characters.map((c) => (
+                          <option key={c.uid} value={c.uid}>
+                            {c.name || 'Unnamed'} • {c.uid.slice(0, 8)}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    {selectedCharacter && (
+                      <div className="pt-2 space-y-2">
+                        <Input
+                          label="UUID"
+                          value={selectedCharacter.uid}
+                          readOnly
+                          onFocus={(e) => e.currentTarget.select()}
+                          className="font-mono text-sm cursor-text"
+                        />
+                        <p className="text-xs text-slate-500">
+                          World <span className="font-mono text-slate-300">{selectedCharacter.worldId ?? '—'}</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-300">Status</label>
+                    <div className="flex items-center gap-2">
+                      {selectedCharacter ? (
+                        <Badge variant={isCharacterDead ? 'danger' : 'success'}>
+                          {isCharacterDead ? 'Dead' : 'Alive'}
+                        </Badge>
+                      ) : (
+                        <Badge variant="default">—</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Limited edits: Points, LNC, LoginPoints + revive (KillTime = 0).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Input
+                    label="Name"
+                    value={characterForm.name}
+                    onChange={(e) => setCharacterForm({ ...characterForm, name: e.target.value })}
+                    disabled={isCharactersLoading || !selectedCharacterUid}
+                  />
+                  <Input
+                    label="Points"
+                    type="number"
+                    value={characterForm.points}
+                    onChange={(e) => setCharacterForm({ ...characterForm, points: e.target.value })}
+                    disabled={isCharactersLoading || !selectedCharacterUid}
+                  />
+                  <Input
+                    label="LNC"
+                    type="number"
+                    value={characterForm.lnc}
+                    onChange={(e) => setCharacterForm({ ...characterForm, lnc: e.target.value })}
+                    disabled={isCharactersLoading || !selectedCharacterUid}
+                  />
+                  <Input
+                    label="Login Points"
+                    type="number"
+                    value={characterForm.loginPoints}
+                    onChange={(e) => setCharacterForm({ ...characterForm, loginPoints: e.target.value })}
+                    disabled={isCharactersLoading || !selectedCharacterUid}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-6 border-t border-slate-800 bg-slate-800/30">
+                <Button variant="ghost" className="sm:flex-1" onClick={closeCharactersModal} disabled={isCharacterSaving}>
+                  Close
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="sm:flex-1"
+                  onClick={() => saveCharacter({ revive: true })}
+                  disabled={!selectedCharacterUid || !isCharacterDead || isCharactersLoading}
+                  isLoading={isCharacterSaving}
+                  title="Sets KillTime = 0"
+                >
+                  Revive
+                </Button>
+                <Button
+                  className="sm:flex-1"
+                  onClick={() => saveCharacter()}
+                  disabled={!selectedCharacterUid || isCharactersLoading}
+                  isLoading={isCharacterSaving}
+                >
+                  Save
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Kick Player Modal */}
       <AnimatePresence>
         {showKickModal && (
@@ -831,16 +1183,13 @@ export default function AdminAccountsPage() {
                 />
 
                 {addCpMode === 'schedule' && (
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-300">Send at</label>
-                    <input
-                      type="datetime-local"
-                      value={scheduleAtLocal}
-                      onChange={(e) => setScheduleAtLocal(e.target.value)}
-                      disabled={actionLoading}
-                      className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-                    />
-                  </div>
+                  <DateTimePicker
+                    label="Send at"
+                    value={scheduleAtLocal}
+                    onChange={setScheduleAtLocal}
+                    disabled={actionLoading}
+                    minuteStep={1}
+                  />
                 )}
 
                 <Input

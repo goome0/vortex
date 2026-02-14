@@ -16,7 +16,6 @@ export const ROUTES = {
   // Admin Routes
   ADMIN: '/admin',
   ADMIN_ACCOUNTS: '/admin/accounts',
-  ADMIN_ONLINE: '/admin/online',
   ADMIN_PROMOS: '/admin/promos',
   ADMIN_ITEMS: '/admin/items',
   ADMIN_BUNDLES: '/admin/bundles',

@@ -11,7 +11,6 @@ import { Button, Skeleton } from '@/components/ui';
 import {
   Shield,
   Users,
-  Monitor,
   Gift,
   MessageSquare,
   Package,
@@ -51,7 +50,6 @@ const adminNavGroups: AdminNavGroup[] = [
     icon: Users,
     items: [
       { href: ROUTES.ADMIN_ACCOUNTS, label: 'Accounts', icon: Users },
-      { href: ROUTES.ADMIN_ONLINE, label: 'Online Players', icon: Monitor },
       { href: ROUTES.ADMIN_CASES, label: 'Cases', icon: Ticket },
     ],
   },

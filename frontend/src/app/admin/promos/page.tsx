@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, Button, Input, Badge, Alert, LoadingSpinner } from '@/components/ui';
+import { Card, CardContent, Button, Input, Badge, Alert, LoadingSpinner, DateTimePicker } from '@/components/ui';
 import { adminApi, getErrorMessage } from '@/lib/api';
+import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import {
   Gift,
   Plus,
@@ -34,6 +35,7 @@ export default function AdminPromosPage() {
     exchangesTotal?: number;
     lastExchangeAtSec?: number;
   }>>([]);
+  const [selectedCodes, setSelectedCodes] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
@@ -84,6 +86,9 @@ export default function AdminPromosPage() {
 
   const filteredPromos = promos;
   const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+  const codesOnPage = filteredPromos.map((p) => p.code);
+  const selectedCount = selectedCodes.size;
+  const allOnPageSelected = codesOnPage.length > 0 && codesOnPage.every((c) => selectedCodes.has(c));
 
   useEffect(() => {
     setPage(1);
@@ -97,23 +102,31 @@ export default function AdminPromosPage() {
 
   const normalizeCode = (code: string) => code.trim().toUpperCase();
 
-  const toIsoLocal = (tsSec: number): string => {
-    if (!tsSec) return '';
-    const d = new Date(tsSec * 1000);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
   const existingCodes = new Set(promos.map((p) => normalizeCode(p.code)));
   const isDuplicateCode = !!normalizeCode(newPromo.code) && existingCodes.has(normalizeCode(newPromo.code));
 
+  const openCreatePromo = () => {
+    const now = Date.now();
+    setCloningFrom(null);
+    setNewPromo({
+      code: '',
+      startTime: toLocalDatetimeValue(new Date(now)),
+      endTime: toLocalDatetimeValue(new Date(now + 86400 * 30 * 1000)),
+      useLimit: '1',
+      limitType: 'account',
+      items: '',
+    });
+    setIsCreating(true);
+  };
+
   const handleClonePromo = (promo: Promo) => {
+    const now = Date.now();
     setCloningFrom(promo.code);
     setIsCreating(true);
     setNewPromo({
       code: `${normalizeCode(promo.code)}_COPY`,
-      startTime: toIsoLocal(Math.floor(Date.now() / 1000)),
-      endTime: toIsoLocal(Math.floor(Date.now() / 1000) + 86400 * 30),
+      startTime: toLocalDatetimeValue(new Date(now)),
+      endTime: toLocalDatetimeValue(new Date(now + 86400 * 30 * 1000)),
       useLimit: String(promo.useLimit ?? 1),
       limitType: promo.limitType || 'account',
       items: (promo.items ?? []).join(', '),
@@ -133,10 +146,15 @@ export default function AdminPromosPage() {
         ? newPromo.items.split(',').map((s) => parseInt(s.trim())).filter((n) => !isNaN(n))
         : [];
 
+      const startMs = newPromo.startTime ? parseLocalDatetimeValueToMs(newPromo.startTime) : null;
+      const endMs = newPromo.endTime ? parseLocalDatetimeValueToMs(newPromo.endTime) : null;
+      if (newPromo.startTime && !startMs) throw new Error('Invalid start time.');
+      if (newPromo.endTime && !endMs) throw new Error('Invalid end time.');
+
       await adminApi.createPromo({
         code: normalizeCode(newPromo.code),
-        startTime: newPromo.startTime ? Math.floor(new Date(newPromo.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000),
-        endTime: newPromo.endTime ? Math.floor(new Date(newPromo.endTime).getTime() / 1000) : Math.floor(Date.now() / 1000) + 86400 * 30,
+        startTime: startMs ? Math.floor(startMs / 1000) : Math.floor(Date.now() / 1000),
+        endTime: endMs ? Math.floor(endMs / 1000) : Math.floor(Date.now() / 1000) + 86400 * 30,
         useLimit: parseInt(newPromo.useLimit) || 1,
         limitType: newPromo.limitType,
         items,
@@ -162,8 +180,71 @@ export default function AdminPromosPage() {
         if (!ok) return;
       }
       await adminApi.deletePromo(code);
+      setSelectedCodes((prev) => {
+        if (!prev.has(code)) return prev;
+        const next = new Set(prev);
+        next.delete(code);
+        return next;
+      });
       setSuccessMessage('Promo deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
+      fetchPromos();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const toggleSelectCode = (code: string, checked: boolean) => {
+    setSelectedCodes((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(code);
+      else next.delete(code);
+      return next;
+    });
+  };
+
+  const toggleSelectAllOnPage = (checked: boolean) => {
+    setSelectedCodes((prev) => {
+      const next = new Set(prev);
+      for (const code of codesOnPage) {
+        if (checked) next.add(code);
+        else next.delete(code);
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteSelectedPromos = async () => {
+    const codes = Array.from(selectedCodes);
+    if (codes.length === 0) return;
+
+    const ok = window.confirm(`Delete ${codes.length} selected promo code(s)? This removes all variants with those codes.`);
+    if (!ok) return;
+
+    try {
+      await adminApi.deleteManyPromos(codes);
+      setSelectedCodes(new Set());
+      setSuccessMessage(`Deleted ${codes.length} promo code(s).`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      if (page !== 1) setPage(1);
+      else fetchPromos();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const handleDeleteAllPromos = async () => {
+    const ok = window.confirm('Delete ALL promo codes? This cannot be undone.');
+    if (!ok) return;
+    const typed = window.prompt('Type DELETE to confirm deleting ALL promo codes:');
+    if (typed !== 'DELETE') return;
+
+    try {
+      await adminApi.deleteAllPromos();
+      setSelectedCodes(new Set());
+      setSuccessMessage('All promo codes deleted.');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setPage(1);
       fetchPromos();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -213,7 +294,7 @@ export default function AdminPromosPage() {
           </h1>
           <p className="text-slate-400 mt-1">Create and manage promotional codes</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant="secondary"
             onClick={() => {
@@ -224,7 +305,25 @@ export default function AdminPromosPage() {
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
-          <Button onClick={() => setIsCreating(true)}>
+          <Button
+            variant="ghost"
+            disabled={selectedCount === 0 || isLoading}
+            onClick={handleDeleteSelectedPromos}
+            className="text-red-300 hover:text-red-200"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Selected ({selectedCount})
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={isLoading || total === 0}
+            onClick={handleDeleteAllPromos}
+            className="text-red-400 hover:text-red-300"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete All
+          </Button>
+          <Button onClick={openCreatePromo}>
             <Plus className="w-4 h-4" />
             Create Promo
           </Button>
@@ -323,17 +422,17 @@ export default function AdminPromosPage() {
                       Use limits are enforced per account (and optionally per character/world) by comp_hack.
                     </p>
                   </div>
-                  <Input
-                    type="datetime-local"
+                  <DateTimePicker
                     label="Start Time"
                     value={newPromo.startTime}
-                    onChange={(e) => setNewPromo({ ...newPromo, startTime: e.target.value })}
+                    onChange={(v) => setNewPromo({ ...newPromo, startTime: v })}
+                    clearable={false}
                   />
-                  <Input
-                    type="datetime-local"
+                  <DateTimePicker
                     label="End Time"
                     value={newPromo.endTime}
-                    onChange={(e) => setNewPromo({ ...newPromo, endTime: e.target.value })}
+                    onChange={(v) => setNewPromo({ ...newPromo, endTime: v })}
+                    clearable={false}
                   />
                   <Input
                     label="Item IDs (comma separated)"
@@ -416,113 +515,130 @@ export default function AdminPromosPage() {
         </div>
       </motion.div>
 
-      {/* Promos Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
-        {filteredPromos.map((promo, index) => {
-          const badge = statusBadge(promo);
-          const variants = promo.variants ?? 0;
-          return (
-            <motion.div
-              key={promo.code}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className={`h-full transition-all duration-300 ${badge.label === 'Expired' ? 'opacity-60' : 'hover:border-yellow-500/30'}`}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-mono text-xl font-bold text-white">{promo.code}</p>
-                        <button
-                          onClick={() => handleCopyCode(promo.code)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                        >
-                          {copiedCode === promo.code ? (
-                            <Check className="w-4 h-4 text-green-400" />
+      {/* Promos List */}
+      {filteredPromos.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card variant="glow">
+            <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div className="text-sm text-slate-400">
+                Showing <span className="text-white">{filteredPromos.length}</span> of <span className="text-white">{total}</span> • Selected{' '}
+                <span className="text-white">{selectedCount}</span>
+              </div>
+              <div className="text-xs text-slate-500">
+                Select rows to bulk delete.
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-slate-400 border-b border-slate-800">
+                    <th className="py-3 pr-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allOnPageSelected}
+                        onChange={(e) => toggleSelectAllOnPage(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                        aria-label="Select all on page"
+                      />
+                    </th>
+                    <th className="py-3 pr-3">Code</th>
+                    <th className="py-3 pr-3">Status</th>
+                    <th className="py-3 pr-3">Start</th>
+                    <th className="py-3 pr-3">End</th>
+                    <th className="py-3 pr-3 text-right">Use Limit</th>
+                    <th className="py-3 pr-3">Limit Type</th>
+                    <th className="py-3 pr-3 text-right">Redeems</th>
+                    <th className="py-3 pr-3">Items</th>
+                    <th className="py-3 pl-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPromos.map((promo) => {
+                    const badge = statusBadge(promo);
+                    const variants = promo.variants ?? 0;
+                    const checked = selectedCodes.has(promo.code);
+                    return (
+                      <tr key={promo.code} className="border-b border-slate-900/60 hover:bg-slate-900/30">
+                        <td className="py-3 pr-3 align-top">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => toggleSelectCode(promo.code, e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                            aria-label={`Select ${promo.code}`}
+                          />
+                        </td>
+                        <td className="py-3 pr-3 align-top">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-white">{promo.code}</span>
+                            <button
+                              onClick={() => handleCopyCode(promo.code)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                              aria-label={`Copy ${promo.code}`}
+                            >
+                              {copiedCode === promo.code ? (
+                                <Check className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </button>
+                            {variants > 1 && <Badge variant="warning">{variants} variants</Badge>}
+                          </div>
+                        </td>
+                        <td className="py-3 pr-3 align-top">
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </td>
+                        <td className="py-3 pr-3 align-top text-slate-200">{formatTimestamp(promo.startTime)}</td>
+                        <td className="py-3 pr-3 align-top text-slate-200">{formatTimestamp(promo.endTime)}</td>
+                        <td className="py-3 pr-3 align-top text-right font-mono text-yellow-300">{promo.useLimit}</td>
+                        <td className="py-3 pr-3 align-top">
+                          <Badge variant="info">{promo.limitType}</Badge>
+                        </td>
+                        <td className="py-3 pr-3 align-top text-right font-mono text-xs text-slate-200">
+                          {promo.exchangesTotal ?? 0}
+                        </td>
+                        <td className="py-3 pr-3 align-top">
+                          {promo.items && promo.items.length > 0 ? (
+                            <span className="font-mono text-xs text-slate-200 max-w-[240px] inline-block truncate">
+                              {promo.items.join(', ')}
+                            </span>
                           ) : (
-                            <Copy className="w-4 h-4" />
+                            <span className="text-slate-600">—</span>
                           )}
-                        </button>
-                      </div>
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant={badge.variant}>{badge.label}</Badge>
-                        <Badge variant="info">{promo.limitType}</Badge>
-                        {variants > 1 && <Badge variant="warning">{variants} variants</Badge>}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-400">Use Limit</p>
-                      <p className="text-xl font-bold text-yellow-400">{promo.useLimit}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-sm mb-4">
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        Start
-                      </span>
-                      <span className="text-white">{formatTimestamp(promo.startTime)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        End
-                      </span>
-                      <span className="text-white">{formatTimestamp(promo.endTime)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span className="flex items-center gap-2">
-                        <Gift className="w-4 h-4" />
-                        Redeems (total)
-                      </span>
-                      <span className="text-white font-mono text-xs">{promo.exchangesTotal ?? 0}</span>
-                    </div>
-                    {promo.items && promo.items.length > 0 && (
-                      <div className="flex items-center justify-between text-slate-400">
-                        <span className="flex items-center gap-2">
-                          <Gift className="w-4 h-4" />
-                          Items
-                        </span>
-                        <span className="text-white font-mono text-xs">
-                          {promo.items.join(', ')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-4 border-t border-slate-800">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleClonePromo(promo)}
-                    >
-                      <Copy className="w-4 h-4" />
-                      Clone
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1 text-red-400 hover:text-red-300"
-                      onClick={() => handleDeletePromo(promo.code)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+                        </td>
+                        <td className="py-3 pl-3 align-top">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => handleClonePromo(promo)}>
+                              <Copy className="w-4 h-4" />
+                              Clone
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeletePromo(promo.code)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {filteredPromos.length === 0 && !isLoading && (
         <motion.div

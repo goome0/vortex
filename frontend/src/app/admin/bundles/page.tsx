@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, getErrorMessage } from '@/lib/api';
-import { Alert, Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
+import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import { Layers, Plus, Trash2, Save, Send, Users, Hash, CalendarClock, RefreshCw } from 'lucide-react';
 
 type Bundle = {
@@ -30,11 +31,6 @@ type SendBatch = {
   lastError: string | null;
   createdAt: string;
 };
-
-function toLocalDatetimeValue(d: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function parseUsernames(text: string): string[] {
   const raw = text
@@ -189,7 +185,7 @@ export default function AdminBundlesPage() {
     setError('');
     try {
       const scheduledAtMs =
-        sendMode === 'schedule' ? (Number.isFinite(Date.parse(sendAtLocal)) ? Date.parse(sendAtLocal) : undefined) : undefined;
+        sendMode === 'schedule' ? (sendAtLocal ? (parseLocalDatetimeValueToMs(sendAtLocal) ?? undefined) : undefined) : undefined;
       await adminApi.scheduleBundleSend({
         bundleId: selectedBundle.id,
         usernames,
@@ -368,15 +364,12 @@ export default function AdminBundlesPage() {
             </div>
 
             {sendMode === 'schedule' && (
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-300">Send at</label>
-                <input
-                  type="datetime-local"
-                  value={sendAtLocal}
-                  onChange={(e) => setSendAtLocal(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-                />
-              </div>
+              <DateTimePicker
+                label="Send at"
+                value={sendAtLocal}
+                onChange={setSendAtLocal}
+                minuteStep={1}
+              />
             )}
 
             <div className="space-y-1.5">

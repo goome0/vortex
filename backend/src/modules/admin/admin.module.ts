@@ -12,10 +12,12 @@ import { GetPromosModule } from './services/get-promos/get-promos.module';
 import { GetPromoInsightsModule } from './services/get-promo-insights/get-promo-insights.module';
 import { CreatePromoModule } from './services/create-promo/create-promo.module';
 import { DeletePromoModule } from './services/delete-promo/delete-promo.module';
+import { PromoBulkDeleteModule } from './services/promo-bulk-delete/promo-bulk-delete.module';
 import { AddCpModule } from './services/add-cp/add-cp.module';
 import { ScheduledCpModule } from './services/scheduled-cp/scheduled-cp.module';
 import { ItemBundlesModule } from './services/item-bundles/item-bundles.module';
 import { GetWorldsModule } from './services/get-worlds/get-worlds.module';
+import { AccountCharactersModule } from './services/account-characters/account-characters.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { GetWorldsModule } from './services/get-worlds/get-worlds.module';
     ScheduledCpModule,
     ItemBundlesModule,
     DeleteAccountModule,
+    AccountCharactersModule,
     KickPlayerModule,
     MessageWorldModule,
     GetWorldsModule,
@@ -35,6 +38,7 @@ import { GetWorldsModule } from './services/get-worlds/get-worlds.module';
     GetPromoInsightsModule,
     CreatePromoModule,
     DeletePromoModule,
+    PromoBulkDeleteModule,
   ],
   controllers: [AdminController],
 })

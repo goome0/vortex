@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, getErrorMessage } from '@/lib/api';
-import { Alert, Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
+import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import { CalendarClock, Coins, RefreshCw, User, X, XCircle, Pencil, Save } from 'lucide-react';
 
 type ScheduledCpStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -24,11 +25,6 @@ type ScheduledCpGrant = {
   createdAt: string;
   updatedAt: string;
 };
-
-function toLocalDatetimeValue(d: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function statusBadgeVariant(status: ScheduledCpStatus): React.ComponentProps<typeof Badge>['variant'] {
   switch (status) {
@@ -127,7 +123,7 @@ export default function AdminScheduledCpPage() {
   const saveEdit = async () => {
     if (!editRow) return;
     const amount = parseInt(editAmount, 10);
-    const scheduledAtMs = Number.isFinite(Date.parse(editScheduledAtLocal)) ? Date.parse(editScheduledAtLocal) : NaN;
+    const scheduledAtMs = editScheduledAtLocal ? (parseLocalDatetimeValueToMs(editScheduledAtLocal) ?? NaN) : NaN;
 
     if (!Number.isFinite(amount) || amount <= 0) {
       setError('COMP Credits amount must be a positive number');
@@ -397,16 +393,13 @@ export default function AdminScheduledCpPage() {
                   disabled={actionLoading}
                 />
 
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-300">Send at</label>
-                  <input
-                    type="datetime-local"
-                    value={editScheduledAtLocal}
-                    onChange={(e) => setEditScheduledAtLocal(e.target.value)}
-                    disabled={actionLoading}
-                    className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-                  />
-                </div>
+                <DateTimePicker
+                  label="Send at"
+                  value={editScheduledAtLocal}
+                  onChange={setEditScheduledAtLocal}
+                  disabled={actionLoading}
+                  minuteStep={1}
+                />
 
                 <Input
                   label="Reason (optional)"
