@@ -35,12 +35,6 @@ interface Account {
   character_count: number;
 }
 
-interface OnlineResult {
-  name: string;
-  type: string;
-  online: boolean;
-}
-
 type AccountCharacter = {
   uid: string;
   name: string | null;
@@ -78,6 +72,8 @@ export default function AdminAccountsPage() {
   const [isCharacterSaving, setIsCharacterSaving] = useState(false);
   const [characterSuccess, setCharacterSuccess] = useState('');
   const [characterError, setCharacterError] = useState('');
+  const [onlineByCharacterName, setOnlineByCharacterName] = useState<Record<string, boolean>>({});
+  const [isCharacterOnlineLoading, setIsCharacterOnlineLoading] = useState(false);
   const characterSuccessTimeoutRef = useRef<number | null>(null);
 
   const showCharacterSuccess = useCallback((message: string) => {
@@ -159,12 +155,11 @@ export default function AdminAccountsPage() {
       try {
         const targets = items.map((a) => ({ name: a.username, type: 'account' }));
         const { data: onlineResponse } = await adminApi.getOnline(targets);
-        const results = (onlineResponse.data?.results || onlineResponse.data || []) as OnlineResult[];
+        const results = (onlineResponse.data?.results || onlineResponse.data || []) as { status?: string; character?: string }[];
         const next: Record<string, boolean> = {};
-        for (const r of results) {
-          if (!r?.name) continue;
-          next[r.name] = !!r.online;
-        }
+        targets.forEach((t, i) => {
+          next[t.name] = results[i]?.status === 'Online';
+        });
         setOnlineByUsername(next);
       } catch {
         setOnlineByUsername({});
@@ -237,6 +232,7 @@ export default function AdminAccountsPage() {
     setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
     setCharacterSuccess('');
     setCharacterError('');
+    setOnlineByCharacterName({});
 
     setIsCharactersLoading(true);
     try {
@@ -253,6 +249,30 @@ export default function AdminAccountsPage() {
           loginPoints: String(first.loginPoints ?? 0),
         });
       }
+
+      // Fetch online status per character (comp_hack API supports type=character with world_id)
+      const withNames = items.filter((c) => c.name?.trim());
+      if (withNames.length > 0) {
+        setIsCharacterOnlineLoading(true);
+        try {
+          const targets = withNames.map((c) => ({
+            name: c.name!,
+            type: 'character' as const,
+            world_id: c.worldId ?? 0,
+          }));
+          const { data: onlineResponse } = await adminApi.getOnline(targets);
+          const results = (onlineResponse.data?.results || onlineResponse.data || []) as { status?: string; character?: string }[];
+          const next: Record<string, boolean> = {};
+          targets.forEach((t, i) => {
+            next[t.name] = results[i]?.status === 'Online';
+          });
+          setOnlineByCharacterName(next);
+        } catch {
+          setOnlineByCharacterName({});
+        } finally {
+          setIsCharacterOnlineLoading(false);
+        }
+      }
     } catch (err) {
       setCharacterError(getErrorMessage(err));
     } finally {
@@ -268,6 +288,7 @@ export default function AdminAccountsPage() {
     setCharacterForm({ name: '', points: '', lnc: '', loginPoints: '' });
     setCharacterSuccess('');
     setCharacterError('');
+    setOnlineByCharacterName({});
     setIsCharactersLoading(false);
     setIsCharacterSaving(false);
   };
@@ -983,11 +1004,15 @@ export default function AdminAccountsPage() {
                       {characters.length === 0 ? (
                         <option value="">No characters</option>
                       ) : (
-                        characters.map((c) => (
-                          <option key={c.uid} value={c.uid}>
-                            {c.name || 'Unnamed'} • {c.uid.slice(0, 8)}
-                          </option>
-                        ))
+                        characters.map((c) => {
+                          const isOnline = c.name ? onlineByCharacterName[c.name] : false;
+                          return (
+                            <option key={c.uid} value={c.uid}>
+                              {c.name || 'Unnamed'} • {c.uid.slice(0, 8)}
+                              {isOnline ? ' • Online' : ''}
+                            </option>
+                          );
+                        })
                       )}
                     </select>
                     {selectedCharacter && (
@@ -1008,11 +1033,22 @@ export default function AdminAccountsPage() {
 
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-slate-300">Status</label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {selectedCharacter ? (
-                        <Badge variant={isCharacterDead ? 'danger' : 'success'}>
-                          {isCharacterDead ? 'Dead' : 'Alive'}
-                        </Badge>
+                        <>
+                          <Badge variant={isCharacterDead ? 'danger' : 'success'}>
+                            {isCharacterDead ? 'Dead' : 'Alive'}
+                          </Badge>
+                          {selectedCharacter.name && (
+                            isCharacterOnlineLoading ? (
+                              <span className="text-xs text-slate-500">Checking online…</span>
+                            ) : onlineByCharacterName[selectedCharacter.name] === true ? (
+                              <Badge variant="info">Online</Badge>
+                            ) : onlineByCharacterName[selectedCharacter.name] === false ? (
+                              <Badge variant="default">Offline</Badge>
+                            ) : null
+                          )}
+                        </>
                       ) : (
                         <Badge variant="default">—</Badge>
                       )}

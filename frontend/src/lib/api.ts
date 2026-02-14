@@ -214,7 +214,7 @@ export const adminApi = {
     sub_mode?: number;
   }) =>
     api.post('/admin/message-world', data),
-  getOnline: (targets: { name: string; type: string }[]) =>
+  getOnline: (targets: { name: string; type: string; world_id?: number }[]) =>
     api.post('/admin/online', { targets }),
   postItems: (data: { username: string; cp: number; products: number[] }) =>
     api.post('/admin/post-items', data),

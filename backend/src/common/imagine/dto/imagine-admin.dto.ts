@@ -112,7 +112,7 @@ export class ImagineAdminMessageWorldDTO extends ImagineSessionDTO {
 }
 
 export class ImagineAdminOnlineTargetDTO {
-  @ApiProperty({ description: 'Target name' })
+  @ApiProperty({ description: 'Target name (username for account, character name for character)' })
   @IsNotEmpty()
   @IsString()
   public name!: string;
@@ -121,6 +121,12 @@ export class ImagineAdminOnlineTargetDTO {
   @IsNotEmpty()
   @IsString()
   public type!: 'account' | 'character';
+
+  @ApiPropertyOptional({ description: 'World ID (required for type=character)' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  public world_id?: number;
 }
 
 export class ImagineAdminOnlineDTO extends ImagineSessionDTO {
