@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, getErrorMessage } from '@/lib/api';
 import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
 import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
-import { CalendarClock, Coins, Plus, RefreshCw, User, X, XCircle, Pencil, Save } from 'lucide-react';
+import { CalendarClock, Coins, Plus, RefreshCw, User, Users, X, XCircle, Pencil, Save } from 'lucide-react';
+import { AccountPickerModal } from '@/components/admin/AccountPickerModal';
 
 type ScheduledCpStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 
@@ -68,6 +69,7 @@ export default function AdminScheduledCpPage() {
     toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)),
   );
   const [createReason, setCreateReason] = useState('');
+  const [showUserPicker, setShowUserPicker] = useState(false);
 
   const load = useCallback(async () => {
     setError('');
@@ -140,7 +142,13 @@ export default function AdminScheduledCpPage() {
     const amount = parseInt(createAmount, 10);
     const scheduledAtMs = createScheduledAtLocal ? (parseLocalDatetimeValueToMs(createScheduledAtLocal) ?? NaN) : NaN;
 
-    if (!createUsername.trim()) {
+    const usernames = createUsername
+      .split(/[\n,;\t ]+/)
+      .map((u) => u.trim().toLowerCase())
+      .filter(Boolean);
+    const uniqueUsernames = Array.from(new Set(usernames));
+
+    if (uniqueUsernames.length === 0) {
       setError('Username is required');
       return;
     }
@@ -156,13 +164,14 @@ export default function AdminScheduledCpPage() {
     setActionLoading(true);
     setError('');
     try {
-      await adminApi.scheduleCp(
-        createUsername.trim().toLowerCase(),
-        amount,
-        scheduledAtMs,
-        createReason.trim() || undefined,
+      for (const u of uniqueUsernames) {
+        await adminApi.scheduleCp(u, amount, scheduledAtMs, createReason.trim() || undefined);
+      }
+      setSuccessMessage(
+        uniqueUsernames.length === 1
+          ? `Scheduled ${amount.toLocaleString()} COMP Credits for ${uniqueUsernames[0]}.`
+          : `Scheduled ${amount.toLocaleString()} COMP Credits for ${uniqueUsernames.length} users.`,
       );
-      setSuccessMessage(`Scheduled ${amount.toLocaleString()} COMP Credits for ${createUsername}.`);
       setTimeout(() => setSuccessMessage(''), 3000);
       setShowCreateModal(false);
       await load();
@@ -418,7 +427,13 @@ export default function AdminScheduledCpPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
+            <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setShowUserPicker(false);
+                }}
+              />
             <motion.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -428,7 +443,10 @@ export default function AdminScheduledCpPage() {
               <div className="flex items-center justify-between p-6 border-b border-slate-800">
                 <h3 className="text-xl font-bold text-white">Schedule COMP Credits</h3>
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setShowUserPicker(false);
+                  }}
                   className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                   disabled={actionLoading}
                 >
@@ -437,14 +455,28 @@ export default function AdminScheduledCpPage() {
               </div>
 
               <div className="p-6 space-y-4">
-                <Input
-                  label="Username"
-                  placeholder="ex: playername"
-                  value={createUsername}
-                  onChange={(e) => setCreateUsername(e.target.value)}
-                  icon={<User className="w-5 h-5" />}
-                  disabled={actionLoading}
-                />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-sm font-medium text-slate-300">Username</label>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowUserPicker(true)}
+                      disabled={actionLoading}
+                    >
+                      <Users className="w-4 h-4" />
+                      Select user(s)
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="ex: playername (or select via button)"
+                    value={createUsername}
+                    onChange={(e) => setCreateUsername(e.target.value)}
+                    icon={<User className="w-5 h-5" />}
+                    disabled={actionLoading}
+                  />
+                  <p className="text-xs text-slate-500">You can also type multiple usernames (comma or newline separated).</p>
+                </div>
 
                 <Input
                   label="COMP Credits Amount"
@@ -472,7 +504,15 @@ export default function AdminScheduledCpPage() {
               </div>
 
               <div className="flex items-center gap-3 p-6 border-t border-slate-800 bg-slate-800/30">
-                <Button variant="ghost" className="flex-1" onClick={() => setShowCreateModal(false)} disabled={actionLoading}>
+                <Button
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setShowUserPicker(false);
+                  }}
+                  disabled={actionLoading}
+                >
                   Cancel
                 </Button>
                 <Button className="flex-1" onClick={createScheduledCp} isLoading={actionLoading}>
@@ -561,6 +601,20 @@ export default function AdminScheduledCpPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AccountPickerModal
+        open={showUserPicker}
+        initialSelectedUsernames={createUsername
+          .split(/[\n,;\t ]+/)
+          .map((u) => u.trim().toLowerCase())
+          .filter(Boolean)}
+        title="Select user(s) for schedule"
+        onClose={() => setShowUserPicker(false)}
+        onApply={(usernames) => {
+          setCreateUsername(usernames.join(', '));
+          setShowUserPicker(false);
+        }}
+      />
     </div>
   );
 }

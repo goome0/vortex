@@ -257,41 +257,41 @@ export function DateTimePicker({
                   className="z-[1000] rounded-xl border border-slate-700/50 bg-slate-950/95 backdrop-blur-xl shadow-2xl overflow-hidden"
                   role="dialog"
                 >
-                  <div className="p-3 border-b border-slate-800 flex items-center justify-between gap-2">
+                  <div className="px-2 py-1.5 border-b border-slate-800 flex items-center justify-between gap-1">
                     <button
                       type="button"
-                      className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-200 transition-colors"
+                      className="p-1 rounded hover:bg-slate-800/60 text-slate-200 transition-colors"
                       onClick={() => adjustMonth(-1)}
                       aria-label="Previous month"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-3.5 h-3.5" />
                     </button>
-                    <div className="text-sm font-semibold text-white capitalize truncate">
+                    <div className="text-xs font-semibold text-white capitalize truncate">
                       {monthLabel}
                     </div>
                     <button
                       type="button"
-                      className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-200 transition-colors"
+                      className="p-1 rounded hover:bg-slate-800/60 text-slate-200 transition-colors"
                       onClick={() => adjustMonth(1)}
                       aria-label="Next month"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div className="p-3">
-                    <div className="grid grid-cols-7 gap-1 text-xs text-slate-400 mb-2">
+                  <div className="p-2">
+                    <div className="grid grid-cols-7 gap-0.5 text-[10px] text-slate-400 mb-1">
                     {(weekStartsOn === 'monday'
                       ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
                       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                     ).map((w) => (
-                      <div key={w} className="text-center py-1">
+                      <div key={w} className="text-center py-0.5">
                         {w}
                       </div>
                     ))}
                   </div>
 
-                    <div className="grid grid-cols-7 gap-1">
+                    <div className="grid grid-cols-7 gap-0.5">
                       {matrix.map(({ date, inMonth }) => {
                         const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
                         const isSelected = selectedYmd === key;
@@ -310,7 +310,7 @@ export function DateTimePicker({
                             type="button"
                             onClick={() => applyDay(date)}
                             className={cn(
-                              'h-9 rounded-lg text-sm transition-colors',
+                              'h-7 rounded text-xs transition-colors',
                               'hover:bg-slate-800/60',
                               inMonth ? 'text-slate-100' : 'text-slate-600',
                               isToday && 'ring-1 ring-cyan-500/30',
@@ -323,13 +323,13 @@ export function DateTimePicker({
                       })}
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-slate-300 text-sm">
-                        <Clock className="w-4 h-4 text-slate-400" />
+                    <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-slate-300 text-xs">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>Time</span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <input
                           type="number"
                           min={0}
@@ -337,7 +337,7 @@ export function DateTimePicker({
                           value={hour}
                           onChange={(e) => setTime(clampInt(Number(e.target.value), 0, 23), minute)}
                           className={cn(
-                            'w-16 px-2 py-2 rounded-lg text-center',
+                            'w-11 px-1.5 py-1 rounded text-center text-xs',
                             'bg-slate-900/70 border border-slate-700/50 text-white',
                             'focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20'
                           )}
@@ -351,7 +351,7 @@ export function DateTimePicker({
                           value={minute}
                           onChange={(e) => setTime(hour, clampInt(Number(e.target.value), 0, 59))}
                           className={cn(
-                            'w-16 px-2 py-2 rounded-lg text-center',
+                            'w-11 px-1.5 py-1 rounded text-center text-xs',
                             'bg-slate-900/70 border border-slate-700/50 text-white',
                             'focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20'
                           )}
@@ -359,10 +359,10 @@ export function DateTimePicker({
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="mt-2 flex items-center justify-between gap-2">
                       <button
                         type="button"
-                        className="px-3 py-2 rounded-lg text-sm bg-slate-800/50 hover:bg-slate-800/80 text-slate-100 transition-colors"
+                        className="px-2 py-1.5 rounded text-xs bg-slate-800/50 hover:bg-slate-800/80 text-slate-100 transition-colors"
                         onClick={() => {
                           const now = new Date();
                           applyDateTime(now);
@@ -374,7 +374,7 @@ export function DateTimePicker({
 
                       <button
                         type="button"
-                        className="px-3 py-2 rounded-lg text-sm bg-cyan-500/15 hover:bg-cyan-500/20 text-cyan-100 border border-cyan-500/30 transition-colors"
+                        className="px-2 py-1.5 rounded text-xs bg-cyan-500/15 hover:bg-cyan-500/20 text-cyan-100 border border-cyan-500/30 transition-colors"
                         onClick={() => setOpen(false)}
                       >
                         Close
