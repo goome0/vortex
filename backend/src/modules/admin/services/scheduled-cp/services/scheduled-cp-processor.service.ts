@@ -4,6 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, Repository } from 'typeorm';
+import { isAxiosError } from 'axios';
 
 @Injectable()
 export class ScheduledCpProcessorService {
@@ -57,7 +58,10 @@ export class ScheduledCpProcessorService {
           },
         );
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : 'Unknown error';
+        let msg = e instanceof Error ? e.message : 'Unknown error';
+        if (isAxiosError(e) && e.response?.status === 401) {
+          msg = `401 Unauthorized: A conta "${item.createdByUsername}" precisa ter UserLevel=1000 no comp_hack para usar a API admin. Verifique comp_hack.Account.`;
+        }
         this.logger.error(`Failed scheduled CP grant ${item.id} for ${item.username}: ${msg}`);
         await this.repo.update(
           { id: item.id },
