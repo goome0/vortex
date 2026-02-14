@@ -250,28 +250,28 @@ export default function AdminAccountsPage() {
         });
       }
 
-      // Fetch online status per character (comp_hack API supports type=character with world_id)
-      const withNames = items.filter((c) => c.name?.trim());
-      if (withNames.length > 0) {
-        setIsCharacterOnlineLoading(true);
-        try {
-          const targets = withNames.map((c) => ({
-            name: c.name!,
-            type: 'character' as const,
-            world_id: c.worldId ?? 0,
-          }));
-          const { data: onlineResponse } = await adminApi.getOnline(targets);
-          const results = (onlineResponse.data?.results || onlineResponse.data || []) as { status?: string; character?: string }[];
-          const next: Record<string, boolean> = {};
-          targets.forEach((t, i) => {
-            next[t.name] = results[i]?.status === 'Online';
+      // Fetch online status via account (comp_hack returns current character name when online - no world_id needed)
+      setIsCharacterOnlineLoading(true);
+      try {
+        const { data: onlineResponse } = await adminApi.getOnline([
+          { name: account.username, type: 'account' },
+        ]);
+        const results = (onlineResponse.data?.results || onlineResponse.data || []) as { status?: string; character?: string }[];
+        const r = results[0];
+        const next: Record<string, boolean> = {};
+        if (r?.status === 'Online' && r.character && r.character !== 'None' && r.character !== 'Unknown') {
+          const onlineCharName = r.character.trim();
+          items.forEach((c) => {
+            if (c.name && c.name.trim().toLowerCase() === onlineCharName.toLowerCase()) {
+              next[c.name] = true;
+            }
           });
-          setOnlineByCharacterName(next);
-        } catch {
-          setOnlineByCharacterName({});
-        } finally {
-          setIsCharacterOnlineLoading(false);
         }
+        setOnlineByCharacterName(next);
+      } catch {
+        setOnlineByCharacterName({});
+      } finally {
+        setIsCharacterOnlineLoading(false);
       }
     } catch (err) {
       setCharacterError(getErrorMessage(err));
