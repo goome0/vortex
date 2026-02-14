@@ -73,7 +73,7 @@ export class UpdateAccountCharacterService {
 
     const qb = this.characterRepository
       .createQueryBuilder('c')
-      .where('c.uid = :characterUid', { characterUid });
+      .where('LOWER(c.uid) = LOWER(:characterUid)', { characterUid });
 
     if (!isAllowedByBlob) {
       qb.andWhere(
@@ -90,6 +90,9 @@ export class UpdateAccountCharacterService {
     const character = await qb.getOne();
 
     if (!character) {
+      this.logger.warn(
+        `Character not found for update. username=${username} accountUid=${accountUid} characterUid=${characterUid} allowedByBlob=${isAllowedByBlob} blobCount=${allowedUids.size} awdCount=${awdUids.length}`,
+      );
       throw new NotFoundException('Character not found for this account');
     }
 
