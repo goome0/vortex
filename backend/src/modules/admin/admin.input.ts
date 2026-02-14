@@ -50,6 +50,14 @@ export class AdminGetAccountInputDTO {
   public username!: string;
 }
 
+export class AdminLookupAccountByCharacterNameInputDTO {
+  @ApiProperty({ description: 'Character name (partial match, case-insensitive)' })
+  @IsNotEmpty({ message: 'Character name is required' })
+  @IsString({ message: 'Character name must be a string' })
+  @MaxLength(64)
+  public characterName!: string;
+}
+
 export class AdminListAccountCharactersInputDTO {
   @ApiProperty({ description: 'Account username' })
   @IsNotEmpty({ message: 'Username is required' })

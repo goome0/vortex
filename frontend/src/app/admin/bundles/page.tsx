@@ -33,14 +33,6 @@ type SendBatch = {
   createdAt: string;
 };
 
-function parseUsernames(text: string): string[] {
-  const raw = text
-    .split(/[\n,;\t ]+/g)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return Array.from(new Set(raw));
-}
-
 export default function AdminBundlesPage() {
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [bundlesPage, setBundlesPage] = useState(1);
@@ -63,9 +55,8 @@ export default function AdminBundlesPage() {
   const [sendMode, setSendMode] = useState<'now' | 'schedule'>('now');
   const [sendAtLocal, setSendAtLocal] = useState(() => toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000)));
   const [sendReason, setSendReason] = useState('');
-  const [sendUsernamesText, setSendUsernamesText] = useState('');
+  const [sendUsernames, setSendUsernames] = useState<string[]>([]);
   const [showUserPicker, setShowUserPicker] = useState(false);
-  const [userPickerInitialSelected, setUserPickerInitialSelected] = useState<string[]>([]);
 
   // batches
   const [batches, setBatches] = useState<SendBatch[]>([]);
@@ -126,12 +117,12 @@ export default function AdminBundlesPage() {
   const batchesTotalPages = Math.max(1, Math.ceil((batchesTotal || 0) / batchesLimit));
 
   const canCreate = bundleName.trim().length >= 3 && productIds.length > 0;
-  const usernames = useMemo(() => parseUsernames(sendUsernamesText), [sendUsernamesText]);
-  const canSend = !!selectedBundle && usernames.length > 0;
+  const canSend = !!selectedBundle && sendUsernames.length > 0;
 
-  const openUserPicker = () => {
-    setUserPickerInitialSelected(parseUsernames(sendUsernamesText));
-    setShowUserPicker(true);
+  const openUserPicker = () => setShowUserPicker(true);
+
+  const removeUsername = (username: string) => {
+    setSendUsernames((prev) => prev.filter((u) => u.toLowerCase() !== username.toLowerCase()));
   };
 
   const addProduct = () => {
@@ -196,13 +187,13 @@ export default function AdminBundlesPage() {
         sendMode === 'schedule' ? (sendAtLocal ? (parseLocalDatetimeValueToMs(sendAtLocal) ?? undefined) : undefined) : undefined;
       await adminApi.scheduleBundleSend({
         bundleId: selectedBundle.id,
-        usernames,
+        usernames: sendUsernames,
         scheduledAtMs,
         reason: sendReason.trim() || undefined,
       });
       setSuccessMessage(sendMode === 'schedule' ? 'Send scheduled!' : 'Send queued!');
       setTimeout(() => setSuccessMessage(''), 3000);
-      setSendUsernamesText('');
+      setSendUsernames([]);
       setSendReason('');
       await loadBatches(selectedBundle.id);
     } catch (e) {
@@ -265,11 +256,11 @@ export default function AdminBundlesPage() {
 
       <AccountPickerModal
         open={showUserPicker}
-        initialSelectedUsernames={userPickerInitialSelected}
+        initialSelectedUsernames={sendUsernames}
         title="Select users to receive this bundle"
         onClose={() => setShowUserPicker(false)}
         onApply={(picked) => {
-          setSendUsernamesText(picked.join('\n'));
+          setSendUsernames(picked);
           setShowUserPicker(false);
         }}
       />
@@ -395,21 +386,36 @@ export default function AdminBundlesPage() {
               <div className="flex items-center justify-between gap-3">
                 <label className="block text-sm font-medium text-slate-300 flex items-center gap-2">
                   <Users className="w-4 h-4 text-slate-400" />
-                  Usernames (one per line / comma-separated)
+                  Recipients (select via modal only)
                 </label>
                 <Button variant="secondary" size="sm" onClick={openUserPicker} disabled={actionLoading}>
                   <Users className="w-4 h-4" />
                   Select users
                 </Button>
               </div>
-              <textarea
-                rows={6}
-                value={sendUsernamesText}
-                onChange={(e) => setSendUsernamesText(e.target.value)}
-                placeholder={'user1\nuser2\nuser3'}
-                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-              />
-              <p className="text-xs text-slate-500">Parsed recipients: {usernames.length}</p>
+              <div className="min-h-[120px] px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 flex flex-wrap gap-2 items-start content-start">
+                {sendUsernames.length === 0 ? (
+                  <p className="text-slate-500 text-sm py-2">No recipients. Click &quot;Select users&quot; to add.</p>
+                ) : (
+                  sendUsernames.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50"
+                    >
+                      <span className="text-white text-sm font-mono">{u}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeUsername(u)}
+                        className="text-slate-400 hover:text-red-400 transition-colors"
+                        aria-label={`Remove ${u}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
+              <p className="text-xs text-slate-500">{sendUsernames.length} recipient(s) selected</p>
             </div>
 
             <Input label="Reason (optional)" value={sendReason} onChange={(e) => setSendReason(e.target.value)} />

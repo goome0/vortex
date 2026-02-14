@@ -24,6 +24,7 @@ import { DeleteAllPromosService } from './services/promo-bulk-delete/delete-all-
 import { DeleteManyPromosService } from './services/promo-bulk-delete/delete-many-promos.service';
 import { ListAccountCharactersService } from './services/account-characters/list-account-characters.service';
 import { UpdateAccountCharacterService } from './services/account-characters/update-account-character.service';
+import { LookupAccountByCharacterNameService } from './services/account-characters/lookup-account-by-character-name.service';
 import { CreateItemBundleService } from './services/item-bundles/services/create-item-bundle.service';
 import { ListItemBundlesService } from './services/item-bundles/services/list-item-bundles.service';
 import { UpdateItemBundleService } from './services/item-bundles/services/update-item-bundle.service';
@@ -58,6 +59,7 @@ import {
   AdminListAccountsQueryDTO,
   AdminListPromosQueryDTO,
   AdminListAccountCharactersInputDTO,
+  AdminLookupAccountByCharacterNameInputDTO,
   AdminUpdateAccountCharacterInputDTO,
 } from './admin.input';
 
@@ -94,6 +96,7 @@ export class AdminController {
     private readonly deleteAllPromosService: DeleteAllPromosService,
     private readonly listAccountCharactersService: ListAccountCharactersService,
     private readonly updateAccountCharacterService: UpdateAccountCharacterService,
+    private readonly lookupAccountByCharacterNameService: LookupAccountByCharacterNameService,
   ) {}
 
   @Get('accounts')
@@ -163,6 +166,14 @@ export class AdminController {
     @CurrentUser() currentUser: CurrentUserDTO,
   ) {
     return this.updateAccountCharacterService.execute(input, currentUser);
+  }
+
+  @Post('account/lookup-by-character-name')
+  public async lookupAccountByCharacterName(
+    @Body() input: AdminLookupAccountByCharacterNameInputDTO,
+    @CurrentUser() currentUser: CurrentUserDTO,
+  ) {
+    return this.lookupAccountByCharacterNameService.execute(input, currentUser);
   }
 
   @Post('kick-player')

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, Users, X } from 'lucide-react';
+import { Search, Users, X, UserCircle } from 'lucide-react';
 import { adminApi, getErrorMessage } from '@/lib/api';
 import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/ui';
 
@@ -11,6 +11,12 @@ type AccountLite = {
   email?: string | null;
   disp_name?: string | null;
   enabled?: boolean | null;
+};
+
+type CharacterLookupResult = {
+  username: string;
+  characterName: string;
+  worldId: number | null;
 };
 
 function normalizeUsername(value: string): string {
@@ -30,11 +36,13 @@ export function AccountPickerModal({
   onClose: () => void;
   onApply: (usernames: string[]) => void;
 }) {
+  const [searchMode, setSearchMode] = useState<'username' | 'character'>('username');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
   const [accounts, setAccounts] = useState<AccountLite[]>([]);
+  const [characterLookupResults, setCharacterLookupResults] = useState<CharacterLookupResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,6 +56,7 @@ export function AccountPickerModal({
   const fetchAccounts = useCallback(async () => {
     setIsLoading(true);
     setError('');
+    setCharacterLookupResults([]);
     try {
       const { data: response } = await adminApi.getAccounts({
         q: query.trim() || undefined,
@@ -66,19 +75,44 @@ export function AccountPickerModal({
     }
   }, [query, page, limit]);
 
+  const fetchByCharacterName = useCallback(async () => {
+    const charName = query.trim();
+    if (!charName) return;
+    setIsLoading(true);
+    setError('');
+    setAccounts([]);
+    try {
+      const { data: response } = await adminApi.lookupAccountByCharacterName(charName);
+      const items = (response.data?.items ?? []) as CharacterLookupResult[];
+      setCharacterLookupResults(items);
+      setTotal(items.length);
+    } catch (e) {
+      setError(getErrorMessage(e));
+      setCharacterLookupResults([]);
+      setTotal(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query]);
+
   const selectedCount = selected.size;
   const selectedList = useMemo(() => Array.from(selected).sort(), [selected]);
   const previewSelected = useMemo(() => selectedList.slice(0, 20), [selectedList]);
 
+  const displayItems = searchMode === 'character' ? characterLookupResults : accounts;
+  const displayUsernames = searchMode === 'character'
+    ? characterLookupResults.map((r) => r.username)
+    : accounts.map((a) => a.username);
+
   const allOnPageSelected = useMemo(() => {
-    if (accounts.length === 0) return false;
-    return accounts.every((a) => selected.has(normalizeUsername(a.username)));
-  }, [accounts, selected]);
+    if (displayUsernames.length === 0) return false;
+    return displayUsernames.every((u) => selected.has(normalizeUsername(u)));
+  }, [displayUsernames, selected]);
 
   const someOnPageSelected = useMemo(() => {
-    if (accounts.length === 0) return false;
-    return accounts.some((a) => selected.has(normalizeUsername(a.username)));
-  }, [accounts, selected]);
+    if (displayUsernames.length === 0) return false;
+    return displayUsernames.some((u) => selected.has(normalizeUsername(u)));
+  }, [displayUsernames, selected]);
 
   useEffect(() => {
     if (!headerCheckboxRef.current) return;
@@ -95,11 +129,21 @@ export function AccountPickerModal({
 
   useEffect(() => {
     if (!open) return;
-    const t = window.setTimeout(() => {
-      fetchAccounts();
-    }, 250);
+    if (searchMode === 'character') {
+      if (query.trim()) {
+        // Character mode: only fetch when user clicks Lookup (handled by runSearch)
+        setCharacterLookupResults([]);
+        setIsLoading(false);
+      } else {
+        setCharacterLookupResults([]);
+        setTotal(0);
+        setIsLoading(false);
+      }
+      return;
+    }
+    const t = window.setTimeout(() => fetchAccounts(), 250);
     return () => window.clearTimeout(t);
-  }, [open, fetchAccounts]);
+  }, [open, searchMode, query, fetchAccounts]);
 
   useEffect(() => {
     if (!open) return;
@@ -133,6 +177,15 @@ export function AccountPickerModal({
     setPage(1);
   }, [open, query, limit]);
 
+  const runSearch = () => {
+    if (searchMode === 'character') {
+      fetchByCharacterName();
+    } else {
+      setPage(1);
+      fetchAccounts();
+    }
+  };
+
   const toggleUsername = (username: string, next: boolean) => {
     const key = normalizeUsername(username);
     if (!key) return;
@@ -147,8 +200,8 @@ export function AccountPickerModal({
   const toggleSelectAllOnPage = (next: boolean) => {
     setSelected((prev) => {
       const copy = new Set(prev);
-      accounts.forEach((a) => {
-        const key = normalizeUsername(a.username);
+      displayUsernames.forEach((u) => {
+        const key = normalizeUsername(u);
         if (!key) return;
         if (next) copy.add(key);
         else copy.delete(key);
@@ -189,14 +242,53 @@ export function AccountPickerModal({
                 </Alert>
               )}
 
-              <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search by username/email..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    icon={<Search className="w-4 h-4" />}
-                  />
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                  <Button
+                    variant={searchMode === 'username' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => {
+                      setSearchMode('username');
+                      setCharacterLookupResults([]);
+                      setQuery('');
+                    }}
+                  >
+                    <Search className="w-4 h-4" />
+                    Username / Email
+                  </Button>
+                  <Button
+                    variant={searchMode === 'character' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => {
+                      setSearchMode('character');
+                      setAccounts([]);
+                      setQuery('');
+                    }}
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    Character name
+                  </Button>
+                </div>
+
+                <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+                  <div className="flex-1">
+                    <Input
+                      placeholder={
+                        searchMode === 'username'
+                          ? 'Search by username/email...'
+                          : 'Type character name (partial match)...'
+                      }
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && runSearch()}
+                      icon={<Search className="w-4 h-4" />}
+                    />
+                  </div>
+                  {searchMode === 'character' && (
+                    <Button onClick={runSearch} disabled={!query.trim() || isLoading}>
+                      Lookup
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
@@ -245,9 +337,18 @@ export function AccountPickerModal({
                         />
                       </th>
                       <th className="py-3 pr-4">Username</th>
-                      <th className="py-3 pr-4 hidden md:table-cell">Display</th>
-                      <th className="py-3 pr-4 hidden lg:table-cell">Email</th>
-                      <th className="py-3 pr-4 text-right">Status</th>
+                      {searchMode === 'username' ? (
+                        <>
+                          <th className="py-3 pr-4 hidden md:table-cell">Display</th>
+                          <th className="py-3 pr-4 hidden lg:table-cell">Email</th>
+                          <th className="py-3 pr-4 text-right">Status</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="py-3 pr-4">Character</th>
+                          <th className="py-3 pr-4 text-right">World</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -256,12 +357,13 @@ export function AccountPickerModal({
                         <td colSpan={5} className="py-10 text-center">
                           <div className="flex items-center justify-center gap-2 text-slate-400">
                             <LoadingSpinner />
-                            Loading users...
+                            Loading...
                           </div>
                         </td>
                       </tr>
                     )}
                     {!isLoading &&
+                      searchMode === 'username' &&
                       accounts.map((a) => {
                         const key = normalizeUsername(a.username);
                         const checked = selected.has(key);
@@ -292,10 +394,40 @@ export function AccountPickerModal({
                           </tr>
                         );
                       })}
-                    {!isLoading && accounts.length === 0 && (
+                    {!isLoading &&
+                      searchMode === 'character' &&
+                      characterLookupResults.map((r, idx) => {
+                        const key = normalizeUsername(r.username);
+                        const checked = selected.has(key);
+                        return (
+                          <tr key={`${r.username}-${r.characterName}-${idx}`} className="border-b border-slate-900/60 hover:bg-slate-900/30">
+                            <td className="py-3 px-4 align-top">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e) => toggleUsername(r.username, e.target.checked)}
+                                className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                                aria-label={`Select ${r.username}`}
+                              />
+                            </td>
+                            <td className="py-3 pr-4 align-top">
+                              <span className="font-mono font-semibold text-white">{r.username}</span>
+                            </td>
+                            <td className="py-3 pr-4 align-top">
+                              <span className="text-slate-300">{r.characterName}</span>
+                            </td>
+                            <td className="py-3 pr-4 align-top text-right">
+                              <span className="text-slate-400">{r.worldId ?? '—'}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    {!isLoading && displayItems.length === 0 && (
                       <tr>
                         <td colSpan={5} className="py-10 text-center text-slate-500">
-                          No users found.
+                          {searchMode === 'character' && !query.trim()
+                            ? 'Type a character name and click Lookup.'
+                            : 'No users found.'}
                         </td>
                       </tr>
                     )}

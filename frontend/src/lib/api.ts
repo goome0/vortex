@@ -180,6 +180,8 @@ export const adminApi = {
   getAccount: (username: string) => api.post('/admin/account', { username }),
   updateAccount: (data: Record<string, unknown>) => api.post('/admin/account/update', data),
   listAccountCharacters: (username: string) => api.post('/admin/account/characters', { username }),
+  lookupAccountByCharacterName: (characterName: string) =>
+    api.post('/admin/account/lookup-by-character-name', { characterName }),
   updateAccountCharacter: (data: { username: string; characterUid: string; points?: number; lnc?: number; loginPoints?: number; name?: string; revive?: boolean }) =>
     api.post('/admin/account/character/update', data),
   addCp: (username: string, amount: number, reason?: string) =>
