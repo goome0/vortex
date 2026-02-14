@@ -23,6 +23,8 @@ export class OnlineService {
       targets: input.targets,
     });
 
+    this.logger.log(`comp_hack /admin/online raw: ${JSON.stringify(response)}`);
+
     return SuccessResponse.toJson({
       code: 'ONLINE_SUCCESS',
       message: 'Online status retrieved successfully',
