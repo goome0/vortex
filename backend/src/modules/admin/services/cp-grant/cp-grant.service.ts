@@ -16,13 +16,19 @@ export class CpGrantService {
     username: string;
     amount: number;
     requestedByUsername: string;
+    /** Override for comp_hack auth (e.g. service account). If set, used for getSession instead of requestedByUsername. */
+    authUsername?: string;
   }): Promise<{ previousCp: number; newCp: number }> {
     const username = params.username.trim().toLowerCase();
     const requestedByUsername = params.requestedByUsername.trim().toLowerCase();
+    const authUsername = params.authUsername?.trim().toLowerCase() || requestedByUsername;
 
-    this.logger.log(`Adding CP to account ${username} (+${params.amount}) - requested by ${requestedByUsername}`);
+    this.logger.log(
+      `Adding CP to account ${username} (+${params.amount}) - requested by ${requestedByUsername}` +
+        (authUsername !== requestedByUsername ? ` [auth: ${authUsername}]` : ''),
+    );
 
-    const session = await this.compHackAuthService.getSession(requestedByUsername);
+    const session = await this.compHackAuthService.getSession(authUsername);
 
     const account = await this.imagineService.getAccount({
       ...session,
