@@ -20,11 +20,17 @@ export class OnlineService {
     const rawTargets = input.targets ?? [];
     this.logger.log(`targets received: ${JSON.stringify(rawTargets)}`);
 
-    // comp_hack expects each target as { name: string, type: string } - ensure proper format
-    const targets = rawTargets
-      .filter((t): t is { name: string; type: string } => !!t && typeof t.name === 'string' && typeof t.type === 'string')
-      .map((t) => ({ name: String(t.name).trim(), type: String(t.type).trim() }))
-      .filter((t) => t.name.length > 0);
+    // comp_hack expects each target as { name: string, type: 'account'|'character' } - ensure proper format
+    const targets: Array<{ name: string; type: 'account' | 'character'; world_id?: number }> = [];
+    for (const t of rawTargets) {
+      if (!t || typeof (t as { name?: unknown }).name !== 'string' || typeof (t as { type?: unknown }).type !== 'string') continue;
+      const name = String((t as { name: string }).name).trim();
+      if (!name) continue;
+      const typeStr = String((t as { type: string }).type).trim();
+      const type = typeStr === 'account' || typeStr === 'character' ? typeStr : 'account';
+      const world_id = (t as { world_id?: number }).world_id;
+      targets.push({ name, type, world_id });
+    }
 
     if (targets.length === 0 && rawTargets.length > 0) {
       this.logger.warn('All targets were invalid (missing name/type) - comp_hack will return counts only');
