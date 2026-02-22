@@ -1,6 +1,7 @@
 import { ErrorResponse } from '@/common/responses/error-response';
 import { SuccessResponse } from '@/common/responses/success-response';
 import { CurrentUserDTO } from '@/common/dto/current-user.dto';
+import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -30,6 +31,21 @@ type PublicNewsListItem = Pick<
 
 type PublicNewsDetail = PublicNewsListItem & Pick<VtxNewsEntity, 'content'>;
 
+type LauncherNewsItem = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  badge: string;
+  badgeClass: string;
+  action: string;
+  img: string | null;
+  cardImageUrl: string | null;
+  heroImageUrl: string | null;
+  content: string;
+  publishedAt: string | null;
+};
+
 @Injectable()
 export class NewsService {
   private readonly logger = new Logger(NewsService.name);
@@ -37,6 +53,7 @@ export class NewsService {
   public constructor(
     @InjectRepository(VtxNewsEntity)
     private readonly newsRepository: Repository<VtxNewsEntity>,
+    private readonly configService: ConfigService,
   ) {}
 
   private now(): Date {
@@ -72,11 +89,56 @@ export class NewsService {
   }
 
   private computeReadTime(content: string | null | undefined): string | null {
-    const text = (content ?? '').trim();
+    const raw = (content ?? '').trim();
+    if (!raw) return null;
+
+    const text = raw.includes('<') ? raw.replace(/<[^>]+>/g, ' ') : raw;
     if (!text) return null;
     const words = text.split(/\s+/).filter(Boolean).length;
     const mins = Math.max(1, Math.round(words / 220));
     return `${mins} min`;
+  }
+
+  private badgeClassForVariant(variant: EVtxNewsBadgeVariant): string {
+    switch (variant) {
+      case EVtxNewsBadgeVariant.INFO:
+        return 'patch';
+      case EVtxNewsBadgeVariant.WARNING:
+        return 'esports';
+      case EVtxNewsBadgeVariant.DANGER:
+        return 'update';
+      case EVtxNewsBadgeVariant.DEFAULT:
+      default:
+        return 'update';
+    }
+  }
+
+  private resolveAssetUrl(url: string | null | undefined): string | null {
+    const raw = (url ?? '').trim();
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    const base = (this.configService.get<string>('LAUNCHER_ASSETS_BASE_URL') ?? '').trim();
+    if (!base) return raw;
+
+    const baseNoSlash = base.endsWith('/') ? base.slice(0, -1) : base;
+    const path = raw.startsWith('/') ? raw : `/${raw}`;
+    return `${baseNoSlash}${path}`;
+  }
+
+  private contentToHtml(content: string | null | undefined): string {
+    const raw = (content ?? '').trim();
+    if (!raw) return '';
+    // If it looks like HTML already, keep as-is.
+    if (raw.includes('<') && raw.includes('>')) return raw;
+
+    const paragraphs = raw
+      .split(/\n{2,}/g)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => p.replace(/\n/g, '<br/>'));
+
+    return paragraphs.map((p) => `<p>${p}</p>`).join('');
   }
 
   private defaultVariantForCategory(category?: string | null): EVtxNewsBadgeVariant {
@@ -192,6 +254,80 @@ export class NewsService {
     });
   }
 
+  // -------- Launcher --------
+  public async launcherList(input?: { limit?: number }) {
+    const limit = Math.min(50, Math.max(1, input?.limit ?? 24));
+
+    const qb = this.newsRepository
+      .createQueryBuilder('n')
+      .where('n.isPublished = 1')
+      .andWhere('(n.publishedAt IS NULL OR n.publishedAt <= :now)', { now: this.now() })
+      .orderBy('n.featured', 'DESC')
+      .addOrderBy('n.publishedAt', 'DESC')
+      .addOrderBy('n.createdAt', 'DESC')
+      .take(limit);
+
+    const items = await qb.getMany();
+
+    const data: LauncherNewsItem[] = items.map((n) => {
+      const img = this.resolveAssetUrl(n.imageUrl);
+      const publishedAt = (n.publishedAt ?? n.createdAt ?? null)
+        ? (n.publishedAt ?? n.createdAt).toISOString()
+        : null;
+
+      return {
+        id: n.id,
+        slug: n.slug,
+        title: n.title,
+        excerpt: n.excerpt ?? null,
+        badge: (n.category ?? 'UPDATE').toUpperCase(),
+        badgeClass: this.badgeClassForVariant(n.badgeVariant),
+        action: '/ Read more',
+        img,
+        cardImageUrl: img,
+        heroImageUrl: img,
+        content: this.contentToHtml(n.content),
+        publishedAt,
+      };
+    });
+
+    return data;
+  }
+
+  public async launcherGet(idOrSlug: string) {
+    const raw = String(idOrSlug ?? '').trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw);
+
+    const news = await this.newsRepository.findOne({
+      where: isUuid ? ({ id: raw } as any) : ({ slug: raw } as any),
+    });
+    if (!news) this.notFound();
+    if (!news.isPublished) this.notFound();
+    if (news.publishedAt && news.publishedAt > this.now()) this.notFound();
+
+    const img = this.resolveAssetUrl(news.imageUrl);
+    const publishedAt = (news.publishedAt ?? news.createdAt ?? null)
+      ? (news.publishedAt ?? news.createdAt).toISOString()
+      : null;
+
+    const data: LauncherNewsItem = {
+      id: news.id,
+      slug: news.slug,
+      title: news.title,
+      excerpt: news.excerpt ?? null,
+      badge: (news.category ?? 'UPDATE').toUpperCase(),
+      badgeClass: this.badgeClassForVariant(news.badgeVariant),
+      action: '/ Read more',
+      img,
+      cardImageUrl: img,
+      heroImageUrl: img,
+      content: this.contentToHtml(news.content),
+      publishedAt,
+    };
+
+    return data;
+  }
+
   // -------- Admin --------
   public async adminList(input: AdminListNewsInputDTO, currentUser: CurrentUserDTO) {
     const page = input.page ?? 1;
@@ -238,16 +374,19 @@ export class NewsService {
     const badgeVariant =
       input.badgeVariant ?? this.defaultVariantForCategory(input.category ?? null);
 
+    const content = input.contentHtml ?? input.content ?? null;
+    const imageUrl = input.heroImageUrl ?? input.cardImageUrl ?? input.imageUrl ?? null;
+
     const entity = this.newsRepository.create({
       slug,
       title: input.title.trim(),
       excerpt: input.excerpt?.trim() ?? null,
-      content: input.content?.trim() ?? null,
+      content: content?.trim() ?? null,
       category: input.category?.trim() ?? null,
       badgeVariant,
       featured,
-      readTime: input.readTime?.trim() ?? this.computeReadTime(input.content),
-      imageUrl: input.imageUrl?.trim() ?? null,
+      readTime: input.readTime?.trim() ?? this.computeReadTime(content),
+      imageUrl: imageUrl?.trim() ?? null,
       isPublished,
       publishedAt,
       createdByUsername: currentUser.username,
@@ -292,11 +431,20 @@ export class NewsService {
     const nextVariant =
       input.badgeVariant ?? (input.category !== undefined ? this.defaultVariantForCategory(nextCategory) : news.badgeVariant);
 
-    const nextContent = input.content !== undefined ? (input.content?.trim() ?? null) : news.content;
+    const nextContentInput = input.contentHtml !== undefined ? input.contentHtml : input.content;
+    const nextContent =
+      nextContentInput !== undefined ? (nextContentInput?.trim() ?? null) : news.content;
     const nextReadTime =
       input.readTime !== undefined
         ? (input.readTime?.trim() ?? null)
         : news.readTime ?? this.computeReadTime(nextContent);
+
+    const nextImageInput =
+      input.heroImageUrl !== undefined
+        ? input.heroImageUrl
+        : input.cardImageUrl !== undefined
+          ? input.cardImageUrl
+          : input.imageUrl;
 
     await this.newsRepository.update(
       { id: news.id },
@@ -309,7 +457,7 @@ export class NewsService {
         badgeVariant: nextVariant,
         featured: nextFeatured,
         readTime: nextReadTime,
-        imageUrl: input.imageUrl !== undefined ? (input.imageUrl?.trim() ?? null) : news.imageUrl,
+        imageUrl: nextImageInput !== undefined ? (nextImageInput?.trim() ?? null) : news.imageUrl,
         isPublished: nextIsPublished,
         publishedAt: nextPublishedAt,
         updatedByUsername: currentUser.username,

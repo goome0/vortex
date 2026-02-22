@@ -90,6 +90,10 @@ export class AdminCreateNewsInputDTO {
 
   @IsOptional()
   @IsString()
+  public contentHtml?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(48)
   public category?: string;
 
@@ -110,6 +114,16 @@ export class AdminCreateNewsInputDTO {
   @IsUrl({ require_tld: false })
   @MaxLength(2048)
   public imageUrl?: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  @MaxLength(2048)
+  public cardImageUrl?: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  @MaxLength(2048)
+  public heroImageUrl?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -141,6 +155,10 @@ export class AdminUpdateNewsInputDTO {
 
   @IsOptional()
   @IsString()
+  public contentHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(48)
   public category?: string | null;
 
@@ -161,6 +179,16 @@ export class AdminUpdateNewsInputDTO {
   @IsUrl({ require_tld: false })
   @MaxLength(2048)
   public imageUrl?: string | null;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  @MaxLength(2048)
+  public cardImageUrl?: string | null;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  @MaxLength(2048)
+  public heroImageUrl?: string | null;
 
   @IsOptional()
   @IsBoolean()

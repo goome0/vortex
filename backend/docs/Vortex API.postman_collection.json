@@ -1,30 +1,11 @@
 {
   "info": {
+    "_postman_id": "92362c39-c4b2-4bfb-9be3-ab51cbdc8e72",
     "name": "Vortex API",
     "description": "Complete collection for all Vortex backend routes with filled JSON bodies.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    {
-      "key": "BASE_URL",
-      "value": "http://localhost:6005",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string"
-    }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
-    ]
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28829636",
+    "_collection_link": "https://go.postman.co/collection/28829636-92362c39-c4b2-4bfb-9be3-ab51cbdc8e72?source=collection_link"
   },
   "item": [
     {
@@ -32,12 +13,32 @@
       "item": [
         {
           "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "if (jsonData && jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"TOKEN\", jsonData.data.token);",
+                  "    console.log(\"TOKEN salvo no ambiente:\", jsonData.data.token);",
+                  "} else {",
+                  "    console.warn(\"Token não encontrado na resposta.\");",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"P@ssw0rd123\"\n}",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -45,16 +46,17 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/sign-in",
+              "raw": "{{BASE_URL}}/auth/sign-in",
               "host": [
-                "{{baseUrl}}"
+                "{{BASE_URL}}"
               ],
               "path": [
                 "auth",
                 "sign-in"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Sign Up",
@@ -80,7 +82,8 @@
                 "sign-up"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Refresh Token",
@@ -106,7 +109,8 @@
                 "refresh-token"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Profile",
@@ -123,7 +127,8 @@
                 "profile"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Reset Password",
@@ -149,7 +154,8 @@
                 "reset-password"
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -159,6 +165,16 @@
         {
           "name": "Get Coins",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
@@ -171,11 +187,22 @@
                 "coins"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Start",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -197,7 +224,8 @@
                 "start"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update",
@@ -223,7 +251,8 @@
                 "update"
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -262,7 +291,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get News By ID or Slug",
@@ -285,7 +315,88 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Launcher",
+      "item": [
+        {
+          "name": "Get Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/launcher/config?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "launcher",
+                "config"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Max news items (1-50)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List News",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/launcher/news?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "launcher",
+                "news"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Max news items (1-50)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get News By ID or Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/launcher/news/:idOrSlug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "launcher",
+                "news",
+                ":idOrSlug"
+              ],
+              "variable": [
+                {
+                  "key": "idOrSlug",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -315,7 +426,8 @@
                 "cases"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List My Cases",
@@ -350,7 +462,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get My Case",
@@ -373,7 +486,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Add Case Message",
@@ -406,7 +520,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Close Case",
@@ -430,7 +545,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -469,7 +585,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Worlds",
@@ -486,7 +603,8 @@
                     "worlds"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Account",
@@ -512,7 +630,8 @@
                     "account"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Account",
@@ -539,7 +658,8 @@
                     "update"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Add CP",
@@ -566,7 +686,8 @@
                     "add-cp"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Schedule CP",
@@ -593,7 +714,8 @@
                     "schedule-cp"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Scheduled CP",
@@ -620,7 +742,8 @@
                     "scheduled-cp"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Cancel Scheduled CP",
@@ -648,7 +771,8 @@
                     "cancel"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Scheduled CP",
@@ -676,7 +800,8 @@
                     "update"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Account",
@@ -703,7 +828,8 @@
                     "delete"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Account Characters",
@@ -730,7 +856,8 @@
                     "characters"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Account Character",
@@ -758,7 +885,8 @@
                     "update"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Lookup Account By Character Name",
@@ -785,7 +913,8 @@
                     "lookup-by-character-name"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Kick Player",
@@ -811,7 +940,8 @@
                     "kick-player"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Message World",
@@ -837,7 +967,8 @@
                     "message-world"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Online",
@@ -863,7 +994,8 @@
                     "online"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Post Items",
@@ -889,7 +1021,8 @@
                     "post-items"
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -921,7 +1054,8 @@
                     "create"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Bundles",
@@ -948,7 +1082,8 @@
                     "list"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Bundle",
@@ -975,7 +1110,8 @@
                     "update"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Bundle",
@@ -1002,7 +1138,8 @@
                     "delete"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Schedule Bundle Send",
@@ -1029,7 +1166,8 @@
                     "send"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Bundle Sends",
@@ -1056,7 +1194,8 @@
                     "sends"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Cancel Bundle Send",
@@ -1084,7 +1223,8 @@
                     "cancel"
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1120,7 +1260,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Promo Insights",
@@ -1152,7 +1293,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create Promo",
@@ -1179,7 +1321,8 @@
                     "create"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Promo",
@@ -1206,7 +1349,8 @@
                     "delete"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Many Promos",
@@ -1233,7 +1377,8 @@
                     "delete-many"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete All Promos",
@@ -1260,7 +1405,8 @@
                     "delete-all"
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1292,7 +1438,8 @@
                     "list"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create News",
@@ -1319,7 +1466,8 @@
                     "create"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update News",
@@ -1346,7 +1494,8 @@
                     "update"
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete News",
@@ -1373,7 +1522,8 @@
                     "delete"
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1413,7 +1563,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Case",
@@ -1437,7 +1588,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Add Case Message",
@@ -1471,7 +1623,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Resolve Case",
@@ -1505,11 +1658,34 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:6005",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
     }
   ]
 }
