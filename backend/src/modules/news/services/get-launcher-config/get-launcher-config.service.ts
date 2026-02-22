@@ -30,6 +30,12 @@ export class GetLauncherConfigService {
   }
 
   public async execute(): Promise<{
+    ui: {
+      heroSubtitleColor: string | null;
+      playButtonBackground: string | null;
+      playButtonHoverBackground: string | null;
+      playButtonTextColor: string | null;
+    };
     hero: { subtitle: string; title: string; description: string };
     background: { url: string | null; alt: string | null; updatedAt: string };
   }> {
@@ -64,6 +70,12 @@ export class GetLauncherConfigService {
     const backgroundUrlResolved = this.resolveAssetUrl(backgroundUrlRaw, assetsBaseUrl);
 
     return {
+      ui: {
+        heroSubtitleColor: dbRow?.heroSubtitleColor?.trim() || null,
+        playButtonBackground: dbRow?.playButtonBackground?.trim() || null,
+        playButtonHoverBackground: dbRow?.playButtonHoverBackground?.trim() || null,
+        playButtonTextColor: dbRow?.playButtonTextColor?.trim() || null,
+      },
       hero: {
         subtitle: heroSubtitle,
         title: heroTitle,

@@ -9,6 +9,8 @@ type LauncherNewsItem = {
   excerpt: string | null;
   badge: string;
   badgeClass: string;
+  badgeColor: string | null;
+  badgeTextColor: string | null;
   action: string;
   img: string | null;
   cardImageUrl: string | null;
@@ -51,6 +53,8 @@ export class LauncherListNewsService {
         excerpt: n.excerpt ?? null,
         badge: (n.category ?? 'UPDATE').toUpperCase(),
         badgeClass: this.newsHelpers.badgeClassForVariant(n.badgeVariant),
+        badgeColor: n.badgeColor?.trim() ?? null,
+        badgeTextColor: n.badgeTextColor?.trim() ?? null,
         action: '/ Read more',
         img,
         cardImageUrl: img,

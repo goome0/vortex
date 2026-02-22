@@ -21,16 +21,28 @@ export class UpdateLauncherConfigService {
       row = this.configRepository.create({
         id: this.configId,
         heroSubtitle: input.heroSubtitle?.trim() ?? null,
+        heroSubtitleColor: input.heroSubtitleColor?.trim() ?? null,
         heroTitle: input.heroTitle?.trim() ?? null,
         heroDescription: input.heroDescription?.trim() ?? null,
+        playButtonBackground: input.playButtonBackground?.trim() ?? null,
+        playButtonHoverBackground: input.playButtonHoverBackground?.trim() ?? null,
+        playButtonTextColor: input.playButtonTextColor?.trim() ?? null,
         backgroundUrl: input.backgroundUrl?.trim() ?? null,
         backgroundAlt: input.backgroundAlt?.trim() ?? null,
       });
     } else {
       if (input.heroSubtitle !== undefined) row.heroSubtitle = input.heroSubtitle?.trim() ?? null;
+      if (input.heroSubtitleColor !== undefined)
+        row.heroSubtitleColor = input.heroSubtitleColor?.trim() ?? null;
       if (input.heroTitle !== undefined) row.heroTitle = input.heroTitle?.trim() ?? null;
       if (input.heroDescription !== undefined)
         row.heroDescription = input.heroDescription?.trim() ?? null;
+      if (input.playButtonBackground !== undefined)
+        row.playButtonBackground = input.playButtonBackground?.trim() ?? null;
+      if (input.playButtonHoverBackground !== undefined)
+        row.playButtonHoverBackground = input.playButtonHoverBackground?.trim() ?? null;
+      if (input.playButtonTextColor !== undefined)
+        row.playButtonTextColor = input.playButtonTextColor?.trim() ?? null;
       if (input.backgroundUrl !== undefined) row.backgroundUrl = input.backgroundUrl?.trim() ?? null;
       if (input.backgroundAlt !== undefined) row.backgroundAlt = input.backgroundAlt?.trim() ?? null;
     }

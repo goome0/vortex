@@ -35,6 +35,8 @@ export class CreateNewsService {
       content: content?.trim() ?? null,
       category: input.category?.trim() ?? null,
       badgeVariant,
+      badgeColor: input.badgeColor?.trim() ?? null,
+      badgeTextColor: input.badgeTextColor?.trim() ?? null,
       featured,
       readTime: input.readTime?.trim() ?? this.newsHelpers.computeReadTime(content),
       imageUrl: imageUrl?.trim() ?? null,

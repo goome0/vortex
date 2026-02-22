@@ -43,6 +43,16 @@ export class CreateNewsInputDTO {
   public badgeVariant?: EVtxNewsBadgeVariant;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  public badgeColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  public badgeTextColor?: string;
+
+  @IsOptional()
   @IsBoolean()
   public featured?: boolean;
 

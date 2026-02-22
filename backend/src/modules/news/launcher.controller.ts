@@ -23,6 +23,7 @@ export class LauncherController {
 
     return {
       schemaVersion: 1,
+      ui: config.ui,
       hero: config.hero,
       background: config.background,
       news,

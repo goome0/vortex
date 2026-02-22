@@ -65,6 +65,9 @@ export class UpdateNewsService {
         content: nextContent,
         category: nextCategory,
         badgeVariant: nextVariant,
+        badgeColor: input.badgeColor !== undefined ? (input.badgeColor?.trim() ?? null) : news.badgeColor,
+        badgeTextColor:
+          input.badgeTextColor !== undefined ? (input.badgeTextColor?.trim() ?? null) : news.badgeTextColor,
         featured: nextFeatured,
         readTime: nextReadTime,
         imageUrl: nextImageInput !== undefined ? (nextImageInput?.trim() ?? null) : news.imageUrl,

@@ -17,11 +17,23 @@ export class VtxLauncherConfigEntity {
   @Column({ type: 'varchar', length: 128, nullable: true })
   public heroSubtitle!: string | null;
 
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public heroSubtitleColor!: string | null;
+
   @Column({ type: 'varchar', length: 256, nullable: true })
   public heroTitle!: string | null;
 
   @Column({ type: 'text', nullable: true })
   public heroDescription!: string | null;
+
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public playButtonBackground!: string | null;
+
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public playButtonHoverBackground!: string | null;
+
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public playButtonTextColor!: string | null;
 
   @Column({ type: 'varchar', length: 2048, nullable: true })
   public backgroundUrl!: string | null;

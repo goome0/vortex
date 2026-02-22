@@ -40,6 +40,12 @@ export class VtxNewsEntity {
   @Column({ type: 'enum', enum: EVtxNewsBadgeVariant, default: EVtxNewsBadgeVariant.DEFAULT })
   public badgeVariant!: EVtxNewsBadgeVariant;
 
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public badgeColor!: string | null;
+
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  public badgeTextColor!: string | null;
+
   @Index()
   @Column({ type: 'boolean', default: false })
   public featured!: boolean;
@@ -72,4 +78,3 @@ export class VtxNewsEntity {
   @UpdateDateColumn({ type: 'datetime', precision: 3 })
   public updatedAt!: Date;
 }
-

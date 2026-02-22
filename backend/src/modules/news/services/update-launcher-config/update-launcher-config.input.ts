@@ -8,6 +8,11 @@ export class UpdateLauncherConfigInputDTO {
 
   @IsOptional()
   @IsString()
+  @MaxLength(128)
+  public heroSubtitleColor?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(256)
   public heroTitle?: string;
 
@@ -15,6 +20,21 @@ export class UpdateLauncherConfigInputDTO {
   @IsString()
   @MaxLength(2000)
   public heroDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  public playButtonBackground?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  public playButtonHoverBackground?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  public playButtonTextColor?: string;
 
   @IsOptional()
   @IsString()
