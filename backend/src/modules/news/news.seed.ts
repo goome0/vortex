@@ -1,13 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { AppLogger } from '@/common/app-logger';
+import { EVtxNewsBadgeVariant, VtxNewsEntity } from '@/database/entities/vtx-news.entity';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EVtxNewsBadgeVariant, VtxNewsEntity } from '@/database/entities/vtx-news.entity';
 
 @Injectable()
 export class NewsSeedService implements OnModuleInit {
-  private readonly logger = new Logger(NewsSeedService.name);
-
   public constructor(
+    private readonly logger: AppLogger,
     @InjectRepository(VtxNewsEntity)
     private readonly newsRepository: Repository<VtxNewsEntity>,
   ) {}

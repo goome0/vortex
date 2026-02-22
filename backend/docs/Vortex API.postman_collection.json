@@ -21,7 +21,7 @@
                   "const jsonData = pm.response.json();",
                   "",
                   "if (jsonData && jsonData.data && jsonData.data.token) {",
-                  "    pm.environment.set(\"TOKEN\", jsonData.data.token);",
+                  "    pm.environment.set(\"token\", jsonData.data.token); pm.environment.set(\"TOKEN\", jsonData.data.token);",
                   "    console.log(\"TOKEN salvo no ambiente:\", jsonData.data.token);",
                   "} else {",
                   "    console.warn(\"Token não encontrado na resposta.\");",
@@ -46,9 +46,9 @@
               }
             },
             "url": {
-              "raw": "{{BASE_URL}}/auth/sign-in",
+              "raw": "{{baseUrl}}/auth/sign-in",
               "host": [
-                "{{BASE_URL}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "auth",
@@ -1448,7 +1448,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Major Update Incoming\",\n  \"slug\": \"major-update\",\n  \"excerpt\": \"Here is what you need to know...\",\n  \"content\": \"Full HTML or markdown content here\",\n  \"category\": \"Patch Notes\",\n  \"badgeVariant\": \"primary\",\n  \"featured\": true,\n  \"readTime\": \"5 min\",\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"isPublished\": true\n}",
+                  "raw": "{\n  \"title\": \"Major Update Incoming\",\n  \"slug\": \"major-update\",\n  \"excerpt\": \"Here is what you need to know...\",\n  \"content\": \"Full HTML or markdown content here\",\n  \"category\": \"Patch Notes\",\n  \"badgeVariant\": \"info\",\n  \"featured\": true,\n  \"readTime\": \"5 min\",\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"isPublished\": true\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1656,6 +1656,39 @@
                       "key": "id",
                       "value": "1"
                     }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Launcher (Admin)",
+          "item": [
+            {
+              "name": "Update Config",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"heroSubtitle\": \"PLAY FOR FREE\",\n  \"heroTitle\": \"Prometheon\",\n  \"heroDescription\": \"Explore a living world, master your skills, craft your gear, and face epic challenges in an MMORPG built for adventure.\",\n  \"backgroundUrl\": \"/assets/launcher-bg.jpg\",\n  \"backgroundAlt\": \"Game background\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/launcher/config",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "launcher",
+                    "config"
                   ]
                 }
               },
