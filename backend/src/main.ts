@@ -1,14 +1,26 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import helmet from 'helmet';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+
+  // Basic hardening for an API server.
+  app.use(
+    helmet({
+      // API-only: disable CSP headers (handled by the Tauri/WebView side if needed).
+      contentSecurityPolicy: false,
+    }),
+  );
+  (app as any).disable?.('x-powered-by');
   
   // Enable CORS for frontend
   app.enableCors({
     origin: (origin, callback) => {
       // Allow non-browser tools (no Origin header)
       if (!origin) return callback(null, true);
+      // Some WebViews (and file-like contexts) send `Origin: null`
+      if (origin === 'null') return callback(null, true);
 
       const allowList = new Set([
         'http://localhost:1420',
@@ -21,6 +33,7 @@ async function bootstrap(): Promise<void> {
         'tauri://localhost',
         'http://tauri.localhost',
         'https://tauri.localhost',
+        'app://localhost',
       ]);
 
       if (allowList.has(origin)) return callback(null, true);

@@ -1448,7 +1448,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Major Update Incoming\",\n  \"slug\": \"major-update\",\n  \"excerpt\": \"Here is what you need to know...\",\n  \"content\": \"Full HTML or markdown content here\",\n  \"category\": \"Patch Notes\",\n  \"badgeVariant\": \"info\",\n  \"featured\": true,\n  \"readTime\": \"5 min\",\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"isPublished\": true\n}",
+                  "raw": "{\n  \"title\": \"Major Update Incoming\",\n  \"slug\": \"major-update\",\n  \"excerpt\": \"Here is what you need to know...\",\n  \"content\": \"Full HTML or markdown content here\",\n  \"category\": \"Patch Notes\",\n  \"badgeVariant\": \"info\",\n  \"badgeColor\": \"#3b82f6\",\n  \"badgeTextColor\": \"#ffffff\",\n  \"featured\": true,\n  \"readTime\": \"5 min\",\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"isPublished\": true\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1476,7 +1476,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\",\n  \"title\": \"Updated Title\",\n  \"isPublished\": false\n}",
+                  "raw": "{\n  \"id\": \"uuid-string-here\",\n  \"title\": \"Updated Title\",\n  \"badgeColor\": \"#3b82f6\",\n  \"badgeTextColor\": \"#ffffff\",\n  \"isPublished\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1673,7 +1673,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"heroSubtitle\": \"PLAY FOR FREE\",\n  \"heroTitle\": \"Prometheon\",\n  \"heroDescription\": \"Explore a living world, master your skills, craft your gear, and face epic challenges in an MMORPG built for adventure.\",\n  \"backgroundUrl\": \"/assets/launcher-bg.jpg\",\n  \"backgroundAlt\": \"Game background\"\n}",
+                  "raw": "{\n  \"heroSubtitle\": \"PLAY FOR FREE\",\n  \"heroSubtitleColor\": \"#ffffff\",\n  \"heroTitle\": \"Prometheon\",\n  \"heroDescription\": \"Explore a living world, master your skills, craft your gear, and face epic challenges in an MMORPG built for adventure.\",\n  \"playButtonBackground\": \"#3b82f6\",\n  \"playButtonHoverBackground\": \"#2563eb\",\n  \"playButtonTextColor\": \"#ffffff\",\n  \"backgroundUrl\": \"/assets/launcher-bg.jpg\",\n  \"backgroundAlt\": \"Game background\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
