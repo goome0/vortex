@@ -26,6 +26,8 @@ import {
   CalendarClock,
   Coins,
   Newspaper,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 type AdminNavItem = {
@@ -85,6 +87,7 @@ function isActivePath(pathname: string, href: string) {
 }
 
 const SIDEBAR_EXPANDED_PX = 280;
+const GM_THEME_STORAGE_KEY = 'vortex.gmPanel.theme';
 
 export default function AdminLayout({
   children,
@@ -95,6 +98,11 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, isHydrated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [gmTheme, setGmTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const saved = window.localStorage.getItem(GM_THEME_STORAGE_KEY);
+    return saved === 'light' ? 'light' : 'dark';
+  });
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     for (const g of adminNavGroups) {
@@ -122,6 +130,11 @@ export default function AdminLayout({
     if (!activeGroup) return;
     setOpenGroups((prev) => ({ ...prev, [activeGroup]: true }));
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(GM_THEME_STORAGE_KEY, gmTheme);
+  }, [gmTheme]);
 
   if (!isHydrated || isLoading || !isAdmin) {
     return (
@@ -159,6 +172,7 @@ export default function AdminLayout({
   return (
     <div
       className="min-h-screen bg-slate-950"
+      data-gm-theme={gmTheme}
       style={
         {
           ['--admin-sidebar-width' as string]: sidebarWidth,
@@ -173,12 +187,24 @@ export default function AdminLayout({
           </div>
           <span className="font-bold text-white">GM Panel</span>
         </div>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setGmTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
+            aria-label={gmTheme === 'dark' ? 'Switch GM Panel to light theme' : 'Switch GM Panel to dark theme'}
+          >
+            {gmTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Sidebar */}
@@ -332,6 +358,15 @@ export default function AdminLayout({
               <p className="text-xs text-cyan-400 truncate">Admin Access</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setGmTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors shrink-0"
+            aria-label={gmTheme === 'dark' ? 'Switch GM Panel to light theme' : 'Switch GM Panel to dark theme'}
+          >
+            {gmTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
         </div>
 
         {/* Sidebar Nav */}
