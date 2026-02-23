@@ -214,6 +214,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
   const searchIndexRef = useRef(0);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       Underline,
@@ -242,6 +243,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
           'prose-a:text-cyan-400 hover:prose-a:text-cyan-300',
           'prose-table:border prose-table:border-slate-700/60',
           'prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60',
+          '[&_.selectedCell]:bg-cyan-500/20 [&_.column-resize-handle]:bg-cyan-500',
           'focus:outline-none',
           minHeightClassName,
         ].join(' '),
@@ -383,8 +385,8 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
   const applyTable = () => {
     if (!editor || !dialog || dialog.kind !== 'table') return;
-    const rows = clampInt(dialog.rows, 1, tableGridMax.rows, 3);
-    const cols = clampInt(dialog.cols, 1, tableGridMax.cols, 3);
+    const rows = clampInt(dialog.rows, 1, 100, 3);
+    const cols = clampInt(dialog.cols, 1, 100, 3);
     editor.chain().focus().insertTable({ rows, cols, withHeaderRow: dialog.header }).run();
     closeDialog();
   };
@@ -465,7 +467,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
         <div className="mb-2 flex flex-wrap items-center gap-1 rounded-xl border border-slate-800/60 bg-slate-900/40 px-2 py-2">
           <div className="relative group">
             <MenuButton>File</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem
                 disabled={menubarDisabled}
                 onClick={() => editor?.chain().focus().setContent('', { emitUpdate: true }).run()}
@@ -498,7 +500,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Edit</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-64 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-64 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={menubarDisabled} onClick={() => editor?.chain().focus().undo().run()} right="Ctrl+Z">
                 <Undo className="w-4 h-4 text-slate-400" /> Undo
               </MenuItem>
@@ -523,7 +525,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>View</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={!editor} onClick={() => setIsFullscreen((p) => !p)}>
                 {isFullscreen ? <Minimize2 className="w-4 h-4 text-slate-400" /> : <Maximize2 className="w-4 h-4 text-slate-400" />}{' '}
                 {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
@@ -540,7 +542,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Insert</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={menubarDisabled} onClick={() => openDialog('image')}>
                 <ImageIcon className="w-4 h-4 text-slate-400" /> Image…
               </MenuItem>
@@ -602,7 +604,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Format</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-80 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-80 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={menubarDisabled} onClick={() => editor?.chain().focus().toggleBold().run()} right="Ctrl+B">
                 <Bold className="w-4 h-4 text-slate-400" /> Bold
               </MenuItem>
@@ -669,7 +671,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Tools</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-64 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute right-0 top-full mt-0.5 w-64 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <div className="px-4 py-2 text-sm text-slate-300 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Type className="w-4 h-4 text-slate-400" /> Word count
@@ -685,7 +687,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Table</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute right-0 top-full mt-0.5 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={menubarDisabled} onClick={() => openDialog('table')}>
                 <TableIcon className="w-4 h-4 text-slate-400" /> Insert table…
               </MenuItem>
@@ -728,7 +730,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
 
           <div className="relative group">
             <MenuButton>Help</MenuButton>
-            <div className="absolute left-0 top-full mt-2 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute right-0 top-full mt-0.5 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <div className="px-4 py-2 text-sm text-slate-400">
                 Use the menus to insert tables, media, and formatting. Content is saved as HTML.
               </div>
@@ -757,7 +759,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
             >
               {blockLabel}
             </button>
-            <div className="absolute left-0 top-full mt-2 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 top-full mt-0.5 w-56 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
               <MenuItem disabled={!editor} onClick={() => editor?.chain().focus().setParagraph().run()}>
                 Paragraph
               </MenuItem>
@@ -840,16 +842,6 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
           <button type="button" disabled={!editor} onClick={() => openDialog('table')} className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-50" title="Table">
             <TableIcon className="w-4 h-4" />
           </button>
-
-          <div className="flex-1" />
-
-          <button type="button" disabled={!editor} onClick={() => insertEmoji('😀')} className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-50" title="Emoji">
-            <Smile className="w-4 h-4" />
-          </button>
-
-          <Button type="button" variant="outline" size="sm" disabled={!editor} onClick={() => setIsFullscreen(true)}>
-            <Maximize2 className="w-4 h-4" /> Fullscreen
-          </Button>
         </div>
       )}
 
@@ -1008,14 +1000,14 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                   <div className="text-xs text-slate-400 mb-1">Rows</div>
                   <Input
                     value={String(dialog.rows)}
-                    onChange={(e) => setDialog({ ...dialog, rows: clampInt(e.target.value, 1, tableGridMax.rows, dialog.rows) })}
+                    onChange={(e) => setDialog({ ...dialog, rows: e.target.value === '' ? '' : clampInt(e.target.value, 1, 100, dialog.rows as number) as any })}
                   />
                 </div>
                 <div>
                   <div className="text-xs text-slate-400 mb-1">Columns</div>
                   <Input
                     value={String(dialog.cols)}
-                    onChange={(e) => setDialog({ ...dialog, cols: clampInt(e.target.value, 1, tableGridMax.cols, dialog.cols) })}
+                    onChange={(e) => setDialog({ ...dialog, cols: e.target.value === '' ? '' : clampInt(e.target.value, 1, 100, dialog.cols as number) as any })}
                   />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
