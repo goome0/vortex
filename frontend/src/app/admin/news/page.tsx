@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
 import { adminNewsApi, getErrorMessage } from '@/lib/api';
+import { RichHtmlEditor } from '@/components/admin/RichHtmlEditor';
 import { Newspaper, Plus, Save, Trash2, Star, Eye, EyeOff } from 'lucide-react';
+import DOMPurify from 'isomorphic-dompurify';
 
 type NewsAdminItem = {
   id: string;
@@ -26,6 +28,17 @@ type NewsAdminItem = {
   updatedAt: string;
 };
 
+type CreateNewsForm = {
+  title: string;
+  category: string;
+  badgeVariant: NewsAdminItem['badgeVariant'];
+  excerpt: string;
+  contentHtml: string;
+  imageUrl: string;
+  featured: boolean;
+  isPublished: boolean;
+};
+
 function formatDate(s: string | null | undefined): string {
   if (!s) return '';
   const d = new Date(s);
@@ -37,22 +50,49 @@ function variantToBadge(variant: NewsAdminItem['badgeVariant']): 'default' | 'in
   return variant ?? 'default';
 }
 
+function htmlToNullable(html: string): string | null {
+  const raw = String(html ?? '').trim();
+  if (!raw) return null;
+  // TipTap often returns "<p></p>" for empty docs.
+  if (/^<p>\s*<\/p>$/i.test(raw)) return null;
+  return raw;
+}
+
+function sanitizeNewsHtml(rawHtml: string): string {
+  return DOMPurify.sanitize(String(rawHtml ?? ''), {
+    USE_PROFILES: { html: true },
+    ADD_TAGS: ['video', 'source'],
+    ADD_ATTR: [
+      'controls',
+      'preload',
+      'playsinline',
+      'src',
+      'href',
+      'target',
+      'rel',
+      'class',
+      'style',
+      'colspan',
+      'rowspan',
+    ],
+  });
+}
+
 export default function AdminNewsPage() {
   const qc = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
+  const [contentDraftById, setContentDraftById] = useState<Record<string, string>>({});
+  const [showCreatePreview, setShowCreatePreview] = useState(false);
+  const [showPreviewById, setShowPreviewById] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    setPage(1);
-  }, [limit]);
-
-  const [create, setCreate] = useState({
+  const [create, setCreate] = useState<CreateNewsForm>({
     title: '',
     category: 'Major Update',
-    badgeVariant: 'danger' as const,
+    badgeVariant: 'danger',
     excerpt: '',
-    content: '',
+    contentHtml: '',
     imageUrl: '',
     featured: false,
     isPublished: true,
@@ -82,14 +122,15 @@ export default function AdminNewsPage() {
         category: create.category || undefined,
         badgeVariant: create.badgeVariant,
         excerpt: create.excerpt || undefined,
-        content: create.content || undefined,
+        contentHtml: create.contentHtml || undefined,
         imageUrl: create.imageUrl || undefined,
         featured: create.featured,
         isPublished: create.isPublished,
       });
     },
     onSuccess: async () => {
-      setCreate((p) => ({ ...p, title: '', excerpt: '', content: '', imageUrl: '', featured: false }));
+      setCreate((p) => ({ ...p, title: '', excerpt: '', contentHtml: '', imageUrl: '', featured: false }));
+      setShowCreatePreview(false);
       await qc.invalidateQueries({ queryKey: ['admin', 'news', 'list'] });
     },
   });
@@ -172,7 +213,9 @@ export default function AdminNewsPage() {
                 <select
                   className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
                   value={create.badgeVariant}
-                  onChange={(e) => setCreate((p) => ({ ...p, badgeVariant: e.target.value as any }))}
+                  onChange={(e) =>
+                    setCreate((p) => ({ ...p, badgeVariant: e.target.value as NewsAdminItem['badgeVariant'] }))
+                  }
                 >
                   <option value="danger">danger</option>
                   <option value="warning">warning</option>
@@ -200,15 +243,33 @@ export default function AdminNewsPage() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-slate-300 mb-1">Content</label>
-            <textarea
-              className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[160px]"
-              value={create.content}
-              onChange={(e) => setCreate((p) => ({ ...p, content: e.target.value }))}
-              placeholder="Content (line breaks are supported)."
-            />
+          <RichHtmlEditor
+            label="Content (HTML)"
+            value={create.contentHtml}
+            onChange={(nextHtml) => setCreate((p) => ({ ...p, contentHtml: nextHtml }))}
+            placeholder="Write your news content here..."
+            minHeightClassName="min-h-[260px]"
+          />
+
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant={showCreatePreview ? 'outline' : 'ghost'}
+              size="sm"
+              onClick={() => setShowCreatePreview((v) => !v)}
+            >
+              {showCreatePreview ? 'Hide preview' : 'Preview'}
+            </Button>
           </div>
+
+          {showCreatePreview && (
+            <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-4">
+              <div
+                className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-table:border prose-table:border-slate-700/60 prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60"
+                dangerouslySetInnerHTML={{ __html: sanitizeNewsHtml(create.contentHtml) }}
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3">
             {createMutation.isError && (
@@ -266,9 +327,31 @@ export default function AdminNewsPage() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <Button variant="ghost" onClick={() => setExpandedId(expanded ? null : n.id)}>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          if (expanded) {
+                            setExpandedId(null);
+                            return;
+                          }
+                          setContentDraftById((p) =>
+                            p[n.id] !== undefined ? p : { ...p, [n.id]: n.content ?? '' },
+                          );
+                          setExpandedId(n.id);
+                        }}
+                      >
                         {expanded ? 'Close' : 'Edit'}
                       </Button>
+                      {expanded && (
+                        <Button
+                          type="button"
+                          variant={showPreviewById[n.id] ? 'outline' : 'ghost'}
+                          size="sm"
+                          onClick={() => setShowPreviewById((p) => ({ ...p, [n.id]: !p[n.id] }))}
+                        >
+                          {showPreviewById[n.id] ? 'Hide preview' : 'Preview'}
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         onClick={() => updateMutation.mutate({ id: n.id, isPublished: !n.isPublished })}
@@ -333,7 +416,12 @@ export default function AdminNewsPage() {
                           <select
                             className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
                             defaultValue={n.badgeVariant}
-                            onChange={(e) => updateMutation.mutate({ id: n.id, badgeVariant: e.target.value as any })}
+                            onChange={(e) =>
+                              updateMutation.mutate({
+                                id: n.id,
+                                badgeVariant: e.target.value as NewsAdminItem['badgeVariant'],
+                              })
+                            }
                           >
                             <option value="danger">danger</option>
                             <option value="warning">warning</option>
@@ -359,12 +447,40 @@ export default function AdminNewsPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Content</label>
-                        <textarea
-                          className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[160px]"
-                          defaultValue={n.content ?? ''}
-                          onBlur={(e) => updateMutation.mutate({ id: n.id, content: e.target.value || null })}
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Content (HTML)</label>
+                        <RichHtmlEditor
+                          value={contentDraftById[n.id] ?? n.content ?? ''}
+                          onChange={(nextHtml) => setContentDraftById((p) => ({ ...p, [n.id]: nextHtml }))}
+                          placeholder="Write content..."
+                          minHeightClassName="min-h-[260px]"
                         />
+                        <div className="flex items-center justify-end pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              updateMutation.mutate({
+                                id: n.id,
+                                contentHtml: htmlToNullable(contentDraftById[n.id] ?? n.content ?? ''),
+                              })
+                            }
+                            disabled={updateMutation.isPending}
+                          >
+                            <Save className="w-4 h-4" />
+                            Save content
+                          </Button>
+                        </div>
+
+                        {!!showPreviewById[n.id] && (
+                          <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-4 mt-2">
+                            <div
+                              className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-table:border prose-table:border-slate-700/60 prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60"
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeNewsHtml(contentDraftById[n.id] ?? n.content ?? ''),
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {updateMutation.isError && (
@@ -389,7 +505,10 @@ export default function AdminNewsPage() {
                 <label className="block text-sm font-medium text-slate-300">Items per page</label>
                 <select
                   value={limit}
-                  onChange={(e) => setLimit(parseInt(e.target.value, 10) || 25)}
+                  onChange={(e) => {
+                    setLimit(parseInt(e.target.value, 10) || 25);
+                    setPage(1);
+                  }}
                   className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
                 >
                   <option value={10}>10</option>

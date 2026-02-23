@@ -265,11 +265,16 @@ export const adminNewsApi = {
     slug?: string;
     excerpt?: string;
     content?: string;
+    contentHtml?: string;
     category?: string;
     badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
+    badgeColor?: string;
+    badgeTextColor?: string;
     featured?: boolean;
     readTime?: string;
     imageUrl?: string;
+    cardImageUrl?: string;
+    heroImageUrl?: string;
     isPublished?: boolean;
   }) => api.post('/admin/news/create', data),
   update: (data: {
@@ -278,11 +283,16 @@ export const adminNewsApi = {
     slug?: string;
     excerpt?: string | null;
     content?: string | null;
+    contentHtml?: string | null;
     category?: string | null;
     badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
+    badgeColor?: string | null;
+    badgeTextColor?: string | null;
     featured?: boolean;
     readTime?: string | null;
     imageUrl?: string | null;
+    cardImageUrl?: string | null;
+    heroImageUrl?: string | null;
     isPublished?: boolean;
   }) => api.post('/admin/news/update', data),
   delete: (id: string) => api.post('/admin/news/delete', { id }),

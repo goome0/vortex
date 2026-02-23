@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Calendar, Clock, Newspaper } from 'lucide-react';
 import { Badge, Button, Card, CardContent, LoadingSpinner } from '@/components/ui';
 import { getErrorMessage, newsApi } from '@/lib/api';
+import DOMPurify from 'isomorphic-dompurify';
 
 type NewsDetail = {
   id: string;
@@ -42,6 +44,27 @@ export default function NewsDetailPage() {
       return res.data?.data as NewsDetail;
     },
   });
+
+  const safeHtml = useMemo(() => {
+    const raw = query.data?.content ?? '';
+    return DOMPurify.sanitize(raw, {
+      USE_PROFILES: { html: true },
+      ADD_TAGS: ['video', 'source'],
+      ADD_ATTR: [
+        'controls',
+        'preload',
+        'playsinline',
+        'src',
+        'href',
+        'target',
+        'rel',
+        'class',
+        'style',
+        'colspan',
+        'rowspan',
+      ],
+    });
+  }, [query.data?.content]);
 
   return (
     <div className="min-h-screen pt-20">
@@ -108,13 +131,14 @@ export default function NewsDetailPage() {
                   </p>
                 )}
 
-                <div className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white">
-                  {query.data.content
-                    ? query.data.content.split('\n').map((line, idx) => (
-                        <p key={idx}>{line}</p>
-                      ))
-                    : <p className="text-slate-400">No content.</p>}
-                </div>
+                {query.data.content ? (
+                  <div
+                    className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-table:border prose-table:border-slate-700/60 prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60"
+                    dangerouslySetInnerHTML={{ __html: safeHtml }}
+                  />
+                ) : (
+                  <p className="text-slate-400">No content.</p>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -123,4 +147,3 @@ export default function NewsDetailPage() {
     </div>
   );
 }
-
