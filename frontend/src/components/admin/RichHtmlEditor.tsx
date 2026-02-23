@@ -569,7 +569,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                           onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                           className={[
                             'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
-                            active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                            active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                           ].join(' ')}
                           aria-label={`${c}x${r}`}
                           title={`${c}x${r}`}
@@ -726,7 +726,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                           onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                           className={[
                             'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
-                            active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                            active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                           ].join(' ')}
                           aria-label={`${c}x${r}`}
                           title={`${c}x${r}`}
@@ -904,7 +904,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                       onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                       className={[
                         'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
-                        active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                        active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                       ].join(' ')}
                       aria-label={`${c}x${r}`}
                       title={`${c}x${r}`}
