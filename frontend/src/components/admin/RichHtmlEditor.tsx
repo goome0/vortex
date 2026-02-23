@@ -13,6 +13,7 @@ import TableCell from '@tiptap/extension-table-cell';
 import TextAlign from '@tiptap/extension-text-align';
 import { CommandProps, Node, mergeAttributes } from '@tiptap/core';
 import { Button } from '@/components/ui';
+import { Input } from '@/components/ui';
 import {
   Bold,
   Italic,
@@ -26,7 +27,6 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Table as TableIcon,
-  Code,
   Eye,
   Edit3,
 } from 'lucide-react';
@@ -48,6 +48,15 @@ declare module '@tiptap/core' {
     };
   }
 }
+
+type InsertPanel =
+  | { kind: 'link'; href: string; text: string; newTab: boolean }
+  | { kind: 'image'; src: string; alt: string }
+  | { kind: 'video'; src: string }
+  | { kind: 'table'; rows: number; cols: number; header: boolean }
+  | { kind: 'layout'; layout: 'mediaLeft' | 'mediaRight' | 'mediaTop'; src: string };
+
+type LayoutChoice = Extract<InsertPanel, { kind: 'layout' }>['layout'];
 
 const Video = Node.create({
   name: 'video',
@@ -101,6 +110,12 @@ function normalizeUrl(raw: string): string | null {
   return v;
 }
 
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
+  const n = Number.parseInt(String(value ?? ''), 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
 export function RichHtmlEditor({
   label,
   value,
@@ -111,6 +126,7 @@ export function RichHtmlEditor({
   minHeightClassName = 'min-h-[240px]',
 }: Props) {
   const [mode, setMode] = useState<'visual' | 'html'>('visual');
+  const [panel, setPanel] = useState<InsertPanel | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -181,6 +197,7 @@ export function RichHtmlEditor({
   }, [editor]);
 
   const toolbarDisabled = !editor || mode !== 'visual';
+  const panelOpen = !!panel && mode === 'visual';
 
   return (
     <div className={className}>
@@ -260,9 +277,19 @@ export function RichHtmlEditor({
             size="sm"
             disabled={toolbarDisabled}
             onClick={() => {
-              const url = normalizeUrl(window.prompt('Link URL (https://...)') ?? '');
-              if (!url) return;
-              editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+              if (!editor) return;
+              const existingHref = editor.getAttributes('link')?.href as string | undefined;
+              const selectedText = editor.state.doc.textBetween(
+                editor.state.selection.from,
+                editor.state.selection.to,
+                ' ',
+              );
+              setPanel({
+                kind: 'link',
+                href: existingHref ?? '',
+                text: selectedText || '',
+                newTab: true,
+              });
             }}
           >
             <LinkIcon className="w-4 h-4" /> Link
@@ -283,10 +310,7 @@ export function RichHtmlEditor({
             size="sm"
             disabled={toolbarDisabled}
             onClick={() => {
-              const src = normalizeUrl(window.prompt('Image URL (png/jpg/gif/webp/svg)') ?? '');
-              if (!src) return;
-              const alt = String(window.prompt('Alt (optional)') ?? '').trim();
-              editor?.chain().focus().setImage({ src, ...(alt ? { alt } : {}) }).run();
+              setPanel({ kind: 'image', src: '', alt: '' });
             }}
           >
             <ImageIcon className="w-4 h-4" /> Image
@@ -297,9 +321,7 @@ export function RichHtmlEditor({
             size="sm"
             disabled={toolbarDisabled}
             onClick={() => {
-              const src = normalizeUrl(window.prompt('Video URL (mp4/webm)') ?? '');
-              if (!src) return;
-              editor?.chain().focus().setVideo({ src }).run();
+              setPanel({ kind: 'video', src: '' });
             }}
           >
             <VideoIcon className="w-4 h-4" /> Video
@@ -310,7 +332,7 @@ export function RichHtmlEditor({
             variant="secondary"
             size="sm"
             disabled={toolbarDisabled || !can?.table}
-            onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            onClick={() => setPanel({ kind: 'table', rows: 3, cols: 3, header: true })}
           >
             <TableIcon className="w-4 h-4" /> Table
           </Button>
@@ -320,43 +342,9 @@ export function RichHtmlEditor({
             variant="secondary"
             size="sm"
             disabled={toolbarDisabled}
-            onClick={() => {
-              const kind = String(
-                window.prompt(
-                  [
-                    'Layout quick insert:',
-                    '1 = Image left + text right',
-                    '2 = Text left + image right',
-                    '3 = Image on top + text below',
-                  ].join('\n'),
-                ) ?? '',
-              ).trim();
-              if (!['1', '2', '3'].includes(kind)) return;
-              const src = normalizeUrl(window.prompt('Media URL (image gif / video mp4)') ?? '');
-              if (!src) return;
-              const isVideo = /\.(mp4|webm|ogg)(\?|#|$)/i.test(src);
-
-              const mediaHtml = isVideo
-                ? `<video controls preload="metadata" playsinline src="${src}"></video>`
-                : `<img src="${src}" alt=""/>`;
-
-              if (kind === '3') {
-                editor?.chain().focus().insertContent(`<p>${mediaHtml}</p><p>${placeholder ?? 'Write here...'}</p>`).run();
-                return;
-              }
-
-              const left = kind === '1' ? mediaHtml : `<p>${placeholder ?? 'Write here...'}</p>`;
-              const right = kind === '1' ? `<p>${placeholder ?? 'Write here...'}</p>` : mediaHtml;
-              editor
-                ?.chain()
-                .focus()
-                .insertContent(
-                  `<table><tbody><tr><td>${left}</td><td>${right}</td></tr></tbody></table><p></p>`,
-                )
-                .run();
-            }}
+            onClick={() => setPanel({ kind: 'layout', layout: 'mediaLeft', src: '' })}
           >
-            <Code className="w-4 h-4" /> Layout
+            Layout
           </Button>
         </div>
 
@@ -379,6 +367,279 @@ export function RichHtmlEditor({
           </Button>
         </div>
       </div>
+
+      {panelOpen && (
+        <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-4 mb-3">
+          {panel.kind === 'table' && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 items-end">
+              <Input
+                label="Rows"
+                type="number"
+                min={1}
+                max={20}
+                value={String(panel.rows)}
+                onChange={(e) =>
+                  setPanel((p) =>
+                    !p || p.kind !== 'table' ? p : { ...p, rows: clampInt(e.target.value, 1, 20, 3) },
+                  )
+                }
+              />
+              <Input
+                label="Cols"
+                type="number"
+                min={1}
+                max={10}
+                value={String(panel.cols)}
+                onChange={(e) =>
+                  setPanel((p) =>
+                    !p || p.kind !== 'table' ? p : { ...p, cols: clampInt(e.target.value, 1, 10, 3) },
+                  )
+                }
+              />
+              <div className="flex items-center gap-2 pb-1">
+                <input
+                  id="vtx-table-header"
+                  type="checkbox"
+                  className="h-4 w-4 accent-cyan-500"
+                  checked={panel.header}
+                  onChange={(e) =>
+                    setPanel((p) => (!p || p.kind !== 'table' ? p : { ...p, header: e.target.checked }))
+                  }
+                />
+                <label htmlFor="vtx-table-header" className="text-sm text-slate-300">
+                  Header row
+                </label>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!editor) return;
+                    editor
+                      .chain()
+                      .focus()
+                      .insertTable({ rows: panel.rows, cols: panel.cols, withHeaderRow: panel.header })
+                      .run();
+                    setPanel(null);
+                  }}
+                >
+                  Insert table
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {panel.kind === 'link' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-end">
+              <Input
+                label="URL"
+                placeholder="https://example.com"
+                value={panel.href}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'link' ? p : { ...p, href: e.target.value }))
+                }
+              />
+              <Input
+                label="Text (optional)"
+                placeholder="If nothing selected"
+                value={panel.text}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'link' ? p : { ...p, text: e.target.value }))
+                }
+              />
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!editor) return;
+                    const href = normalizeUrl(panel.href);
+                    if (!href) return;
+
+                    const selectedText = editor.state.doc.textBetween(
+                      editor.state.selection.from,
+                      editor.state.selection.to,
+                      ' ',
+                    );
+
+                    const attrs = panel.newTab
+                      ? { href, target: '_blank', rel: 'noopener noreferrer' }
+                      : { href };
+
+                    if (selectedText) {
+                      editor.chain().focus().extendMarkRange('link').setLink(attrs).run();
+                    } else {
+                      const text = String(panel.text ?? '').trim() || href;
+                      editor.chain().focus().insertContent(`<a href="${href}">${text}</a>`).run();
+                    }
+                    setPanel(null);
+                  }}
+                >
+                  Apply link
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {panel.kind === 'image' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-end">
+              <Input
+                label="Image URL"
+                placeholder="https://.../image.png"
+                value={panel.src}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'image' ? p : { ...p, src: e.target.value }))
+                }
+              />
+              <Input
+                label="Alt (optional)"
+                placeholder="Description"
+                value={panel.alt}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'image' ? p : { ...p, alt: e.target.value }))
+                }
+              />
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!editor) return;
+                    const src = normalizeUrl(panel.src);
+                    if (!src) return;
+                    const alt = String(panel.alt ?? '').trim();
+                    editor.chain().focus().setImage({ src, ...(alt ? { alt } : {}) }).run();
+                    setPanel(null);
+                  }}
+                >
+                  Insert image
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {panel.kind === 'video' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-end">
+              <Input
+                label="Video URL"
+                placeholder="https://.../video.mp4"
+                value={panel.src}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'video' ? p : { ...p, src: e.target.value }))
+                }
+              />
+              <div className="hidden lg:block" />
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!editor) return;
+                    const src = normalizeUrl(panel.src);
+                    if (!src) return;
+                    editor.chain().focus().setVideo({ src }).run();
+                    setPanel(null);
+                  }}
+                >
+                  Insert video
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {panel.kind === 'layout' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-end">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-300 mb-1">Layout</label>
+                <select
+                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                  value={panel.layout}
+                  onChange={(e) =>
+                    setPanel((p) =>
+                      !p || p.kind !== 'layout'
+                        ? p
+                        : { ...p, layout: e.target.value as LayoutChoice },
+                    )
+                  }
+                >
+                  <option value="mediaLeft">Media left + text right</option>
+                  <option value="mediaRight">Text left + media right</option>
+                  <option value="mediaTop">Media on top + text below</option>
+                </select>
+              </div>
+              <Input
+                label="Media URL"
+                placeholder="https://... (gif/png/jpg/mp4/webm)"
+                value={panel.src}
+                onChange={(e) =>
+                  setPanel((p) => (!p || p.kind !== 'layout' ? p : { ...p, src: e.target.value }))
+                }
+              />
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPanel(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!editor) return;
+                    const src = normalizeUrl(panel.src);
+                    if (!src) return;
+                    const isVideo = /\.(mp4|webm|ogg)(\?|#|$)/i.test(src);
+
+                    const mediaHtml = isVideo
+                      ? `<video controls preload="metadata" playsinline src="${src}"></video>`
+                      : `<img src="${src}" alt=""/>`;
+
+                    if (panel.layout === 'mediaTop') {
+                      editor
+                        .chain()
+                        .focus()
+                        .insertContent(`<p>${mediaHtml}</p><p>${placeholder ?? 'Write here...'}</p>`)
+                        .run();
+                      setPanel(null);
+                      return;
+                    }
+
+                    const left =
+                      panel.layout === 'mediaLeft' ? mediaHtml : `<p>${placeholder ?? 'Write here...'}</p>`;
+                    const right =
+                      panel.layout === 'mediaLeft' ? `<p>${placeholder ?? 'Write here...'}</p>` : mediaHtml;
+
+                    editor
+                      .chain()
+                      .focus()
+                      .insertContent(`<table><tbody><tr><td>${left}</td><td>${right}</td></tr></tbody></table><p></p>`)
+                      .run();
+                    setPanel(null);
+                  }}
+                >
+                  Insert layout
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {mode === 'html' ? (
         <textarea
