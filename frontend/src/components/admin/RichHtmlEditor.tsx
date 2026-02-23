@@ -568,7 +568,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                           onMouseEnter={() => setTableHover({ rows: r, cols: c })}
                           onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                           className={[
-                            'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                            'h-4 w-4 rounded-sm border cursor-pointer',
                             active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                           ].join(' ')}
                           aria-label={`${c}x${r}`}
@@ -725,7 +725,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                           onMouseEnter={() => setTableHover({ rows: r, cols: c })}
                           onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                           className={[
-                            'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                            'h-4 w-4 rounded-sm border cursor-pointer',
                             active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                           ].join(' ')}
                           aria-label={`${c}x${r}`}
@@ -903,7 +903,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                       onMouseEnter={() => setTableHover({ rows: r, cols: c })}
                       onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
                       className={[
-                        'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                        'h-4 w-4 rounded-sm border cursor-pointer',
                         active ? 'bg-cyan-500 border-cyan-500' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
                       ].join(' ')}
                       aria-label={`${c}x${r}`}
