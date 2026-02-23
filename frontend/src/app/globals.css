@@ -302,3 +302,54 @@ img {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* TipTap (RichHtmlEditor) tables */
+.ProseMirror .tableWrapper,
+.prose .tableWrapper {
+  overflow-x: auto;
+}
+
+.ProseMirror table,
+.prose table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ProseMirror th,
+.ProseMirror td,
+.prose th,
+.prose td {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.4rem 0.5rem;
+  vertical-align: top;
+  position: relative;
+}
+
+.ProseMirror th,
+.prose th {
+  background: rgba(148, 163, 184, 0.08);
+  font-weight: 600;
+}
+
+.ProseMirror .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 211, 238, 0.16);
+  pointer-events: none;
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -2px;
+  width: 4px;
+  background: rgba(34, 211, 238, 0.7);
+  pointer-events: none;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
