@@ -47,7 +47,6 @@ type DialogState =
   | { kind: 'image'; src: string; alt: string }
   | { kind: 'video'; src: string }
   | { kind: 'layout'; layout: 'mediaLeft' | 'mediaRight' | 'mediaTop'; src: string }
-  | { kind: 'table'; rows: number; cols: number; header: boolean }
   | { kind: 'search'; q: string; replace: string; matchCase: boolean };
 
 function normalizeUrl(raw: string): string | null {
@@ -163,16 +162,18 @@ function MenuButton({ children }: { children: ReactNode }) {
   );
 }
 
-function MenuItem({ disabled, onClick, children, danger, right }: { disabled?: boolean; onClick?: () => void; children: ReactNode; danger?: boolean; right?: ReactNode }) {
+function MenuItem({ disabled, onClick, onMouseEnter, children, danger, right, className }: { disabled?: boolean; onClick?: () => void; onMouseEnter?: () => void; children: ReactNode; danger?: boolean; right?: ReactNode; className?: string }) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
       className={[
-        'w-full flex items-center justify-between gap-3 px-4 py-2 text-sm transition-colors text-left',
+        'w-full flex items-center justify-between gap-3 px-4 py-2 text-sm transition-colors text-left relative',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         danger ? 'text-red-300 hover:text-red-200 hover:bg-red-500/10' : 'text-slate-300 hover:text-white hover:bg-slate-800/50',
+        className || '',
       ].join(' ')}
     >
       <span className="flex items-center gap-2">{children}</span>
@@ -295,15 +296,15 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
     if (kind === 'link') {
       const existingHref = (editor.getAttributes('link')?.href as string | undefined) ?? '';
       const selectedText = pickTextInSelection(editor);
-      setDialog({ kind: 'link', href: existingHref, text: selectedText || '', newTab: true });
-    } else if (kind === 'image') setDialog({ kind: 'image', src: '', alt: '' });
-    else if (kind === 'video') setDialog({ kind: 'video', src: '' });
-    else if (kind === 'layout') setDialog({ kind: 'layout', layout: 'mediaLeft', src: '' });
-    else if (kind === 'table') {
-      setTableHover({ rows: 3, cols: 3 });
-      setDialog({ kind: 'table', rows: 3, cols: 3, header: true });
+      setDialog({ kind: 'link', href: existingHref, text: selectedText || '', newTab: true })
+    } else if (kind === 'image') { 
+      setDialog({ kind: 'image', src: '', alt: '' }) 
+    } else if (kind === 'video') { 
+      setDialog({ kind: 'video', src: '' }) 
+    } else if (kind === 'layout') { 
+      setDialog({ kind: 'layout', layout: 'mediaLeft', src: '' }) 
     } else if (kind === 'search') {
-      setDialog({ kind: 'search', q: '', replace: '', matchCase: false });
+      setDialog({ kind: 'search', q: '', replace: '', matchCase: false })
       searchIndexRef.current = 0;
     }
   };
@@ -383,12 +384,9 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
     closeDialog();
   };
 
-  const applyTable = () => {
-    if (!editor || !dialog || dialog.kind !== 'table') return;
-    const rows = clampInt(dialog.rows, 1, 100, 3);
-    const cols = clampInt(dialog.cols, 1, 100, 3);
-    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: dialog.header }).run();
-    closeDialog();
+  const applyTableGrid = (r: number, c: number) => {
+    if (!editor) return;
+    editor.chain().focus().insertTable({ rows: r, cols: c, withHeaderRow: true }).run();
   };
 
   const findNext = () => {
@@ -556,8 +554,33 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
                 <SquareDashed className="w-4 h-4 text-slate-400" /> Layout…
               </MenuItem>
               <div className="my-2 border-t border-slate-800/60" />
-              <MenuItem disabled={menubarDisabled} onClick={() => openDialog('table')}>
-                <TableIcon className="w-4 h-4 text-slate-400" /> Table…
+              <MenuItem disabled={menubarDisabled} className="group/table" right="▶">
+                <TableIcon className="w-4 h-4 text-slate-400" /> Insert table…
+                <div className="absolute top-0 left-full ml-1 w-52 p-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover/table:opacity-100 group-hover/table:visible transition-all duration-200 z-30 cursor-default">
+                  <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tableGridMax.cols}, minmax(0, 1fr))` }}>
+                    {Array.from({ length: tableGridMax.rows * tableGridMax.cols }).map((_, idx) => {
+                      const r = Math.floor(idx / tableGridMax.cols) + 1;
+                      const c = (idx % tableGridMax.cols) + 1;
+                      const active = r <= tableHover.rows && c <= tableHover.cols;
+                      return (
+                        <div
+                          key={`${r}-${c}`}
+                          onMouseEnter={() => setTableHover({ rows: r, cols: c })}
+                          onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
+                          className={[
+                            'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                            active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                          ].join(' ')}
+                          aria-label={`${c}x${r}`}
+                          title={`${c}x${r}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="mt-2 text-center text-xs font-semibold text-cyan-400">
+                    {tableHover.cols}x{tableHover.rows}
+                  </div>
+                </div>
               </MenuItem>
               <MenuItem disabled={menubarDisabled} onClick={() => editor?.chain().focus().setHorizontalRule().run()}>
                 <Minus className="w-4 h-4 text-slate-400" /> Horizontal line
@@ -688,8 +711,33 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
           <div className="relative group">
             <MenuButton>Table</MenuButton>
             <div className="absolute right-0 top-full mt-0.5 w-72 py-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
-              <MenuItem disabled={menubarDisabled} onClick={() => openDialog('table')}>
+              <MenuItem disabled={menubarDisabled} className="group/table" right="▶">
                 <TableIcon className="w-4 h-4 text-slate-400" /> Insert table…
+                <div className="absolute top-0 left-full ml-1 w-52 p-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover/table:opacity-100 group-hover/table:visible transition-all duration-200 z-30 cursor-default">
+                  <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tableGridMax.cols}, minmax(0, 1fr))` }}>
+                    {Array.from({ length: tableGridMax.rows * tableGridMax.cols }).map((_, idx) => {
+                      const r = Math.floor(idx / tableGridMax.cols) + 1;
+                      const c = (idx % tableGridMax.cols) + 1;
+                      const active = r <= tableHover.rows && c <= tableHover.cols;
+                      return (
+                        <div
+                          key={`${r}-${c}`}
+                          onMouseEnter={() => setTableHover({ rows: r, cols: c })}
+                          onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
+                          className={[
+                            'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                            active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                          ].join(' ')}
+                          aria-label={`${c}x${r}`}
+                          title={`${c}x${r}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="mt-2 text-center text-xs font-semibold text-cyan-400">
+                    {tableHover.cols}x{tableHover.rows}
+                  </div>
+                </div>
               </MenuItem>
               <div className="my-2 border-t border-slate-800/60" />
               <MenuItem disabled={menubarDisabled || !inTable} onClick={() => editor?.chain().focus().addRowBefore().run()}>
@@ -839,9 +887,36 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
           <button type="button" disabled={!editor} onClick={() => editor?.chain().focus().toggleOrderedList().run()} className={['p-2 rounded-lg hover:bg-white/5 disabled:opacity-50', editor?.isActive('orderedList') ? 'text-cyan-300 bg-cyan-500/10' : 'text-slate-300 hover:text-white'].join(' ')} title="Numbered list">
             <ListOrdered className="w-4 h-4" />
           </button>
-          <button type="button" disabled={!editor} onClick={() => openDialog('table')} className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-50" title="Table">
-            <TableIcon className="w-4 h-4" />
-          </button>
+          <div className="relative group/inlinetable">
+            <button type="button" disabled={!editor} className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-50" title="Table">
+              <TableIcon className="w-4 h-4" />
+            </button>
+            <div className="absolute bottom-full left-0 mb-2 w-52 p-2 bg-slate-950 border border-slate-700/60 rounded-xl shadow-xl opacity-0 invisible group-hover/inlinetable:opacity-100 group-hover/inlinetable:visible transition-all duration-200 z-30 cursor-default">
+              <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tableGridMax.cols}, minmax(0, 1fr))` }}>
+                {Array.from({ length: tableGridMax.rows * tableGridMax.cols }).map((_, idx) => {
+                  const r = Math.floor(idx / tableGridMax.cols) + 1;
+                  const c = (idx % tableGridMax.cols) + 1;
+                  const active = r <= tableHover.rows && c <= tableHover.cols;
+                  return (
+                    <div
+                      key={`${r}-${c}`}
+                      onMouseEnter={() => setTableHover({ rows: r, cols: c })}
+                      onClick={(e) => { e.stopPropagation(); applyTableGrid(r, c); }}
+                      className={[
+                        'h-4 w-4 rounded-sm border transition-colors cursor-pointer',
+                        active ? 'bg-cyan-500/30 border-cyan-400/80' : 'bg-slate-900 border-slate-700 hover:border-slate-500',
+                      ].join(' ')}
+                      aria-label={`${c}x${r}`}
+                      title={`${c}x${r}`}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-2 text-center text-xs font-semibold text-cyan-400">
+                {tableHover.cols}x{tableHover.rows}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -961,72 +1036,7 @@ export function RichHtmlEditor({ label, value, onChange, onBlur, placeholder, cl
         )}
       </Modal>
 
-      <Modal title="Insert table" open={dialog?.kind === 'table'} onClose={closeDialog}>
-        {dialog?.kind === 'table' && (
-          <div className="space-y-4">
-            <div className="text-sm text-slate-300">Pick size (drag over the grid) or type rows/columns.</div>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${tableGridMax.cols}, minmax(0, 1fr))` }}>
-                  {Array.from({ length: tableGridMax.rows * tableGridMax.cols }).map((_, idx) => {
-                    const r = Math.floor(idx / tableGridMax.cols) + 1;
-                    const c = (idx % tableGridMax.cols) + 1;
-                    const active = r <= tableHover.rows && c <= tableHover.cols;
-                    return (
-                      <button
-                        key={`${r}-${c}`}
-                        type="button"
-                        onMouseEnter={() => setTableHover({ rows: r, cols: c })}
-                        onClick={() => {
-                          setTableHover({ rows: r, cols: c });
-                          setDialog({ ...dialog, rows: r, cols: c });
-                        }}
-                        className={[
-                          'h-5 w-5 rounded border transition-colors',
-                          active ? 'bg-cyan-500/20 border-cyan-400/60' : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-600/60',
-                        ].join(' ')}
-                        aria-label={`${c}x${r}`}
-                        title={`${c}x${r}`}
-                      />
-                    );
-                  })}
-                </div>
-                <div className="mt-2 text-xs text-slate-500">
-                  {tableHover.cols}x{tableHover.rows}
-                </div>
-              </div>
-              <div className="w-full md:w-64 space-y-3">
-                <div>
-                  <div className="text-xs text-slate-400 mb-1">Rows</div>
-                  <Input
-                    value={String(dialog.rows)}
-                    onChange={(e) => setDialog({ ...dialog, rows: e.target.value === '' ? '' : clampInt(e.target.value, 1, 100, dialog.rows as number) as any })}
-                  />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 mb-1">Columns</div>
-                  <Input
-                    value={String(dialog.cols)}
-                    onChange={(e) => setDialog({ ...dialog, cols: e.target.value === '' ? '' : clampInt(e.target.value, 1, 100, dialog.cols as number) as any })}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-300">
-                  <input type="checkbox" checked={dialog.header} onChange={(e) => setDialog({ ...dialog, header: e.target.checked })} />
-                  Header row
-                </label>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="ghost" onClick={closeDialog}>
-                Cancel
-              </Button>
-              <Button type="button" onClick={applyTable}>
-                Insert
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+
 
       <Modal title="Find & replace" open={dialog?.kind === 'search'} onClose={closeDialog}>
         {dialog?.kind === 'search' && (
