@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminCasesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
-import { Alert, Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { Search, Ticket, ChevronRight, RefreshCw, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

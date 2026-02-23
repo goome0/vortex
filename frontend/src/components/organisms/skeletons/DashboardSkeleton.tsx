@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui";
+import { Card, CardContent } from "@/components/molecules";
 
 export function DashboardSkeleton() {
   return (

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, Users, X, UserCircle } from 'lucide-react';
 import { adminApi, getErrorMessage } from '@/lib/api';
-import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
 
 type AccountLite = {
   username: string;
@@ -482,4 +482,3 @@ export function AccountPickerModal({
     </AnimatePresence>
   );
 }
-

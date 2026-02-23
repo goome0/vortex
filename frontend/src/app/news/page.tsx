@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Card, CardContent, Badge, Button, LoadingSpinner } from '@/components/ui';
+import { Badge, Button, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { newsApi, getErrorMessage } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import {

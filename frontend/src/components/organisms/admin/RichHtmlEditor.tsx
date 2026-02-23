@@ -19,7 +19,8 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import CharacterCount from '@tiptap/extension-character-count';
 import { CommandProps, Node, mergeAttributes } from '@tiptap/core';
 
-import { Button, Card, CardContent, Input } from '@/components/ui';
+import { Button, Input } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Code, Eye, Image as ImageIcon, Italic, Link as LinkIcon, List, ListOrdered, Redo, Search, Strikethrough, Table as TableIcon, Type, Underline as UnderlineIcon, Unlink, Video as VideoIcon, Undo, X, Maximize2, Minimize2, Paintbrush, Highlighter, Eraser, Minus, Plus, Smile, SquareDashed } from 'lucide-react';
 
 type Props = {

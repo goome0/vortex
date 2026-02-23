@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Card, CardContent, Badge, Button } from '@/components/ui';
+import { Badge, Button } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { ROUTES } from '@/lib/constants';
 import {
   Download,

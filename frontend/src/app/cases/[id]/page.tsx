@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
-import { Alert, Badge, Button, Card, CardContent, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { ArrowLeft, CheckCircle2, MessageSquare, Send, Ticket, XCircle } from 'lucide-react';
 
 type CaseStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';

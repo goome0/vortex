@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/atoms';
 import { ROUTES } from '@/lib/constants';
 import { 
   Shield, 

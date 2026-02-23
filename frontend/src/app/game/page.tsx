@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardContent } from '@/components/ui';
+import { Button } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
 import { Gamepad2, ArrowLeft } from 'lucide-react';
@@ -49,4 +50,3 @@ export default function GamePage() {
     </div>
   );
 }
-

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, getErrorMessage } from '@/lib/api';
-import { Alert, Badge, Button, Card, CardContent, DateTimePicker, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent, DateTimePicker } from '@/components/molecules';
 import { parseLocalDatetimeValueToMs, toLocalDatetimeValue } from '@/lib/utils';
 import { Layers, Plus, Trash2, Save, Send, Users, Hash, CalendarClock, RefreshCw } from 'lucide-react';
-import { AccountPickerModal } from '@/components/admin/AccountPickerModal';
+import { AccountPickerModal } from '@/components/organisms';
 
 type Bundle = {
   id: string;

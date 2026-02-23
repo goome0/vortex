@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Button, Badge } from '@/components/ui';
+import { Badge, Button } from '@/components/atoms';
 import { ROUTES } from '@/lib/constants';
 import {
   Download,

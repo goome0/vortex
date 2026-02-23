@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Button, Input, Alert } from '@/components/ui';
+import { Alert, Button, Input } from '@/components/atoms';
 import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { User, Lock, ArrowRight } from 'lucide-react';

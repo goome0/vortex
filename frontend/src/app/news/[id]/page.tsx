@@ -6,7 +6,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Calendar, Clock, Newspaper } from 'lucide-react';
-import { Badge, Button, Card, CardContent, LoadingSpinner } from '@/components/ui';
+import { Badge, Button, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { getErrorMessage, newsApi } from '@/lib/api';
 import DOMPurify from 'isomorphic-dompurify';
 

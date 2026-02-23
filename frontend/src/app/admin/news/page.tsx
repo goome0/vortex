@@ -3,9 +3,10 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Badge, Button, Card, CardContent, Input, LoadingSpinner } from '@/components/ui';
+import { Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { adminNewsApi, getErrorMessage } from '@/lib/api';
-import { RichHtmlEditor } from '@/components/admin/RichHtmlEditor';
+import { RichHtmlEditor } from '@/components/organisms';
 import { Newspaper, Plus, Save, Trash2, Star, Eye, EyeOff } from 'lucide-react';
 import DOMPurify from 'isomorphic-dompurify';
 

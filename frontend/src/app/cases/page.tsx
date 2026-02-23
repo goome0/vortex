@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
-import { Badge, Button, Card, CardContent, LoadingSpinner, Alert, Input } from '@/components/ui';
+import { Alert, Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { Ticket, Plus, Search, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { motion } from 'framer-motion';
-import { Badge, Button, Card, CardContent, Input, Alert } from '@/components/ui';
+import { Alert, Badge, Button, Input } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { ROUTES, TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants';
 import { authApi, getErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/stores';
@@ -300,4 +301,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

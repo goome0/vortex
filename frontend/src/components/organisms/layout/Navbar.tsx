@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/atoms';
 import { ROUTES } from '@/lib/constants';
 import {
   Menu,

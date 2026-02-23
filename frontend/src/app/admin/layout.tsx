@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { Button, Skeleton } from '@/components/ui';
+import { Button, Skeleton } from '@/components/atoms';
 import {
   Shield,
   Users,

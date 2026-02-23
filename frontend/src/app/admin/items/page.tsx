@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, Button, Input, Alert } from '@/components/ui';
+import { Alert, Button, Input } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { adminApi, getErrorMessage } from '@/lib/api';
 import {
   Package,

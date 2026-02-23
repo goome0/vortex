@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Card, CardContent, Badge, LoadingSpinner } from '@/components/ui';
+import { Badge, LoadingSpinner } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { useAuthStore } from '@/stores';
 import { adminApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';

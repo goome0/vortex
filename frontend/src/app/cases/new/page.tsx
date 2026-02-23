@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, ArrowLeft, Send } from 'lucide-react';
-import { Alert, Button, Card, CardContent, Input } from '@/components/ui';
+import { Alert, Button, Input } from '@/components/atoms';
+import { Card, CardContent } from '@/components/molecules';
 import { casesApi, getErrorMessage } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 

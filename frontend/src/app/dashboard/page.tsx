@@ -1,7 +1,8 @@
 "use client";
 
-import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
-import { Badge, Button, Card, CardContent } from "@/components/ui";
+import { Badge, Button } from "@/components/atoms";
+import { Card, CardContent } from "@/components/molecules";
+import { DashboardSkeleton } from "@/components/organisms";
 import { ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/stores";
 import { motion } from "framer-motion";
