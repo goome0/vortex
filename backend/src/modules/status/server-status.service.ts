@@ -95,7 +95,7 @@ function readTarget(name: Target['name']): Target {
   const port = Number.isFinite(portNum) && portNum > 0 ? portNum : undefined;
 
   const defaultServiceName =
-    name === 'Lobby' ? 'comp_lobby' : name === 'World' ? 'como_world' : 'comp_channel';
+    name === 'Lobby' ? 'comp_lobby' : name === 'World' ? 'comp_world' : 'comp_channel';
   const service = (process.env[`${prefix}_SERVICE`] ?? defaultServiceName).trim() || undefined;
 
   return { name, host, port, service };
