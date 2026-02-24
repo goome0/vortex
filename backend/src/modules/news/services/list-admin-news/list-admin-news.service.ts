@@ -15,8 +15,16 @@ export class ListAdminNewsService {
 
     const repo = this.newsHelpers.getRepository();
     const qb = repo.createQueryBuilder('n');
-    if (input.onlyPublished) qb.where('n.isPublished = 1');
+
+    if (typeof input.published === 'boolean') {
+      qb.where('n.isPublished = :published', { published: input.published ? 1 : 0 });
+    } else if (input.onlyPublished) {
+      qb.where('n.isPublished = 1');
+    }
+
     if (input.category) qb.andWhere('n.category = :category', { category: input.category });
+    if (typeof input.featured === 'boolean') qb.andWhere('n.featured = :featured', { featured: input.featured ? 1 : 0 });
+    if (input.badgeVariant) qb.andWhere('n.badgeVariant = :badgeVariant', { badgeVariant: input.badgeVariant });
     if (input.q)
       qb.andWhere('(n.title LIKE :q OR n.excerpt LIKE :q OR n.slug LIKE :q)', {
         q: `%${input.q}%`,

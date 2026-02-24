@@ -1,14 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Badge, Button, Input, LoadingSpinner } from '@/components/atoms';
 import { Card, CardContent } from '@/components/molecules';
 import { adminNewsApi, getErrorMessage } from '@/lib/api';
 import { RichHtmlEditor } from '@/components/organisms';
-import { Newspaper, Plus, Save, Trash2, Star, Eye, EyeOff } from 'lucide-react';
+import { Newspaper, Plus, Save, Trash2, Star, Eye, EyeOff, Search, RefreshCw } from 'lucide-react';
 import DOMPurify from 'isomorphic-dompurify';
+import { cn } from '@/lib/utils';
 
 type NewsAdminItem = {
   id: string;
@@ -84,6 +85,16 @@ export default function AdminNewsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [published, setPublished] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
+  const [featured, setFeatured] = useState<'ALL' | 'FEATURED' | 'NOT_FEATURED'>('ALL');
+  const [badgeVariant, setBadgeVariant] = useState<'ALL' | 'default' | 'info' | 'warning' | 'danger'>('ALL');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [contentDraftById, setContentDraftById] = useState<Record<string, string>>({});
   const [showCreatePreview, setShowCreatePreview] = useState(false);
   const [showPreviewById, setShowPreviewById] = useState<Record<string, boolean>>({});
@@ -100,9 +111,17 @@ export default function AdminNewsPage() {
   });
 
   const listQuery = useQuery({
-    queryKey: ['admin', 'news', 'list', { page, limit }],
+    queryKey: ['admin', 'news', 'list', { page, limit, q: debouncedSearch, category, published, featured, badgeVariant }],
     queryFn: async () => {
-      const res = await adminNewsApi.list({ page, limit });
+      const res = await adminNewsApi.list({
+        q: debouncedSearch.trim() || undefined,
+        category: category.trim() || undefined,
+        published: published === 'ALL' ? undefined : published === 'PUBLISHED',
+        featured: featured === 'ALL' ? undefined : featured === 'FEATURED',
+        badgeVariant: badgeVariant === 'ALL' ? undefined : badgeVariant,
+        page,
+        limit,
+      });
       return (res.data?.data ?? { items: [], total: 0, page, limit }) as {
         items: NewsAdminItem[];
         total: number;
@@ -115,6 +134,80 @@ export default function AdminNewsPage() {
   const items = useMemo(() => (listQuery.data?.items ?? []) as NewsAdminItem[], [listQuery.data]);
   const total = (listQuery.data?.total ?? 0) as number;
   const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, category, published, featured, badgeVariant, limit]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setBulkError('');
+  }, [page, debouncedSearch, category, published, featured, badgeVariant, limit]);
+
+  useEffect(() => {
+    if (!expandedId) return;
+    if (items.some((n) => n.id === expandedId)) return;
+    setExpandedId(null);
+  }, [expandedId, items]);
+
+  const pageIds = useMemo(() => items.map((n) => n.id), [items]);
+  const allSelectedOnPage = useMemo(
+    () => pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id)),
+    [pageIds, selectedIds]
+  );
+  const someSelectedOnPage = useMemo(
+    () => pageIds.some((id) => selectedIds.has(id)) && !allSelectedOnPage,
+    [pageIds, selectedIds, allSelectedOnPage]
+  );
+
+  useEffect(() => {
+    if (!headerCheckboxRef.current) return;
+    headerCheckboxRef.current.indeterminate = someSelectedOnPage;
+  }, [someSelectedOnPage]);
+
+  const toggleSelectAllOnPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelectedOnPage) {
+        for (const id of pageIds) next.delete(id);
+        return next;
+      }
+      for (const id of pageIds) next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectedCount = selectedIds.size;
+
+  const runBulkUpdate = async (fn: (id: string) => Promise<unknown>) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    setBulkError('');
+    try {
+      await Promise.all(ids.map((id) => fn(id)));
+      setSelectedIds(new Set());
+      await qc.invalidateQueries({ queryKey: ['admin', 'news', 'list'] });
+    } catch (e: unknown) {
+      setBulkError(getErrorMessage(e));
+    } finally {
+      setBulkLoading(false);
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -291,10 +384,165 @@ export default function AdminNewsPage() {
       {/* List */}
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-bold text-white">All News</h2>
-            {listQuery.isLoading && <LoadingSpinner size="sm" />}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white">All News</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                <span className="text-white font-medium">{total}</span> total news
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  if (page === 1) void listQuery.refetch();
+                  else setPage(1);
+                }}
+                disabled={listQuery.isFetching}
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
+              {listQuery.isFetching && <LoadingSpinner size="sm" />}
+            </div>
           </div>
+
+          {bulkError && (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-start justify-between gap-4">
+              <div className="text-sm">{bulkError}</div>
+              <button
+                type="button"
+                className="text-red-300 hover:text-red-200 transition-colors"
+                onClick={() => setBulkError('')}
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-end">
+            <div className="lg:col-span-2 space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by title, slug, excerpt..."
+                  className="w-full pl-9 pr-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                />
+              </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <Input
+                label="Category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="(optional)"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Published</label>
+              <select
+                value={published}
+                onChange={(e) => setPublished(e.target.value as typeof published)}
+                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+              >
+                <option value="ALL">All</option>
+                <option value="PUBLISHED">Published</option>
+                <option value="DRAFT">Draft</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Featured</label>
+              <select
+                value={featured}
+                onChange={(e) => setFeatured(e.target.value as typeof featured)}
+                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+              >
+                <option value="ALL">All</option>
+                <option value="FEATURED">Featured</option>
+                <option value="NOT_FEATURED">Not featured</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Badge Variant</label>
+              <select
+                value={badgeVariant}
+                onChange={(e) => setBadgeVariant(e.target.value as typeof badgeVariant)}
+                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+              >
+                <option value="ALL">All</option>
+                <option value="default">default</option>
+                <option value="info">info</option>
+                <option value="warning">warning</option>
+                <option value="danger">danger</option>
+              </select>
+            </div>
+          </div>
+
+          {selectedCount > 0 && (
+            <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-slate-300">
+                Selected <span className="text-white font-semibold">{selectedCount}</span>
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={bulkLoading}
+                  onClick={() => runBulkUpdate((id) => adminNewsApi.update({ id, isPublished: true }))}
+                >
+                  <Eye className="w-4 h-4" />
+                  Publish
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={bulkLoading}
+                  onClick={() => runBulkUpdate((id) => adminNewsApi.update({ id, isPublished: false }))}
+                >
+                  <EyeOff className="w-4 h-4" />
+                  Unpublish
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={bulkLoading}
+                  onClick={() => runBulkUpdate((id) => adminNewsApi.update({ id, featured: true }))}
+                >
+                  <Star className="w-4 h-4" />
+                  Feature
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={bulkLoading}
+                  onClick={() => runBulkUpdate((id) => adminNewsApi.update({ id, featured: false }))}
+                >
+                  <Star className="w-4 h-4" />
+                  Unfeature
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={bulkLoading}
+                  onClick={() => {
+                    if (!confirm(`Delete ${selectedCount} news item(s)? This cannot be undone.`)) return;
+                    void runBulkUpdate((id) => adminNewsApi.delete(id));
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
 
           {listQuery.isError && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
@@ -306,192 +554,247 @@ export default function AdminNewsPage() {
             <p className="text-slate-500">No news yet.</p>
           )}
 
-          <div className="space-y-3">
-            {items.map((n) => {
-              const expanded = expandedId === n.id;
-              return (
-                <div key={n.id} className="rounded-xl border border-slate-800/60 bg-slate-900/40 overflow-hidden">
-                  <div className="p-4 flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-bold text-white truncate max-w-[520px]">{n.title}</h3>
+          <div className="overflow-x-auto rounded-xl border border-slate-800/60 bg-slate-900/40">
+            <table className="w-full min-w-[920px]">
+              <thead>
+                <tr className="border-b border-slate-800/60">
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400 w-[44px]">
+                    <input
+                      ref={headerCheckboxRef}
+                      type="checkbox"
+                      checked={allSelectedOnPage}
+                      onChange={toggleSelectAllOnPage}
+                      className="h-4 w-4 accent-cyan-500"
+                      aria-label="Select all on page"
+                    />
+                  </th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400">Title</th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400 w-[160px]">Category</th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400 w-[120px]">Status</th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400 w-[120px]">Featured</th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-slate-400 w-[120px]">Updated</th>
+                  <th className="py-3 px-4 text-right text-sm font-semibold text-slate-400 w-[420px]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.flatMap((n, idx) => {
+                  const expanded = expandedId === n.id;
+                  const rows: ReactElement[] = [];
+
+                  rows.push(
+                    <motion.tr
+                      key={n.id}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: Math.min(idx * 0.02, 0.2) }}
+                      className={cn('border-b border-slate-800/60 hover:bg-slate-800/20 transition-colors')}
+                    >
+                      <td className="py-3 px-4 align-top">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(n.id)}
+                          onChange={() => toggleSelected(n.id)}
+                          className="h-4 w-4 accent-cyan-500"
+                          aria-label={`Select ${n.title}`}
+                        />
+                      </td>
+                      <td className="py-3 px-4 align-top">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-white truncate">{n.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5 truncate">
+                            slug: <span className="text-slate-300">{n.slug}</span> •{' '}
+                            {formatDate(n.publishedAt ?? n.updatedAt ?? n.createdAt)}
+                          </p>
+                          {n.excerpt && <p className="text-sm text-slate-400 mt-1 line-clamp-1">{n.excerpt}</p>}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 align-top">
                         <Badge variant={variantToBadge(n.badgeVariant)}>{n.category ?? 'News'}</Badge>
-                        {n.featured && <Badge variant="danger">Featured</Badge>}
-                        <Badge variant={n.isPublished ? 'success' : 'warning'}>
-                          {n.isPublished ? 'Published' : 'Draft'}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        slug: <span className="text-slate-300">{n.slug}</span> • {formatDate(n.publishedAt ?? n.createdAt)}
-                      </p>
-                      {n.excerpt && <p className="text-sm text-slate-400 mt-2 line-clamp-2">{n.excerpt}</p>}
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          if (expanded) {
-                            setExpandedId(null);
-                            return;
-                          }
-                          setContentDraftById((p) =>
-                            p[n.id] !== undefined ? p : { ...p, [n.id]: n.content ?? '' },
-                          );
-                          setExpandedId(n.id);
-                        }}
-                      >
-                        {expanded ? 'Close' : 'Edit'}
-                      </Button>
-                      {expanded && (
-                        <Button
-                          type="button"
-                          variant={showPreviewById[n.id] ? 'outline' : 'ghost'}
-                          size="sm"
-                          onClick={() => setShowPreviewById((p) => ({ ...p, [n.id]: !p[n.id] }))}
-                        >
-                          {showPreviewById[n.id] ? 'Hide preview' : 'Preview'}
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        onClick={() => updateMutation.mutate({ id: n.id, isPublished: !n.isPublished })}
-                        disabled={updateMutation.isPending}
-                      >
-                        {n.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        {n.isPublished ? 'Unpublish' : 'Publish'}
-                      </Button>
-                      <Button
-                        variant={n.featured ? 'outline' : 'ghost'}
-                        onClick={() => updateMutation.mutate({ id: n.id, featured: true })}
-                        disabled={updateMutation.isPending}
-                        title="Set as featured (only one)"
-                      >
-                        <Star className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="text-red-400"
-                        onClick={() => {
-                          if (confirm(`Delete "${n.title}"?`)) deleteMutation.mutate(n.id);
-                        }}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {expanded && (
-                    <div className="border-t border-slate-800/60 p-4 space-y-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <Input
-                          label="Title"
-                          defaultValue={n.title}
-                          onBlur={(e) => {
-                            const v = e.target.value.trim();
-                            if (v && v !== n.title) updateMutation.mutate({ id: n.id, title: v });
-                          }}
-                        />
-                        <Input
-                          label="Slug"
-                          defaultValue={n.slug}
-                          onBlur={(e) => {
-                            const v = e.target.value.trim();
-                            if (v && v !== n.slug) updateMutation.mutate({ id: n.id, slug: v });
-                          }}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
-                          <input
-                            className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-                            defaultValue={n.category ?? ''}
-                            onBlur={(e) => updateMutation.mutate({ id: n.id, category: e.target.value.trim() || null })}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="block text-sm font-medium text-slate-300 mb-1">Badge Variant</label>
-                          <select
-                            className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
-                            defaultValue={n.badgeVariant}
-                            onChange={(e) =>
-                              updateMutation.mutate({
-                                id: n.id,
-                                badgeVariant: e.target.value as NewsAdminItem['badgeVariant'],
-                              })
-                            }
+                      </td>
+                      <td className="py-3 px-4 align-top">
+                        <Badge variant={n.isPublished ? 'success' : 'warning'}>{n.isPublished ? 'Published' : 'Draft'}</Badge>
+                      </td>
+                      <td className="py-3 px-4 align-top">
+                        {n.featured ? <Badge variant="danger">Featured</Badge> : <span className="text-slate-500 text-sm">-</span>}
+                      </td>
+                      <td className="py-3 px-4 align-top text-sm text-slate-300">{formatDate(n.updatedAt ?? n.createdAt)}</td>
+                      <td className="py-3 px-4 align-top">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (expanded) {
+                                setExpandedId(null);
+                                return;
+                              }
+                              setContentDraftById((p) => (p[n.id] !== undefined ? p : { ...p, [n.id]: n.content ?? '' }));
+                              setExpandedId(n.id);
+                            }}
                           >
-                            <option value="danger">danger</option>
-                            <option value="warning">warning</option>
-                            <option value="info">info</option>
-                            <option value="default">default</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <Input
-                        label="Image URL"
-                        defaultValue={n.imageUrl ?? ''}
-                        onBlur={(e) => updateMutation.mutate({ id: n.id, imageUrl: e.target.value.trim() || null })}
-                      />
-
-                      <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Excerpt</label>
-                        <textarea
-                          className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[90px]"
-                          defaultValue={n.excerpt ?? ''}
-                          onBlur={(e) => updateMutation.mutate({ id: n.id, excerpt: e.target.value.trim() || null })}
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Content (HTML)</label>
-                        <RichHtmlEditor
-                          value={contentDraftById[n.id] ?? n.content ?? ''}
-                          onChange={(nextHtml) => setContentDraftById((p) => ({ ...p, [n.id]: nextHtml }))}
-                          placeholder="Write content..."
-                          minHeightClassName="min-h-[260px]"
-                        />
-                        <div className="flex items-center justify-end pt-2">
+                            {expanded ? 'Close' : 'Edit'}
+                          </Button>
+                          {expanded && (
+                            <Button
+                              type="button"
+                              variant={showPreviewById[n.id] ? 'outline' : 'ghost'}
+                              size="sm"
+                              onClick={() => setShowPreviewById((p) => ({ ...p, [n.id]: !p[n.id] }))}
+                            >
+                              {showPreviewById[n.id] ? 'Hide preview' : 'Preview'}
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              updateMutation.mutate({
-                                id: n.id,
-                                contentHtml: htmlToNullable(contentDraftById[n.id] ?? n.content ?? ''),
-                              })
-                            }
+                            onClick={() => updateMutation.mutate({ id: n.id, isPublished: !n.isPublished })}
                             disabled={updateMutation.isPending}
                           >
-                            <Save className="w-4 h-4" />
-                            Save content
+                            {n.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {n.isPublished ? 'Unpublish' : 'Publish'}
+                          </Button>
+                          <Button
+                            variant={n.featured ? 'outline' : 'ghost'}
+                            size="sm"
+                            onClick={() => updateMutation.mutate({ id: n.id, featured: !n.featured })}
+                            disabled={updateMutation.isPending}
+                          >
+                            <Star className="w-4 h-4" />
+                            {n.featured ? 'Featured' : 'Feature'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-400"
+                            onClick={() => {
+                              if (confirm(`Delete "${n.title}"?`)) deleteMutation.mutate(n.id);
+                            }}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
                           </Button>
                         </div>
+                      </td>
+                    </motion.tr>
+                  );
 
-                        {!!showPreviewById[n.id] && (
-                          <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-4 mt-2">
-                            <div
-                              className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-table:border prose-table:border-slate-700/60 prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60"
-                              dangerouslySetInnerHTML={{
-                                __html: sanitizeNewsHtml(contentDraftById[n.id] ?? n.content ?? ''),
-                              }}
+                  if (expanded) {
+                    rows.push(
+                      <tr key={`${n.id}__expanded`} className="border-b border-slate-800/60">
+                        <td colSpan={7} className="p-4 bg-slate-950/30">
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <Input
+                                label="Title"
+                                defaultValue={n.title}
+                                onBlur={(e) => {
+                                  const v = e.target.value.trim();
+                                  if (v && v !== n.title) updateMutation.mutate({ id: n.id, title: v });
+                                }}
+                              />
+                              <Input
+                                label="Slug"
+                                defaultValue={n.slug}
+                                onBlur={(e) => {
+                                  const v = e.target.value.trim();
+                                  if (v && v !== n.slug) updateMutation.mutate({ id: n.id, slug: v });
+                                }}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
+                                <input
+                                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                                  defaultValue={n.category ?? ''}
+                                  onBlur={(e) => updateMutation.mutate({ id: n.id, category: e.target.value.trim() || null })}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Badge Variant</label>
+                                <select
+                                  className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600"
+                                  defaultValue={n.badgeVariant}
+                                  onChange={(e) =>
+                                    updateMutation.mutate({
+                                      id: n.id,
+                                      badgeVariant: e.target.value as NewsAdminItem['badgeVariant'],
+                                    })
+                                  }
+                                >
+                                  <option value="danger">danger</option>
+                                  <option value="warning">warning</option>
+                                  <option value="info">info</option>
+                                  <option value="default">default</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <Input
+                              label="Image URL"
+                              defaultValue={n.imageUrl ?? ''}
+                              onBlur={(e) => updateMutation.mutate({ id: n.id, imageUrl: e.target.value.trim() || null })}
                             />
-                          </div>
-                        )}
-                      </div>
 
-                      {updateMutation.isError && (
-                        <div className="text-sm text-red-400">{getErrorMessage(updateMutation.error)}</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                            <div className="space-y-1.5">
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Excerpt</label>
+                              <textarea
+                                className="w-full px-4 py-3 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-white placeholder:text-slate-500 transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 hover:border-slate-600 min-h-[90px]"
+                                defaultValue={n.excerpt ?? ''}
+                                onBlur={(e) => updateMutation.mutate({ id: n.id, excerpt: e.target.value.trim() || null })}
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Content (HTML)</label>
+                              <RichHtmlEditor
+                                value={contentDraftById[n.id] ?? n.content ?? ''}
+                                onChange={(nextHtml) => setContentDraftById((p) => ({ ...p, [n.id]: nextHtml }))}
+                                placeholder="Write content..."
+                                minHeightClassName="min-h-[260px]"
+                              />
+                              <div className="flex items-center justify-end pt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    updateMutation.mutate({
+                                      id: n.id,
+                                      contentHtml: htmlToNullable(contentDraftById[n.id] ?? n.content ?? ''),
+                                    })
+                                  }
+                                  disabled={updateMutation.isPending}
+                                >
+                                  <Save className="w-4 h-4" />
+                                  Save content
+                                </Button>
+                              </div>
+
+                              {!!showPreviewById[n.id] && (
+                                <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 p-4 mt-2">
+                                  <div
+                                    className="prose prose-invert max-w-none prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-table:border prose-table:border-slate-700/60 prose-th:border prose-th:border-slate-700/60 prose-td:border prose-td:border-slate-700/60"
+                                    dangerouslySetInnerHTML={{
+                                      __html: sanitizeNewsHtml(contentDraftById[n.id] ?? n.content ?? ''),
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            {updateMutation.isError && <div className="text-sm text-red-400">{getErrorMessage(updateMutation.error)}</div>}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return rows;
+                })}
+              </tbody>
+            </table>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4">

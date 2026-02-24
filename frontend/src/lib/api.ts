@@ -258,7 +258,16 @@ export const newsApi = {
 
 // Admin News API (GM Panel)
 export const adminNewsApi = {
-  list: (data?: { q?: string; category?: string; onlyPublished?: boolean; page?: number; limit?: number }) =>
+  list: (data?: {
+    q?: string;
+    category?: string;
+    onlyPublished?: boolean;
+    published?: boolean;
+    featured?: boolean;
+    badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
+    page?: number;
+    limit?: number;
+  }) =>
     api.post('/admin/news/list', data ?? {}),
   create: (data: {
     title: string;

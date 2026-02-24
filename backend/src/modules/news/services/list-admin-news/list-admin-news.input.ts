@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, IsInt, Max, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class ListAdminNewsInputDTO {
   @IsOptional()
@@ -15,6 +15,18 @@ export class ListAdminNewsInputDTO {
   @IsOptional()
   @IsBoolean()
   public onlyPublished?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  public published?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  public featured?: boolean;
+
+  @IsOptional()
+  @IsIn(['default', 'info', 'warning', 'danger'])
+  public badgeVariant?: 'default' | 'info' | 'warning' | 'danger';
 
   @IsOptional()
   @Transform(({ value }) => (value == null ? undefined : Number(value)))
