@@ -1,1724 +1,2746 @@
 {
-  "info": {
-    "_postman_id": "92362c39-c4b2-4bfb-9be3-ab51cbdc8e72",
-    "name": "Vortex API",
-    "description": "Complete collection for all Vortex backend routes with filled JSON bodies.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "28829636",
-    "_collection_link": "https://go.postman.co/collection/28829636-92362c39-c4b2-4bfb-9be3-ab51cbdc8e72?source=collection_link"
-  },
-  "item": [
-    {
-      "name": "Auth",
-      "item": [
+    "info": {
+        "_postman_id": "b5d7e1f2-c3a4-4d6e-8f9a-0b1c2d3e4f5a",
+        "name": "Vortex API",
+        "description": "Coleção completa da API Vortex com todos os endpoints disponíveis. Inclui autenticação JWT, gestão de admin, news, events, cases, webgame e launcher.\n\n**Base URL:** {{BASE_URL}}\n**Autenticação:** JWT Bearer Token\n**Versão:** 1.0.0",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "28829636"
+    },
+    "item": [
         {
-          "name": "Sign In",
-          "event": [
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "Sign In (Login)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const { data } = pm.response.json();",
+                                    "",
+                                    "// Salva tokens",
+                                    "pm.environment.set(\"TOKEN\", data.token);",
+                                    "pm.environment.set(\"REFRESH_TOKEN\", data.refreshToken);",
+                                    "pm.environment.set(\"USERNAME\", data.username);"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {},
+                                "requests": {}
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"{{USERNAME}}\",\n  \"password\": \"{{PASSWORD}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/auth/sign-in",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "sign-in"
+                            ]
+                        },
+                        "description": "Realiza login e retorna tokens de acesso e refresh.\n\n**Requisitos:**\n- username (max 100 chars)\n- password (max 128 chars)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Sign Up (Registro)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"{{USERNAME}}\",\n  \"email\": \"{{EMAIL}}\",\n  \"password\": \"{{PASSWORD}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/auth/sign-up",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "sign-up"
+                            ]
+                        },
+                        "description": "Registra um novo usuário no sistema.\n\n**Campos Obrigatórios:**\n- username (max 100 chars)\n- email (email format, max 255 chars)\n- password (max 16 chars)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const { data } = pm.response.json();",
+                                    "",
+                                    "// Salva tokens",
+                                    "pm.environment.set(\"TOKEN\", data.token);",
+                                    "pm.environment.set(\"REFRESH_TOKEN\", data.refreshToken);"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {},
+                                "requests": {}
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/auth/refresh-token",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "refresh-token"
+                            ]
+                        },
+                        "description": "Renova o token de acesso usando o refresh token."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/auth/profile",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "profile"
+                            ]
+                        },
+                        "description": "Obtém o perfil do usuário autenticado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"newPassword\": \"NewP@ssw0rd123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/auth/reset-password",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "Altera a senha do usuário autenticado.\n\n**Body:**\n- newPassword (string, obrigatório, max 16 chars)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints de autenticação (Login, Registro, Refresh Token)"
+        },
+        {
+            "name": "2. News",
+            "item": [
+                {
+                    "name": "List News",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/news?page=1&limit=10",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "news"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Número da página (default: 1)"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Itens por página (default: 10, max: 50)"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "",
+                                    "description": "Filtro por categoria"
+                                }
+                            ]
+                        },
+                        "description": "Lista notícias públicas com paginação."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get News by ID or Slug",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/news/:idOrSlug",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "news",
+                                ":idOrSlug"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "idOrSlug",
+                                    "value": "",
+                                    "description": "ID ou slug da notícia"
+                                }
+                            ]
+                        },
+                        "description": "Obtém uma notícia por ID ou slug."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints públicos de notícias"
+        },
+        {
+            "name": "3. Launcher",
+            "item": [
+                {
+                    "name": "Get Config",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/launcher/config?limit=10",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "launcher",
+                                "config"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Limite de notícias (1-50)"
+                                }
+                            ]
+                        },
+                        "description": "Obtém configuração do launcher e notícias."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get News",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/launcher/news?limit=10",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "launcher",
+                                "news"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Limite de notícias (1-50)"
+                                }
+                            ]
+                        },
+                        "description": "Lista notícias para o launcher."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get News by ID or Slug",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/launcher/news/:idOrSlug",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "launcher",
+                                "news",
+                                ":idOrSlug"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "idOrSlug",
+                                    "value": "",
+                                    "description": "ID ou slug da notícia"
+                                }
+                            ]
+                        },
+                        "description": "Obtém uma notícia do launcher por ID ou slug."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints do launcher (públicos)"
+        },
+        {
+            "name": "4. Events",
+            "item": [
+                {
+                    "name": "List Events",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"q\": \"\",\n  \"category\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/events/list",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "events",
+                                "list"
+                            ]
+                        },
+                        "description": "Lista eventos públicos com paginação."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Event by Slug",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/events/slug/:slug",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "events",
+                                "slug",
+                                ":slug"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "slug",
+                                    "value": "",
+                                    "description": "Slug do evento"
+                                }
+                            ]
+                        },
+                        "description": "Obtém um evento por slug."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Rewards",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/events/rewards",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "events",
+                                "rewards"
+                            ]
+                        },
+                        "description": "Obtém recompensas ativas do usuário autenticado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Redeem Event",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"eventId\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/events/redeem",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "events",
+                                "redeem"
+                            ]
+                        },
+                        "description": "Resgata uma recompensa de evento.\n\n**Body:**\n- eventId (string, obrigatório)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints de eventos"
+        },
+        {
+            "name": "5. Cases (Support)",
+            "item": [
+                {
+                    "name": "Create Case",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"subject\": \"Cannot login to my account\",\n  \"category\": \"ACCOUNT\",\n  \"priority\": \"MEDIUM\",\n  \"message\": \"I receive error XYZ when signing in.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/cases",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "cases"
+                            ]
+                        },
+                        "description": "Cria um novo caso de suporte.\n\n**Body:**\n- subject (string, obrigatório, max 140 chars)\n- category (opcional: ACCOUNT, BUG, REPORT, OTHER)\n- priority (opcional: LOW, MEDIUM, HIGH)\n- message (string, obrigatório)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List My Cases",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/cases/my?page=1&limit=25",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "cases",
+                                "my"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "25"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "description": "Filtro por status"
+                                }
+                            ]
+                        },
+                        "description": "Lista casos do usuário autenticado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Case by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/cases/:id",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "cases",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Obtém um caso específico do usuário."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Message to Case",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"Any updates on this?\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/cases/:id/messages",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "cases",
+                                ":id",
+                                "messages"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Adiciona mensagem a um caso."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Close Case",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/cases/:id/close",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "cases",
+                                ":id",
+                                "close"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Fecha um caso pelo usuário."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints de casos de suporte"
+        },
+        {
+            "name": "6. WebGame",
+            "item": [
+                {
+                    "name": "Get Coins",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/webgame/coins",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "webgame",
+                                "coins"
+                            ]
+                        },
+                        "description": "Obtém moedas do webgame do usuário."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start Game",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"type\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/webgame/start",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "webgame",
+                                "start"
+                            ]
+                        },
+                        "description": "Inicia uma sessão de webgame.\n\n**Body:**\n- type (string, obrigatório - tipo do jogo)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Game",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"action\": \"\",\n  \"data\": {}\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/webgame/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "webgame",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza estado do webgame.\n\n**Body:**\n- action (string, obrigatório)\n- data (object, opcional)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints do webgame"
+        },
+        {
+            "name": "7. Admin - Accounts",
+            "item": [
+                {
+                    "name": "Get Accounts",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/accounts?page=1&limit=50",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "accounts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                }
+                            ]
+                        },
+                        "description": "Lista contas (requer admin)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Account",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account"
+                            ]
+                        },
+                        "description": "Obtém detalhes de uma conta."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Account",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"password\": \"\",\n  \"disp_name\": \"\",\n  \"cp\": 0,\n  \"ticket_count\": 0,\n  \"user_level\": 0,\n  \"enabled\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza uma conta."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add CP",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"amount\": 100,\n  \"reason\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/add-cp",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "add-cp"
+                            ]
+                        },
+                        "description": "Adiciona CP a uma conta."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Schedule CP",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"amount\": 100,\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/schedule-cp",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "schedule-cp"
+                            ]
+                        },
+                        "description": "Agenda envio de CP."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Scheduled CP",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"status\": \"\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/scheduled-cp",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "scheduled-cp"
+                            ]
+                        },
+                        "description": "Lista CP agendados."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Scheduled CP",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/scheduled-cp/cancel",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "scheduled-cp",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Cancela um CP agendado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Scheduled CP",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\",\n  \"amount\": 100,\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/scheduled-cp/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "scheduled-cp",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza um CP agendado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Account",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/delete",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "delete"
+                            ]
+                        },
+                        "description": "Exclui uma conta."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Account Characters",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/characters",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "characters"
+                            ]
+                        },
+                        "description": "Lista personagens de uma conta."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Account Character",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"characterUid\": \"\",\n  \"points\": 0,\n  \"name\": \"\",\n  \"lnc\": 0,\n  \"loginPoints\": 0,\n  \"revive\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/character/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "character",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza um personagem."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Lookup by Character Name",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"characterName\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/account/lookup-by-character-name",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "account",
+                                "lookup-by-character-name"
+                            ]
+                        },
+                        "description": "Busca conta por nome do personagem."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de contas (admin)"
+        },
+        {
+            "name": "8. Admin - Game",
+            "item": [
+                {
+                    "name": "Get Worlds",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/worlds",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "worlds"
+                            ]
+                        },
+                        "description": "Lista mundos do jogo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Kick Player",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"kick_level\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/kick-player",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "kick-player"
+                            ]
+                        },
+                        "description": "Expulsa um jogador (kick_level 1-3)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Message World",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"world_id\": 1,\n  \"message\": \"\",\n  \"type\": \"console\",\n  \"from\": \"SYSTEM\",\n  \"mode\": 0,\n  \"sub_mode\": 0\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/message-world",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "message-world"
+                            ]
+                        },
+                        "description": "Envia mensagem para um mundo (type: console ou ticker)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Online",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"targets\": [\n    {\n      \"name\": \"\",\n      \"type\": \"account\",\n      \"world_id\": 0\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/online",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "online"
+                            ]
+                        },
+                        "description": "Verifica se contas/personagens estão online."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Post Items",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"\",\n  \"cp\": 0,\n  \"products\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/post-items",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "post-items"
+                            ]
+                        },
+                        "description": "Envia itens para uma conta."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão do jogo (admin)"
+        },
+        {
+            "name": "9. Admin - Bundles",
+            "item": [
+                {
+                    "name": "Create Bundle",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"\",\n  \"description\": \"\",\n  \"cpCost\": 0,\n  \"products\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/create",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "create"
+                            ]
+                        },
+                        "description": "Cria um bundle de itens."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Bundles",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"q\": \"\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/list",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "list"
+                            ]
+                        },
+                        "description": "Lista bundles."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Bundle",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\",\n  \"name\": \"\",\n  \"description\": \"\",\n  \"cpCost\": 0,\n  \"products\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza um bundle."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Bundle",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/delete",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "delete"
+                            ]
+                        },
+                        "description": "Exclui um bundle."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Schedule Bundle Send",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"bundleId\": \"\",\n  \"usernames\": [],\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/send",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "send"
+                            ]
+                        },
+                        "description": "Agenda envio de bundle para usuários."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Bundle Sends",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"bundleId\": \"\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/sends",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "sends"
+                            ]
+                        },
+                        "description": "Lista envios de bundles."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Bundle Send",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/bundles/sends/cancel",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "bundles",
+                                "sends",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Cancela um envio de bundle."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de bundles (admin)"
+        },
+        {
+            "name": "10. Admin - Promos",
+            "item": [
+                {
+                    "name": "Get Promos",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promos?page=1&limit=50",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promos"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                }
+                            ]
+                        },
+                        "description": "Lista promoções."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Promo Insights",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promos/insights?page=1&limit=50",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promos",
+                                "insights"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                }
+                            ]
+                        },
+                        "description": "Obtém insights das promoções."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Promo",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"\",\n  \"startTime\": 1700000000,\n  \"endTime\": 1700000000,\n  \"useLimit\": 1,\n  \"limitType\": \"account\",\n  \"items\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promo/create",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promo",
+                                "create"
+                            ]
+                        },
+                        "description": "Cria uma promoção."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Promo",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promo/delete",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promo",
+                                "delete"
+                            ]
+                        },
+                        "description": "Exclui uma promoção."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Many Promos",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"codes\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promo/delete-many",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promo",
+                                "delete-many"
+                            ]
+                        },
+                        "description": "Exclui múltiplas promoções."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete All Promos",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"confirm\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/promo/delete-all",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "promo",
+                                "delete-all"
+                            ]
+                        },
+                        "description": "Exclui todas as promoções (confirm: true)."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de promoções (admin)"
+        },
+        {
+            "name": "11. Admin - News",
+            "item": [
+                {
+                    "name": "List News",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"q\": \"\",\n  \"category\": \"\",\n  \"onlyPublished\": false,\n  \"published\": false,\n  \"featured\": false,\n  \"badgeVariant\": \"default\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/news/list",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "news",
+                                "list"
+                            ]
+                        },
+                        "description": "Lista notícias (admin)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create News",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"\",\n  \"slug\": \"\",\n  \"excerpt\": \"\",\n  \"content\": \"\",\n  \"contentHtml\": \"\",\n  \"category\": \"\",\n  \"badgeVariant\": \"default\",\n  \"badgeColor\": \"\",\n  \"badgeTextColor\": \"\",\n  \"featured\": false,\n  \"readTime\": \"\",\n  \"imageUrl\": \"\",\n  \"cardImageUrl\": \"\",\n  \"heroImageUrl\": \"\",\n  \"isPublished\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/news/create",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "news",
+                                "create"
+                            ]
+                        },
+                        "description": "Cria uma notícia."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update News",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\",\n  \"title\": \"\",\n  \"slug\": \"\",\n  \"excerpt\": \"\",\n  \"content\": \"\",\n  \"contentHtml\": \"\",\n  \"category\": \"\",\n  \"badgeVariant\": \"default\",\n  \"badgeColor\": \"\",\n  \"badgeTextColor\": \"\",\n  \"featured\": false,\n  \"readTime\": \"\",\n  \"imageUrl\": \"\",\n  \"cardImageUrl\": \"\",\n  \"heroImageUrl\": \"\",\n  \"isPublished\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/news/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "news",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza uma notícia."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete News",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/news/delete",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "news",
+                                "delete"
+                            ]
+                        },
+                        "description": "Exclui uma notícia."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de notícias (admin)"
+        },
+        {
+            "name": "12. Admin - Launcher",
+            "item": [
+                {
+                    "name": "Update Config",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"heroSubtitle\": \"\",\n  \"heroSubtitleColor\": \"\",\n  \"heroTitle\": \"\",\n  \"heroDescription\": \"\",\n  \"playButtonBackground\": \"\",\n  \"playButtonHoverBackground\": \"\",\n  \"playButtonTextColor\": \"\",\n  \"backgroundUrl\": \"\",\n  \"backgroundAlt\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/launcher/config",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "launcher",
+                                "config"
+                            ]
+                        },
+                        "description": "Atualiza configuração do launcher."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão do launcher (admin)"
+        },
+        {
+            "name": "13. Admin - Events",
+            "item": [
+                {
+                    "name": "List Events",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"q\": \"\",\n  \"category\": \"\",\n  \"status\": \"\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/events/list",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "events",
+                                "list"
+                            ]
+                        },
+                        "description": "Lista eventos (admin)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Event",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"\",\n  \"slug\": \"\",\n  \"excerpt\": \"\",\n  \"contentHtml\": \"\",\n  \"category\": \"\",\n  \"imageUrl\": \"\",\n  \"status\": \"PUBLISHED\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-12-31\",\n  \"hasRewards\": false,\n  \"rewardType\": \"\",\n  \"rewardPayload\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/events/create",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "events",
+                                "create"
+                            ]
+                        },
+                        "description": "Cria um evento."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Event",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\",\n  \"title\": \"\",\n  \"slug\": \"\",\n  \"excerpt\": \"\",\n  \"contentHtml\": \"\",\n  \"category\": \"\",\n  \"imageUrl\": \"\",\n  \"status\": \"PUBLISHED\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-12-31\",\n  \"hasRewards\": false,\n  \"rewardType\": \"\",\n  \"rewardPayload\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/events/update",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "events",
+                                "update"
+                            ]
+                        },
+                        "description": "Atualiza um evento."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Event",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/events/delete",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "events",
+                                "delete"
+                            ]
+                        },
+                        "description": "Exclui um evento."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de eventos (admin)"
+        },
+        {
+            "name": "14. Admin - Cases",
+            "item": [
+                {
+                    "name": "List Cases",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/cases?page=1&limit=25",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "cases"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "25"
+                                },
+                                {
+                                    "key": "q",
+                                    "value": "",
+                                    "description": "Busca"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "description": "Filtro por status"
+                                }
+                            ]
+                        },
+                        "description": "Lista todos os casos (admin)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Case by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/cases/:id",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "cases",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Obtém um caso específico (admin)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Admin Message",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/cases/:id/messages",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "cases",
+                                ":id",
+                                "messages"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Adiciona mensagem admin a um caso."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Resolve Case",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/admin/cases/:id/resolve",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "cases",
+                                ":id",
+                                "resolve"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "",
+                                    "description": "ID do caso"
+                                }
+                            ]
+                        },
+                        "description": "Resolve um caso (admin)."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestão de casos de suporte (admin)"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const jsonData = pm.response.json();",
-                  "",
-                  "if (jsonData && jsonData.data && jsonData.data.token) {",
-                  "    pm.environment.set(\"token\", jsonData.data.token); pm.environment.set(\"TOKEN\", jsonData.data.token);",
-                  "    console.log(\"TOKEN salvo no ambiente:\", jsonData.data.token);",
-                  "} else {",
-                  "    console.warn(\"Token não encontrado na resposta.\");",
-                  "}"
-                ],
+                "key": "token",
+                "value": "{{TOKEN}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
+                "exec": [
+                    ""
+                ]
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/sign-in",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "sign-in"
-              ]
-            }
-          },
-          "response": []
         },
         {
-          "name": "Sign Up",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"P@ssw0rd123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/sign-up",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "sign-up"
-              ]
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/refresh-token",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "refresh-token"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Profile",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "profile"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reset Password",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"newPassword\": \"N3wP@ssw0rd\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "reset-password"
-              ]
-            }
-          },
-          "response": []
         }
-      ]
-    },
-    {
-      "name": "WebGame",
-      "item": [
+    ],
+    "variable": [
         {
-          "name": "Get Coins",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/webgame/coins",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "webgame",
-                "coins"
-              ]
-            }
-          },
-          "response": []
+            "key": "base_url",
+            "value": "http://localhost:3000",
+            "type": "string"
         },
         {
-          "name": "Start",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"daily_spin\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/webgame/start",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "webgame",
-                "start"
-              ]
-            }
-          },
-          "response": []
+            "key": "TOKEN",
+            "value": "",
+            "type": "string"
         },
         {
-          "name": "Update",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"action\": \"spin_wheel\",\n  \"data\": {\n    \"speed\": 5\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/webgame/update",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "webgame",
-                "update"
-              ]
-            }
-          },
-          "response": []
+            "key": "REFRESH_TOKEN",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "USERNAME",
+            "value": "admin",
+            "type": "string"
+        },
+        {
+            "key": "EMAIL",
+            "value": "admin@example.com",
+            "type": "string"
+        },
+        {
+            "key": "PASSWORD",
+            "value": "",
+            "type": "string"
         }
-      ]
-    },
-    {
-      "name": "News",
-      "item": [
-        {
-          "name": "List News",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/news?q=&category=&page=1&limit=25",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "news"
-              ],
-              "query": [
-                {
-                  "key": "q",
-                  "value": ""
-                },
-                {
-                  "key": "category",
-                  "value": ""
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "25"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get News By ID or Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/news/:idOrSlug",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "news",
-                ":idOrSlug"
-              ],
-              "variable": [
-                {
-                  "key": "idOrSlug",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Launcher",
-      "item": [
-        {
-          "name": "Get Config",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/launcher/config?limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "launcher",
-                "config"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Max news items (1-50)"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List News",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/launcher/news?limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "launcher",
-                "news"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Max news items (1-50)"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get News By ID or Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/launcher/news/:idOrSlug",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "launcher",
-                "news",
-                ":idOrSlug"
-              ],
-              "variable": [
-                {
-                  "key": "idOrSlug",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Cases",
-      "item": [
-        {
-          "name": "Create Case",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"subject\": \"Cannot login to my account\",\n  \"category\": \"ACCOUNT\",\n  \"priority\": \"MEDIUM\",\n  \"message\": \"I receive an error XYZ when signing in.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/cases",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "cases"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List My Cases",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/cases/my?q=&status=OPEN&page=1&limit=25",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "cases",
-                "my"
-              ],
-              "query": [
-                {
-                  "key": "q",
-                  "value": ""
-                },
-                {
-                  "key": "status",
-                  "value": "OPEN"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "25"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get My Case",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/cases/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "cases",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Add Case Message",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"Any updates on this?\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/cases/:id/messages",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "cases",
-                ":id",
-                "messages"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Close Case",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/cases/:id/close",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "cases",
-                ":id",
-                "close"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Admin",
-      "item": [
-        {
-          "name": "Accounts & Global",
-          "item": [
-            {
-              "name": "Get Accounts",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/accounts?q=&page=1&limit=50",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts"
-                  ],
-                  "query": [
-                    {
-                      "key": "q",
-                      "value": ""
-                    },
-                    {
-                      "key": "page",
-                      "value": "1"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Worlds",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/worlds",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "worlds"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Account",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Account",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"newpass\",\n  \"disp_name\": \"Admin\",\n  \"cp\": 500,\n  \"ticket_count\": 5,\n  \"user_level\": 1000,\n  \"enabled\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/update",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "update"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Add CP",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"amount\": 100,\n  \"reason\": \"Event participation\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/add-cp",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "add-cp"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Schedule CP",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"amount\": 100,\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"Winner reward\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/schedule-cp",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "schedule-cp"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "List Scheduled CP",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"status\": \"PENDING\",\n  \"page\": 1,\n  \"limit\": 50\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/scheduled-cp",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "scheduled-cp"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Cancel Scheduled CP",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/scheduled-cp/cancel",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "scheduled-cp",
-                    "cancel"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Scheduled CP",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\",\n  \"amount\": 200,\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"Updated reason\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/scheduled-cp/update",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "scheduled-cp",
-                    "update"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Account",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/delete",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "delete"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "List Account Characters",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/characters",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "characters"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Account Character",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"characterUid\": \"uuid-string\",\n  \"points\": 10000,\n  \"name\": \"[GM] Test\",\n  \"lnc\": 50,\n  \"loginPoints\": 5,\n  \"revive\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/character/update",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "character",
-                    "update"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Lookup Account By Character Name",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"characterName\": \"[GM] Test\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/account/lookup-by-character-name",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "account",
-                    "lookup-by-character-name"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Kick Player",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"kick_level\": 1\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/kick-player",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "kick-player"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Message World",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"world_id\": 0,\n  \"message\": \"System Maintenance in 5 minutes!\",\n  \"type\": \"console\",\n  \"from\": \"SYSTEM\",\n  \"mode\": 0,\n  \"sub_mode\": 0\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/message-world",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "message-world"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Online",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"targets\": [\n    {\n      \"name\": \"testuser\",\n      \"type\": \"account\",\n      \"world_id\": 0\n    }\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/online",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "online"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Post Items",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"cp\": 0,\n  \"products\": [\n    12345,\n    67890\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/post-items",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "post-items"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Item Bundles",
-          "item": [
-            {
-              "name": "Create Bundle",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Starter Bundle\",\n  \"description\": \"Awesome starter items\",\n  \"cpCost\": 0,\n  \"products\": [\n    111,\n    222\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/create",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "create"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "List Bundles",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"q\": \"\",\n  \"page\": 1,\n  \"limit\": 50\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/list",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "list"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Bundle",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\",\n  \"name\": \"Pro Bundle\",\n  \"description\": \"Updated description\",\n  \"cpCost\": 100,\n  \"products\": [\n    333,\n    444\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/update",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "update"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Bundle",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/delete",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "delete"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Schedule Bundle Send",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"bundleId\": \"uuid-string-here\",\n  \"usernames\": [\n    \"testuser\"\n  ],\n  \"scheduledAtMs\": 1700000000000,\n  \"reason\": \"Event Participant Reward\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/send",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "send"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "List Bundle Sends",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"bundleId\": \"uuid-string-here\",\n  \"page\": 1,\n  \"limit\": 50\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/sends",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "sends"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Cancel Bundle Send",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/bundles/sends/cancel",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "bundles",
-                    "sends",
-                    "cancel"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Promos",
-          "item": [
-            {
-              "name": "Get Promos",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promos?q=&page=1&limit=50",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promos"
-                  ],
-                  "query": [
-                    {
-                      "key": "q",
-                      "value": ""
-                    },
-                    {
-                      "key": "page",
-                      "value": "1"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Promo Insights",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promos/insights?q=&page=1&limit=50",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promos",
-                    "insights"
-                  ],
-                  "query": [
-                    {
-                      "key": "q",
-                      "value": ""
-                    },
-                    {
-                      "key": "page",
-                      "value": "1"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Promo",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"code\": \"FREEGIFTS\",\n  \"startTime\": 1700000000,\n  \"endTime\": 1790000000,\n  \"useLimit\": 1,\n  \"limitType\": \"account\",\n  \"items\": [\n    12345\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promo/create",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promo",
-                    "create"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Promo",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"code\": \"FREEGIFTS\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promo/delete",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promo",
-                    "delete"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Many Promos",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"codes\": [\n    \"FREEGIFTS\",\n    \"CODE2\"\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promo/delete-many",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promo",
-                    "delete-many"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete All Promos",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"confirm\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/promo/delete-all",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "promo",
-                    "delete-all"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "News (Admin)",
-          "item": [
-            {
-              "name": "List News",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"q\": \"\",\n  \"category\": \"Updates\",\n  \"onlyPublished\": true,\n  \"page\": 1,\n  \"limit\": 50\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/news/list",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "news",
-                    "list"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create News",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Major Update Incoming\",\n  \"slug\": \"major-update\",\n  \"excerpt\": \"Here is what you need to know...\",\n  \"content\": \"Full HTML or markdown content here\",\n  \"category\": \"Patch Notes\",\n  \"badgeVariant\": \"info\",\n  \"badgeColor\": \"#3b82f6\",\n  \"badgeTextColor\": \"#ffffff\",\n  \"featured\": true,\n  \"readTime\": \"5 min\",\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"isPublished\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/news/create",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "news",
-                    "create"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update News",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\",\n  \"title\": \"Updated Title\",\n  \"badgeColor\": \"#3b82f6\",\n  \"badgeTextColor\": \"#ffffff\",\n  \"isPublished\": false\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/news/update",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "news",
-                    "update"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete News",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"uuid-string-here\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/news/delete",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "news",
-                    "delete"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Cases (Admin)",
-          "item": [
-            {
-              "name": "List All Cases",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/cases?q=&status=OPEN&page=1&limit=50",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "cases"
-                  ],
-                  "query": [
-                    {
-                      "key": "q",
-                      "value": ""
-                    },
-                    {
-                      "key": "status",
-                      "value": "OPEN"
-                    },
-                    {
-                      "key": "page",
-                      "value": "1"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Case",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/cases/:id",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "cases",
-                    ":id"
-                  ],
-                  "variable": [
-                    {
-                      "key": "id",
-                      "value": "1"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Add Case Message",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"message\": \"We are looking into it!\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/cases/:id/messages",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "cases",
-                    ":id",
-                    "messages"
-                  ],
-                  "variable": [
-                    {
-                      "key": "id",
-                      "value": "1"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Resolve Case",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"message\": \"Issue has been fixed.\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/cases/:id/resolve",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "cases",
-                    ":id",
-                    "resolve"
-                  ],
-                  "variable": [
-                    {
-                      "key": "id",
-                      "value": "1"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Launcher (Admin)",
-          "item": [
-            {
-              "name": "Update Config",
-              "request": {
-                "method": "PUT",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"heroSubtitle\": \"PLAY FOR FREE\",\n  \"heroSubtitleColor\": \"#ffffff\",\n  \"heroTitle\": \"Prometheon\",\n  \"heroDescription\": \"Explore a living world, master your skills, craft your gear, and face epic challenges in an MMORPG built for adventure.\",\n  \"playButtonBackground\": \"#3b82f6\",\n  \"playButtonHoverBackground\": \"#2563eb\",\n  \"playButtonTextColor\": \"#ffffff\",\n  \"backgroundUrl\": \"/assets/launcher-bg.jpg\",\n  \"backgroundAlt\": \"Game background\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/launcher/config",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "launcher",
-                    "config"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
     ]
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:6005",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string"
-    }
-  ]
 }
