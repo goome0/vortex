@@ -15,6 +15,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { NewsModule } from './modules/news/news.module';
+import { StatusModule } from './modules/status/status.module';
 import { WebGameModule } from './modules/webgame/webgame.module';
 
 @Module({
@@ -66,6 +67,7 @@ import { WebGameModule } from './modules/webgame/webgame.module';
     DatabaseRepositoriesModule,
     AuthModule,
     NewsModule,
+    StatusModule,
     AdminModule,
     CasesModule,
     WebGameModule,
